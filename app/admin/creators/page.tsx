@@ -284,9 +284,7 @@ function AdjustPointsDialog({ creator }: { creator: any }) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Adjust Points</DialogTitle>
-          <DialogDescription>
-            Add or remove points for {creator.name}.
-          </DialogDescription>
+          <DialogDescription>Add or remove points for {creator.name}.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="flex items-center gap-4">
@@ -296,7 +294,7 @@ function AdjustPointsDialog({ creator }: { creator: any }) {
               <p className="text-sm text-muted-foreground">Current Points: {creator.points}</p>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="points">Points</Label>
@@ -311,7 +309,21 @@ function AdjustPointsDialog({ creator }: { creator: any }) {
                 <option value="add">Add Points</option>
                 <option value="remove">Remove Points</option>
               </select>
-            </div
+            </div>
+          </div>
 
-
-\
+          <div>
+            <Label htmlFor="reason">Reason</Label>
+            <Input id="reason" placeholder="Reason for adjusting points" />
+          </div>
+        </div>
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" type="button">
+            Cancel
+          </Button>
+          <Button type="button">Save Changes</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
