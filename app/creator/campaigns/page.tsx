@@ -41,7 +41,7 @@ const campaigns = [
     subtitle: "Share our commitment to sustainability",
     type: "Quick Share",
     status: "Joined",
-    color: "emerald",
+    color: "amber",
     timeRemaining: 15,
   },
   {
@@ -50,7 +50,7 @@ const campaigns = [
     subtitle: "Create a tutorial showing how to use our products",
     type: "Creative Challenge",
     status: "Joined",
-    color: "violet",
+    color: "cyan",
     timeRemaining: 10,
   },
   {
@@ -59,7 +59,7 @@ const campaigns = [
     subtitle: "Share behind-the-scenes content from your workplace",
     type: "Creative Challenge",
     status: "Joined",
-    color: "pink",
+    color: "rose",
     timeRemaining: 7,
   },
 ]
@@ -80,7 +80,6 @@ export default function CampaignsPage() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input type="search" placeholder="Search campaigns..." className="w-full bg-background pl-8" />
         </div>
-        <Button>Filter</Button>
       </div>
 
       <Tabs defaultValue="all" className="mb-6">

@@ -42,9 +42,6 @@ export function CampaignModal() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center">
-          <Button variant="ghost" size="icon" className="mr-2 h-8 w-8" onClick={() => setIsOpen(false)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
           <div className="flex-1">
             <DialogTitle className="text-xl">{campaignData.title}</DialogTitle>
             <DialogDescription>{campaignData.subtitle}</DialogDescription>

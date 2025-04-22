@@ -77,7 +77,7 @@ export default function SubmissionsPage() {
           <Card key={submission.id} className="overflow-hidden">
             <CardContent className="p-0">
               <div className="flex flex-col md:flex-row">
-                <div className="w-full md:w-[30%] h-48 md:h-auto">
+                <div className="w-full md:w-[20%] h-48 md:h-auto">
                   <img
                     src={submission.image || "/placeholder.svg"}
                     alt={submission.campaign}

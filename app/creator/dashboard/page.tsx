@@ -111,6 +111,36 @@ export default function CreatorDashboard() {
       {/* Active Campaigns */}
       <h2 className="text-xl font-semibold mb-4">Active Campaigns</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+
+        <Card className="overflow-hidden">
+          <div className="h-40 bg-gradient-to-r from-amber-400 to-amber-600 relative">
+            <div className="absolute bottom-3 left-3">
+              <Badge variant="secondary">Quick Share</Badge>
+            </div>
+          </div>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-semibold">Customer Stories</h3>
+                <p className="text-sm text-muted-foreground">Share testimonials from happy customers</p>
+              </div>
+              <CampaignStatusBadge status="Live" />
+            </div>
+            <div className="mt-4 flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">Ends in 8 days</div>
+              <Button
+                size="sm"
+                className="gap-1"
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent("open-campaign-modal", { detail: "customer-stories" }))
+                }
+              >
+                View <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="overflow-hidden">
           <div className="h-40 bg-gradient-to-r from-rose-400 to-rose-600 relative">
             <div className="absolute bottom-3 left-3">
@@ -169,34 +199,6 @@ export default function CreatorDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden">
-          <div className="h-40 bg-gradient-to-r from-amber-400 to-amber-600 relative">
-            <div className="absolute bottom-3 left-3">
-              <Badge variant="secondary">Quick Share</Badge>
-            </div>
-          </div>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold">Customer Stories</h3>
-                <p className="text-sm text-muted-foreground">Share testimonials from happy customers</p>
-              </div>
-              <CampaignStatusBadge status="Live" />
-            </div>
-            <div className="mt-4 flex justify-between items-center">
-              <div className="text-sm text-muted-foreground">Ends in 8 days</div>
-              <Button
-                size="sm"
-                className="gap-1"
-                onClick={() =>
-                  window.dispatchEvent(new CustomEvent("open-campaign-modal", { detail: "customer-stories" }))
-                }
-              >
-                View <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Recent Activity */}
