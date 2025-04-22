@@ -1,325 +1,261 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { ArrowLeft, Calendar, Clock, Download, Copy, FileText, Instagram } from "lucide-react"
-import { CampaignStatusBadge } from "@/components/campaign-status-badge"
-import { TikTokIcon } from "@/components/tik-tok-icon"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, Calendar, Clock, FileText, Instagram, Share2 } from "lucide-react"
+import { TikTokIcon } from "./tik-tok-icon"
+import { CampaignStatusBadge } from "./campaign-status-badge"
+
+// Mock campaign data - in a real app, this would come from an API
+const campaignData = {
+  "summer-launch": {
+    title: "Summer Product Launch",
+    description: "Share our new summer collection with your followers and highlight your favorite products.",
+    fullDescription:
+      "Our summer collection is here! We're looking for creators to share our new products with their followers. Choose your favorite items from the collection and create authentic content that showcases how they fit into your lifestyle.",
+    type: "Quick Share",
+    status: "Submitted",
+    platforms: ["Instagram"],
+    timeRemaining: "5 days",
+    points: 250,
+    requirements: [
+      "Post must include product from our summer collection",
+      "Include hashtag #SummerVibes",
+      "Tag our brand account @brandname",
+    ],
+    assets: [
+      { name: "Product Catalog", type: "PDF" },
+      { name: "Brand Guidelines", type: "PDF" },
+      { name: "Product Images", type: "ZIP" },
+    ],
+    submissionDate: "June 15, 2023",
+  },
+  "brand-challenge": {
+    title: "Brand Challenge",
+    description: "Create a video using our branded hashtag and show how you use our products in your daily life.",
+    fullDescription:
+      "We're challenging creators to show how our products fit into their daily routines. Create an engaging video that demonstrates the benefits of our products in a creative way.",
+    type: "Creative Challenge",
+    status: "Joined",
+    platforms: ["TikTok"],
+    timeRemaining: "12 days",
+    points: 350,
+    requirements: ["Video must be 15-60 seconds long", "Include hashtag #BrandChallenge", "Demonstrate product usage"],
+    assets: [
+      { name: "Challenge Brief", type: "PDF" },
+      { name: "Brand Guidelines", type: "PDF" },
+      { name: "Music Options", type: "MP3" },
+    ],
+    submissionDate: null,
+  },
+  "customer-stories": {
+    title: "Customer Stories",
+    description: "Share testimonials from happy customers and highlight how our products have made a difference.",
+    fullDescription:
+      "Help us showcase the real impact our products have on people's lives. Share authentic testimonials from customers who have experienced positive results with our products.",
+    type: "Quick Share",
+    status: "Live",
+    platforms: ["Instagram", "TikTok"],
+    timeRemaining: "8 days",
+    points: 300,
+    requirements: [
+      "Include at least one customer testimonial",
+      "Show before/after if applicable",
+      "Include hashtag #RealResults",
+    ],
+    assets: [
+      { name: "Testimonial Collection", type: "PDF" },
+      { name: "Brand Guidelines", type: "PDF" },
+    ],
+    submissionDate: "June 10, 2023",
+    publishedUrl: "https://www.instagram.com/p/ABC123",
+  },
+}
 
 export function CampaignModal() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [campaignSlug, setCampaignSlug] = useState("")
-  const [campaignData, setCampaignData] = useState<any>(null)
+  const [open, setOpen] = useState(false)
+  const [campaignSlug, setCampaignSlug] = useState<string | null>(null)
+  const campaign = campaignSlug ? campaignData[campaignSlug as keyof typeof campaignData] : null
 
   useEffect(() => {
-    // Listen for custom event to open modal
-    const handleOpenModal = (e: CustomEvent) => {
-      setCampaignSlug(e.detail)
-      setIsOpen(true)
+    const handleOpenModal = (event: Event) => {
+      const customEvent = event as CustomEvent
+      const slug = customEvent.detail
+      setCampaignSlug(slug)
+      setOpen(true)
     }
 
     window.addEventListener("open-campaign-modal", handleOpenModal as EventListener)
-
     return () => {
       window.removeEventListener("open-campaign-modal", handleOpenModal as EventListener)
     }
   }, [])
 
-  useEffect(() => {
-    if (campaignSlug) {
-      // In a real app, we would fetch campaign data based on the slug
-      // For this demo, we'll use hardcoded data
-      setCampaignData(getCampaignData(campaignSlug))
-    }
-  }, [campaignSlug])
-
-  if (!campaignData) return null
+  if (!campaign) return null
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center">
-          <div className="flex-1">
-            <DialogTitle className="text-xl">{campaignData.title}</DialogTitle>
-            <DialogDescription>{campaignData.subtitle}</DialogDescription>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-center gap-2 mb-1">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOpen(false)}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <DialogTitle className="text-xl">{campaign.title}</DialogTitle>
           </div>
-          <div className="flex items-center gap-2">
-            <CampaignStatusBadge status={campaignData.status} />
-            <Badge variant="secondary">{campaignData.type}</Badge>
+          <DialogDescription>{campaign.description}</DialogDescription>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <Badge variant="secondary">{campaign.type}</Badge>
+            <CampaignStatusBadge status={campaign.status} />
+            {campaign.platforms.map((platform) => (
+              <Badge key={platform} variant="outline">
+                {platform === "Instagram" ? (
+                  <Instagram className="h-3 w-3 mr-1" />
+                ) : (
+                  <TikTokIcon className="h-3 w-3 mr-1" />
+                )}
+                {platform}
+              </Badge>
+            ))}
           </div>
         </DialogHeader>
 
-        <div className="grid gap-6 md:grid-cols-3 mt-4">
-          <div className="md:col-span-2">
-            <div
-              className={`h-64 rounded-md bg-gradient-to-r from-${campaignData.color}-400 to-${campaignData.color}-600`}
-            ></div>
-            <div className="mt-6">
-              <h2 className="text-xl font-semibold mb-4">Campaign Details</h2>
-              <p className="mb-6">{campaignData.description}</p>
+        <Tabs defaultValue="details">
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="assets">Assets</TabsTrigger>
+            <TabsTrigger value="submission">Submission</TabsTrigger>
+          </TabsList>
 
-              <div className="grid gap-4 sm:grid-cols-2 mb-6">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Campaign Period</p>
-                    <p className="text-sm text-muted-foreground">{campaignData.period}</p>
-                  </div>
+          <TabsContent value="details">
+            <div className="space-y-4">
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <h3 className="font-medium">Campaign Description</h3>
+                  <p className="text-sm text-muted-foreground">{campaign.fullDescription}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Time Remaining</p>
-                    <p className="text-sm text-muted-foreground">Ends in {campaignData.timeRemaining} days</p>
-                  </div>
+
+                <div className="grid gap-2">
+                  <h3 className="font-medium">Requirements</h3>
+                  <ul className="list-disc pl-5 text-sm text-muted-foreground">
+                    {campaign.requirements.map((req, index) => (
+                      <li key={index}>{req}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">Points</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center gap-2">
+                      <span className="text-2xl font-bold">{campaign.points}</span>
+                      <span className="text-muted-foreground">points upon approval</span>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">Timeline</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span>Ends in {campaign.timeRemaining}</span>
+                      </div>
+                      {campaign.submissionDate && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span>Submitted on {campaign.submissionDate}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
+            </div>
+          </TabsContent>
 
-              {campaignData.type === "Quick Share" ? (
+          <TabsContent value="assets">
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Download these assets to help you create your content for this campaign.
+              </p>
+              <div className="grid gap-2">
+                {campaign.assets.map((asset, index) => (
+                  <Card key={index}>
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{asset.name}</p>
+                          <p className="text-xs text-muted-foreground">{asset.type} file</p>
+                        </div>
+                      </div>
+                      <Button size="sm">Download</Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="submission">
+            <div className="space-y-4">
+              {campaign.status === "Live" ? (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Campaign Assets</h3>
-                  <Tabs defaultValue="images">
-                    <TabsList>
-                      <TabsTrigger value="images">Images</TabsTrigger>
-                      <TabsTrigger value="videos">Videos</TabsTrigger>
-                      <TabsTrigger value="captions">Captions</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="images" className="pt-4">
-                      <div className="grid gap-4 grid-cols-2">
-                        <div className="border rounded-md p-2">
-                          <div className="aspect-square bg-slate-100 rounded-md mb-2"></div>
-                          <Button variant="outline" size="sm" className="w-full gap-1">
-                            <Download className="h-4 w-4" /> Download
-                          </Button>
-                        </div>
-                        <div className="border rounded-md p-2">
-                          <div className="aspect-square bg-slate-100 rounded-md mb-2"></div>
-                          <Button variant="outline" size="sm" className="w-full gap-1">
-                            <Download className="h-4 w-4" /> Download
-                          </Button>
-                        </div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Content Published</CardTitle>
+                      <CardDescription>Your content is live and being tracked</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-2 mb-4">
+                        <Share2 className="h-4 w-4 text-muted-foreground" />
+                        <a
+                          href={campaign.publishedUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {campaign.publishedUrl}
+                        </a>
                       </div>
-                    </TabsContent>
-                    <TabsContent value="videos" className="pt-4">
-                      <div className="grid gap-4 grid-cols-1">
-                        <div className="border rounded-md p-2">
-                          <div className="aspect-video bg-slate-100 rounded-md mb-2"></div>
-                          <Button variant="outline" size="sm" className="w-full gap-1">
-                            <Download className="h-4 w-4" /> Download
-                          </Button>
-                        </div>
-                      </div>
-                    </TabsContent>
-                    <TabsContent value="captions" className="pt-4">
-                      <div className="border rounded-md p-4 bg-slate-50">
-                        <p className="text-sm mb-4">{campaignData.caption}</p>
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <Copy className="h-4 w-4" /> Copy Caption
-                        </Button>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
+                      <Button variant="outline" className="w-full">
+                        Update Published URL
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : campaign.status === "Submitted" ? (
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-4">
+                    <FileText className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Submission Under Review</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Your content has been submitted and is currently being reviewed by the brand.
+                  </p>
+                  <Button variant="outline">View Submission</Button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Challenge Brief</h3>
-                  <div className="border rounded-md p-4 bg-slate-50">
-                    <p className="text-sm mb-4">{campaignData.brief}</p>
-                    <Button variant="outline" size="sm" className="gap-1">
-                      <FileText className="h-4 w-4" /> Download Brief PDF
-                    </Button>
-                  </div>
+                <div className="text-center py-8">
+                  <h3 className="text-lg font-medium mb-2">Ready to Submit?</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create and submit your content for this campaign to earn points.
+                  </p>
+                  <Button>Create Content</Button>
                 </div>
               )}
             </div>
-          </div>
-
-          <div>
-            <div className="border rounded-md p-4">
-              <h3 className="font-medium mb-3">Available Platforms</h3>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {campaignData.platforms.includes("instagram") && (
-                  <div className="flex items-center gap-1 px-3 py-1 bg-slate-100 rounded-full">
-                    <Instagram className="h-3.5 w-3.5" />
-                    <span className="text-sm">Instagram</span>
-                  </div>
-                )}
-                {campaignData.platforms.includes("tiktok") && (
-                  <div className="flex items-center gap-1 px-3 py-1 bg-slate-100 rounded-full">
-                    <TikTokIcon className="h-3.5 w-3.5" />
-                    <span className="text-sm">TikTok</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="border rounded-md p-4 mt-4">
-              <h3 className="font-medium mb-3">Points System</h3>
-              <p className="text-sm text-muted-foreground mb-2">Base points for posting + engagement bonus</p>
-              <ul className="text-sm space-y-1">
-                <li>• Base posting: 100 points</li>
-                <li>• Every 1,000 views: +50 points</li>
-                <li>• Every 100 likes: +25 points</li>
-              </ul>
-            </div>
-
-            <div className="border rounded-md p-4 mt-4">
-              <h3 className="font-medium mb-3">Requirements</h3>
-              <ul className="text-sm space-y-1 text-muted-foreground">
-                {campaignData.requirements.map((req: string, index: number) => (
-                  <li key={index}>• {req}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mt-4">
-              {campaignData.status === "Joined" && <Button className="w-full">Create Content Now</Button>}
-
-              {campaignData.status === "Submitted" && (
-                <div className="text-center text-sm text-muted-foreground p-3 border rounded-md">
-                  Your submission is under review
-                </div>
-              )}
-
-              {campaignData.status === "Approved" && <Button className="w-full">Submit Post URL</Button>}
-
-              {campaignData.status === "Live" && (
-                <Button variant="outline" className="w-full">
-                  View Analytics
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   )
-}
-
-function getCampaignData(slug: string) {
-  // This would be fetched from an API in a real application
-  const campaigns = {
-    "summer-launch": {
-      title: "Summer Product Launch",
-      subtitle: "Share our new summer collection",
-      description:
-        "Share our new summer collection with your followers and highlight your favorite products. This campaign aims to increase awareness of our latest seasonal offerings.",
-      type: "Quick Share",
-      platforms: ["instagram", "tiktok"],
-      color: "rose",
-      period: "July 1 - July 31, 2023",
-      timeRemaining: 5,
-      status: "Submitted",
-      caption:
-        "Summer is here and so is the new collection from @brandname! 🌞 Check out these amazing new products that are perfect for the season. #SummerCollection #BrandNameSummer #NewArrivals",
-      requirements: [
-        "Post must include product images provided",
-        "Caption must include #SummerCollection hashtag",
-        "Tag @brandname in your post",
-      ],
-    },
-    "brand-challenge": {
-      title: "Brand Challenge",
-      subtitle: "Create a video using our hashtag",
-      description:
-        "Create a video using our branded hashtag and show how you use our products in your daily life. Be creative and authentic to connect with your audience.",
-      type: "Creative Challenge",
-      platforms: ["instagram", "tiktok"],
-      color: "cyan",
-      period: "July 15 - August 15, 2023",
-      timeRemaining: 12,
-      status: "Joined",
-      brief:
-        "Create a 15-60 second video showing how our products fit into your daily routine. Focus on authentic usage scenarios that will resonate with your audience. The most creative submissions will be featured on our official brand account.",
-      requirements: [
-        "Video length: 15-60 seconds",
-        "Must include #BrandChallenge hashtag",
-        "Must feature at least one product",
-        "Content must be original and created specifically for this challenge",
-      ],
-    },
-    "customer-stories": {
-      title: "Customer Stories",
-      subtitle: "Share testimonials from happy customers",
-      description:
-        "Share testimonials from happy customers and highlight how our products have made a difference in their lives. Real stories create authentic connections.",
-      type: "Quick Share",
-      platforms: ["instagram", "tiktok"],
-      color: "amber",
-      period: "July 10 - August 10, 2023",
-      timeRemaining: 8,
-      status: "Live",
-      caption:
-        "Our customers love our products, and here's why! 💯 These testimonials show the real impact our solutions have made. What's your experience been like? #CustomerStories #RealResults #BrandName",
-      requirements: [
-        "Use provided testimonial graphics",
-        "Include #CustomerStories hashtag",
-        "Add a personal note about your own experience",
-      ],
-    },
-    sustainability: {
-      title: "Sustainability Initiative",
-      subtitle: "Share our commitment to sustainability",
-      description:
-        "Share our commitment to sustainability and how we're reducing our environmental impact. Help spread awareness about our eco-friendly practices.",
-      type: "Quick Share",
-      platforms: ["instagram", "tiktok"],
-      color: "emerald",
-      period: "July 20 - August 20, 2023",
-      timeRemaining: 15,
-      status: "Joined",
-      caption:
-        "Proud to be part of a company that prioritizes our planet! 🌎 Check out how @brandname is making a difference with sustainable practices and eco-friendly products. #SustainabilityMatters #EcoFriendly #GreenBusiness",
-      requirements: [
-        "Use provided sustainability infographics",
-        "Include #SustainabilityMatters hashtag",
-        "Mention at least one specific sustainability initiative",
-      ],
-    },
-    "product-tutorial": {
-      title: "Product Tutorial",
-      subtitle: "Create a tutorial showing how to use our products",
-      description:
-        "Create a tutorial showing how to use our products effectively and share your tips and tricks. Help others get the most out of their purchase.",
-      type: "Creative Challenge",
-      platforms: ["instagram", "tiktok"],
-      color: "violet",
-      period: "July 5 - August 5, 2023",
-      timeRemaining: 10,
-      status: "Joined",
-      brief:
-        "Create a step-by-step tutorial demonstrating how to use one of our products. Focus on helpful tips, creative uses, or solutions to common problems. Your tutorial should be informative yet engaging.",
-      requirements: [
-        "Video length: 30-90 seconds",
-        "Must include clear step-by-step instructions",
-        "Include #ProductTutorial hashtag",
-        "Demonstrate at least one unique tip or trick",
-      ],
-    },
-    "behind-scenes": {
-      title: "Behind the Scenes",
-      subtitle: "Share behind-the-scenes content from your workplace",
-      description:
-        "Share behind-the-scenes content from your workplace and how you use our products professionally. Give your audience a glimpse into your work life.",
-      type: "Creative Challenge",
-      platforms: ["instagram", "tiktok"],
-      color: "pink",
-      period: "July 15 - August 15, 2023",
-      timeRemaining: 7,
-      status: "Joined",
-      brief:
-        "Create content that shows a day in your work life and how our products help you succeed. This could be a photo series, a short video, or a combination of both. Focus on authentic moments that showcase your professional environment.",
-      requirements: [
-        "Must show workplace environment",
-        "Feature product being used in professional context",
-        "Include #BehindTheScenes hashtag",
-        "Tag @brandname in your post",
-      ],
-    },
-  }
-
-  return campaigns[slug as keyof typeof campaigns] || campaigns["summer-launch"]
 }

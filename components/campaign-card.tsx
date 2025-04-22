@@ -1,24 +1,31 @@
 "use client"
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import type React from "react"
+
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ArrowRight, Plus } from "lucide-react"
 import { CampaignStatusBadge } from "./campaign-status-badge"
+import { useState } from "react"
 
 interface CampaignCardProps {
   campaign: {
     slug: string
     title: string
-    subtitle: string
+    description: string
     type: string
-    status: string
+    status?: string
     color: string
     timeRemaining: number
+    joined: boolean
   }
 }
 
 export function CampaignCard({ campaign }: CampaignCardProps) {
-  const handleClick = () => {
+  const [isJoined, setIsJoined] = useState(campaign.joined)
+
+  const handleViewDetails = () => {
     // Dispatch custom event to open modal with campaign data
     const event = new CustomEvent("open-campaign-modal", {
       detail: campaign.slug,
@@ -26,33 +33,52 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
     window.dispatchEvent(event)
   }
 
+  const handleJoin = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsJoined(true)
+    // In a real app, you would make an API call here
+  }
+
   return (
     <Card className="overflow-hidden">
       <div
-        className={`h-32 bg-gradient-to-r from-${campaign.color}-400 to-${campaign.color}-600`}
-        onClick={handleClick}
+        className={`h-40 bg-gradient-to-r from-${campaign.color}-400 to-${campaign.color}-600 relative`}
+        onClick={handleViewDetails}
         style={{ cursor: "pointer" }}
-      ></div>
+      >
+        <div className="absolute bottom-3 left-3">
+          <Badge variant="secondary">{campaign.type}</Badge>
+        </div>
+      </div>
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-medium text-base mb-1 hover:text-blue-600 cursor-pointer" onClick={handleClick}>
+            <h3 className="font-semibold hover:text-blue-600 cursor-pointer" onClick={handleViewDetails}>
               {campaign.title}
             </h3>
-            <p className="text-sm text-muted-foreground">{campaign.subtitle}</p>
+            <p className="text-sm text-muted-foreground">{campaign.description}</p>
           </div>
-          <CampaignStatusBadge status={campaign.status} />
+          {isJoined ? (
+            <CampaignStatusBadge status={campaign.status || "Joined"} />
+          ) : (
+            <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
+              Available
+            </Badge>
+          )}
         </div>
-        <div className="flex items-center justify-between mt-3">
-          <Badge variant="outline">{campaign.type}</Badge>
-          <span className="text-xs text-muted-foreground">{campaign.timeRemaining} days left</span>
+        <div className="mt-4 flex justify-between items-center">
+          <div className="text-sm text-muted-foreground">Ends in {campaign.timeRemaining} days</div>
+          {isJoined ? (
+            <Button size="sm" className="gap-1" onClick={handleViewDetails}>
+              View <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button size="sm" className="gap-1" onClick={handleJoin}>
+              Join <Plus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <Button variant="outline" className="w-full" onClick={handleClick}>
-          View Details
-        </Button>
-      </CardFooter>
     </Card>
   )
 }

@@ -8,7 +8,7 @@ export function CampaignStatusBadge({ status }: CampaignStatusBadgeProps) {
   switch (status) {
     case "Joined":
       return (
-        <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
+        <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200">
           Content Required
         </Badge>
       )
@@ -30,15 +30,15 @@ export function CampaignStatusBadge({ status }: CampaignStatusBadgeProps) {
           Live
         </Badge>
       )
-    case "Rejected":
+    case "Completed":
       return (
-        <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-          Rejected
+        <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+          Completed
         </Badge>
       )
     default:
       return (
-        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
+        <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
           {status}
         </Badge>
       )

@@ -1,13 +1,19 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Instagram } from "lucide-react"
+import { Instagram, ExternalLink } from "lucide-react"
 import { TikTokIcon } from "@/components/tik-tok-icon"
 import { PointsBalance } from "@/components/points-balance"
+import { SubmitUrlModal } from "@/components/submit-url-modal"
+import { ResubmitModal } from "@/components/resubmit-modal"
+import { AnalyticsModal } from "@/components/analytics-modal"
 
 // Sample submission data
-const submissions = [
+const allSubmissions = [
   {
     id: 1,
     campaign: "Summer Product Launch",
@@ -50,9 +56,94 @@ const submissions = [
       comments: 18,
     },
   },
+  {
+    id: 5,
+    campaign: "Holiday Special",
+    platform: "instagram",
+    status: "Completed",
+    date: "June 15, 2023",
+    image: "/placeholder.svg?height=300&width=300",
+    points: 200,
+    engagement: {
+      views: 3200,
+      likes: 185,
+      comments: 27,
+    },
+  },
 ]
 
 export default function SubmissionsPage() {
+  const [activeTab, setActiveTab] = useState("all")
+  const [submissions, setSubmissions] = useState(allSubmissions)
+  const [submitUrlModalOpen, setSubmitUrlModalOpen] = useState(false)
+  const [resubmitModalOpen, setResubmitModalOpen] = useState(false)
+  const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false)
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null)
+
+  // Filter submissions based on active tab
+  const filteredSubmissions = submissions.filter((submission) => {
+    if (activeTab === "all") return true
+    if (activeTab === "approved") return submission.status === "Approved"
+    if (activeTab === "pending") return submission.status === "Under Review"
+    if (activeTab === "rejected") return submission.status === "Rejected"
+    if (activeTab === "live") return submission.status === "Live"
+    if (activeTab === "completed") return submission.status === "Completed"
+    return true
+  })
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
+  }
+
+  const handleSubmitUrl = (submission: any) => {
+    setSelectedSubmission(submission)
+    setSubmitUrlModalOpen(true)
+  }
+
+  const handleResubmit = (submission: any) => {
+    setSelectedSubmission(submission)
+    setResubmitModalOpen(true)
+  }
+
+  const handleViewAnalytics = (submission: any) => {
+    setSelectedSubmission(submission)
+    setAnalyticsModalOpen(true)
+  }
+
+  const handleSubmitUrlSuccess = (url: string) => {
+    // Update the submission status to "Live" and close the modal
+    const updatedSubmissions = submissions.map((sub) => {
+      if (sub.id === selectedSubmission.id) {
+        return {
+          ...sub,
+          status: "Live",
+          postUrl: url,
+          engagement: { views: 0, likes: 0, comments: 0 },
+        }
+      }
+      return sub
+    })
+    setSubmissions(updatedSubmissions)
+    setSubmitUrlModalOpen(false)
+  }
+
+  const handleResubmitSuccess = (imageUrl: string) => {
+    // Update the submission status to "Under Review" and close the modal
+    const updatedSubmissions = submissions.map((sub) => {
+      if (sub.id === selectedSubmission.id) {
+        return {
+          ...sub,
+          status: "Under Review",
+          image: imageUrl,
+          feedback: undefined,
+        }
+      }
+      return sub
+    })
+    setSubmissions(updatedSubmissions)
+    setResubmitModalOpen(false)
+  }
+
   return (
     <div className="p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -63,106 +154,224 @@ export default function SubmissionsPage() {
         <PointsBalance points={3250} />
       </div>
 
-      <Tabs defaultValue="all" className="mb-6">
+      <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="mb-6">
         <TabsList>
           <TabsTrigger value="all">All Submissions</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="pending">Pending Review</TabsTrigger>
+          <TabsTrigger value="approved">Ready to Post</TabsTrigger>
+          <TabsTrigger value="pending">Under Review</TabsTrigger>
           <TabsTrigger value="rejected">Rejected</TabsTrigger>
+          <TabsTrigger value="live">Live</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="all">
+          <SubmissionsList
+            submissions={filteredSubmissions}
+            onSubmitUrl={handleSubmitUrl}
+            onResubmit={handleResubmit}
+            onViewAnalytics={handleViewAnalytics}
+          />
+        </TabsContent>
+
+        <TabsContent value="approved">
+          <SubmissionsList
+            submissions={filteredSubmissions}
+            onSubmitUrl={handleSubmitUrl}
+            onResubmit={handleResubmit}
+            onViewAnalytics={handleViewAnalytics}
+          />
+        </TabsContent>
+
+        <TabsContent value="pending">
+          <SubmissionsList
+            submissions={filteredSubmissions}
+            onSubmitUrl={handleSubmitUrl}
+            onResubmit={handleResubmit}
+            onViewAnalytics={handleViewAnalytics}
+          />
+        </TabsContent>
+
+        <TabsContent value="rejected">
+          <SubmissionsList
+            submissions={filteredSubmissions}
+            onSubmitUrl={handleSubmitUrl}
+            onResubmit={handleResubmit}
+            onViewAnalytics={handleViewAnalytics}
+          />
+        </TabsContent>
+
+        <TabsContent value="live">
+          <SubmissionsList
+            submissions={filteredSubmissions}
+            onSubmitUrl={handleSubmitUrl}
+            onResubmit={handleResubmit}
+            onViewAnalytics={handleViewAnalytics}
+          />
+        </TabsContent>
+
+        <TabsContent value="completed">
+          <SubmissionsList
+            submissions={filteredSubmissions}
+            onSubmitUrl={handleSubmitUrl}
+            onResubmit={handleResubmit}
+            onViewAnalytics={handleViewAnalytics}
+          />
+        </TabsContent>
       </Tabs>
 
-      <div className="space-y-4">
-        {submissions.map((submission) => (
-          <Card key={submission.id} className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex flex-col md:flex-row">
-                <div className="w-full md:w-[20%] h-48 md:h-auto">
-                  <img
-                    src={submission.image || "/placeholder.svg"}
-                    alt={submission.campaign}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-medium text-base">{submission.campaign}</h3>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <span>Submitted on {submission.date}</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            {submission.platform === "instagram" ? (
-                              <>
-                                <Instagram className="h-3 w-3" /> Instagram
-                              </>
-                            ) : (
-                              <>
-                                <TikTokIcon className="h-3 w-3" /> TikTok
-                              </>
-                            )}
-                          </span>
-                        </div>
+      {/* Modals */}
+      {selectedSubmission && (
+        <>
+          <SubmitUrlModal
+            isOpen={submitUrlModalOpen}
+            onClose={() => setSubmitUrlModalOpen(false)}
+            onSubmit={handleSubmitUrlSuccess}
+            campaign={selectedSubmission.campaign}
+          />
+
+          <ResubmitModal
+            isOpen={resubmitModalOpen}
+            onClose={() => setResubmitModalOpen(false)}
+            onSubmit={handleResubmitSuccess}
+            campaign={selectedSubmission.campaign}
+            feedback={selectedSubmission.feedback}
+          />
+
+          <AnalyticsModal
+            isOpen={analyticsModalOpen}
+            onClose={() => setAnalyticsModalOpen(false)}
+            submission={selectedSubmission}
+          />
+        </>
+      )}
+    </div>
+  )
+}
+
+interface SubmissionsListProps {
+  submissions: any[]
+  onSubmitUrl: (submission: any) => void
+  onResubmit: (submission: any) => void
+  onViewAnalytics: (submission: any) => void
+}
+
+function SubmissionsList({ submissions, onSubmitUrl, onResubmit, onViewAnalytics }: SubmissionsListProps) {
+  if (submissions.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No submissions found</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {submissions.map((submission) => (
+        <Card key={submission.id} className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="flex flex-col md:flex-row">
+              <div className="w-full md:w-[20%] h-48 md:h-auto">
+                <img
+                  src={submission.image || "/placeholder.svg"}
+                  alt={submission.campaign}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-medium text-base">{submission.campaign}</h3>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <span>Submitted on {submission.date}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          {submission.platform === "instagram" ? (
+                            <>
+                              <Instagram className="h-3 w-3" /> Instagram
+                            </>
+                          ) : (
+                            <>
+                              <TikTokIcon className="h-3 w-3" /> TikTok
+                            </>
+                          )}
+                        </span>
                       </div>
-                      <StatusBadge status={submission.status} />
                     </div>
-
-                    {submission.feedback && (
-                      <div className="mt-2 p-3 bg-red-50 text-red-800 rounded-md text-sm">
-                        <p className="font-medium">Feedback:</p>
-                        <p>{submission.feedback}</p>
-                      </div>
-                    )}
-
-                    {submission.engagement && (
-                      <div className="mt-2 grid grid-cols-3 gap-2">
-                        <div className="p-2 bg-slate-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground">Views</p>
-                          <p className="font-medium">{submission.engagement.views.toLocaleString()}</p>
-                        </div>
-                        <div className="p-2 bg-slate-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground">Likes</p>
-                          <p className="font-medium">{submission.engagement.likes.toLocaleString()}</p>
-                        </div>
-                        <div className="p-2 bg-slate-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground">Comments</p>
-                          <p className="font-medium">{submission.engagement.comments.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    )}
+                    <StatusBadge status={submission.status} />
                   </div>
 
-                  <div className="flex justify-between items-center mt-4">
-                    {submission.points > 0 ? (
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">Points earned:</span>{" "}
-                        <span className="font-medium">{submission.points}</span>
-                      </div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground">No points earned yet</div>
-                    )}
-
-                    <div>
-                      {submission.status === "Rejected" && <Button size="sm">Resubmit</Button>}
-                      {submission.status === "Approved" && (
-                        <Button size="sm" variant="outline">
-                          Submit URL
-                        </Button>
-                      )}
-                      {submission.status === "Live" && (
-                        <Button size="sm" variant="outline">
-                          View Analytics
-                        </Button>
-                      )}
+                  {submission.feedback && (
+                    <div className="mt-2 p-3 bg-red-50 text-red-800 rounded-md text-sm">
+                      <p className="font-medium">Feedback:</p>
+                      <p>{submission.feedback}</p>
                     </div>
+                  )}
+
+                  {submission.engagement && (
+                    <div className="mt-2 grid grid-cols-3 gap-2">
+                      <div className="p-2 bg-slate-50 rounded-md text-center">
+                        <p className="text-xs text-muted-foreground">Views</p>
+                        <p className="font-medium">{submission.engagement.views.toLocaleString()}</p>
+                      </div>
+                      <div className="p-2 bg-slate-50 rounded-md text-center">
+                        <p className="text-xs text-muted-foreground">Likes</p>
+                        <p className="font-medium">{submission.engagement.likes.toLocaleString()}</p>
+                      </div>
+                      <div className="p-2 bg-slate-50 rounded-md text-center">
+                        <p className="text-xs text-muted-foreground">Comments</p>
+                        <p className="font-medium">{submission.engagement.comments.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {submission.postUrl && (
+                    <div className="mt-2">
+                      <a
+                        href={submission.postUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm flex items-center gap-1 text-blue-600 hover:underline"
+                      >
+                        View Post <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-center mt-4">
+                  {submission.points > 0 ? (
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Points earned:</span>{" "}
+                      <span className="font-medium">{submission.points}</span>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No points earned yet</div>
+                  )}
+
+                  <div className="flex gap-2">
+                    {submission.status === "Rejected" && (
+                      <Button size="sm" onClick={() => onResubmit(submission)}>
+                        Resubmit
+                      </Button>
+                    )}
+                    {submission.status === "Approved" && (
+                      <Button size="sm" variant="outline" onClick={() => onSubmitUrl(submission)}>
+                        Submit URL
+                      </Button>
+                    )}
+                    {(submission.status === "Live" || submission.status === "Completed") && (
+                      <Button size="sm" variant="outline" onClick={() => onViewAnalytics(submission)}>
+                        View Analytics
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   )
 }
@@ -191,6 +400,12 @@ function StatusBadge({ status }: { status: string }) {
       return (
         <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
           Live
+        </Badge>
+      )
+    case "Completed":
+      return (
+        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
+          Completed
         </Badge>
       )
     default:
