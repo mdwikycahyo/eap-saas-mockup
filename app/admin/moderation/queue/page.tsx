@@ -59,7 +59,73 @@ export default function ModerationQueuePage() {
                     <div>
                       <CardTitle className="text-base">Jane Doe</CardTitle>
                       <CardDescription>Summer Collection Campaign</CardDescription>
+                    </div>
+                  </div>
+                  <Badge>2 days ago</Badge>
+                </div>
+              </CardHeader>
+              <div className="p-4">
+                <p className="text-sm mb-3">Looking forward to sharing our new summer collection with my followers! The colors in this line are absolutely stunning. #SummerVibes</p>
+                <img 
+                  src="/placeholder.svg?height=200&width=380" 
+                  alt="Content preview" 
+                  className="w-full h-48 object-cover rounded-md mb-3"
+                />
+                <div className="flex items-center justify-end space-x-2 mt-2">
+                  <Button variant="destructive" size="sm">Reject</Button>
+                  <Button variant="default" size="sm">Approve</Button>
+                </div>
+              </div>
+            </Card>
 
-
-\
-\
+            {/* Content Item 2 */}
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <Avatar>
+                      <AvatarImage src="/placeholder.svg?height=40&width=40" />
+                      <AvatarFallback>MS</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-base">Mark Smith</CardTitle>
+                      <CardDescription>Holiday Special Campaign</CardDescription>
+                    </div>
+                  </div>
+                  <Badge>3 hours ago</Badge>
+                </div>
+              </CardHeader>
+              <div className="p-4">
+                <p className="text-sm mb-3">I've been using this product for a month now and the results are amazing! Can't wait to share more about the holiday deals coming up.</p>
+                <img 
+                  src="/placeholder.svg?height=200&width=380" 
+                  alt="Content preview" 
+                  className="w-full h-48 object-cover rounded-md mb-3"
+                />
+                <div className="flex items-center justify-end space-x-2 mt-2">
+                  <Button variant="destructive" size="sm">Reject</Button>
+                  <Button variant="default" size="sm">Approve</Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="approved" className="space-y-4 mt-4">
+          <p className="text-muted-foreground">Displaying 48 approved content items.</p>
+          {/* Approved content would go here */}
+        </TabsContent>
+        
+        <TabsContent value="rejected" className="space-y-4 mt-4">
+          <p className="text-muted-foreground">Displaying 7 rejected content items.</p>
+          {/* Rejected content would go here */}
+        </TabsContent>
+        
+        <TabsContent value="flagged" className="space-y-4 mt-4">
+          <p className="text-muted-foreground">Displaying 3 flagged content items that need urgent review.</p>
+          {/* Flagged content would go here */}
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
