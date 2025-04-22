@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CheckCircle2, Phone } from "lucide-react"
+import { CheckCircle2, Phone, AlertCircle } from "lucide-react"
 
 interface RewardModalProps {
   isOpen: boolean
@@ -22,7 +22,7 @@ interface RewardModalProps {
   reward: {
     title: string
     points: number
-    type: "e-money" | "phone-credit" | "physical"
+    type: "e-money" | "phone-credit"
   }
 }
 
@@ -30,6 +30,7 @@ export function RewardModal({ isOpen, onClose, reward }: RewardModalProps) {
   const [step, setStep] = useState(1)
   const [phoneNumber, setPhoneNumber] = useState("")
   const [isPhoneValid, setIsPhoneValid] = useState(false)
+  const [error, setError] = useState("")
 
   const validatePhone = (phone: string) => {
     // Simple validation for Indonesian phone numbers
@@ -42,11 +43,19 @@ export function RewardModal({ isOpen, onClose, reward }: RewardModalProps) {
     const value = e.target.value
     setPhoneNumber(value)
     validatePhone(value)
+    setError("")
   }
 
   const handleSubmit = () => {
+    if (!phoneNumber) {
+      setError("Please enter your phone number")
+      return
+    }
+
     if (validatePhone(phoneNumber)) {
       setStep(2)
+    } else {
+      setError("Please enter a valid Indonesian phone number")
     }
   }
 
@@ -59,6 +68,7 @@ export function RewardModal({ isOpen, onClose, reward }: RewardModalProps) {
     setStep(1)
     setPhoneNumber("")
     setIsPhoneValid(false)
+    setError("")
     onClose()
   }
 
@@ -69,7 +79,9 @@ export function RewardModal({ isOpen, onClose, reward }: RewardModalProps) {
           <>
             <DialogHeader>
               <DialogTitle>Redeem {reward.title}</DialogTitle>
-              <DialogDescription>Enter your phone number to receive your reward</DialogDescription>
+              <DialogDescription>
+                Enter your phone number to receive your {reward.type === "e-money" ? "e-money" : "phone credit"}
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
@@ -82,10 +94,13 @@ export function RewardModal({ isOpen, onClose, reward }: RewardModalProps) {
                     placeholder="08xxxxxxxxxx"
                     value={phoneNumber}
                     onChange={handlePhoneChange}
-                    className={phoneNumber && !isPhoneValid ? "border-red-500" : ""}
+                    className={error ? "border-red-500" : ""}
                   />
-                  {phoneNumber && !isPhoneValid && (
-                    <p className="text-xs text-red-500 mt-1">Please enter a valid Indonesian phone number</p>
+                  {error && (
+                    <div className="flex items-center gap-1 mt-1 text-xs text-red-500">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>{error}</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -101,9 +116,7 @@ export function RewardModal({ isOpen, onClose, reward }: RewardModalProps) {
               <Button variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={!isPhoneValid}>
-                Continue
-              </Button>
+              <Button onClick={handleSubmit}>Continue</Button>
             </DialogFooter>
           </>
         )}
