@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { CampaignCard } from "@/components/campaign-card"
 import { CampaignModal } from "@/components/campaign-modal"
 import { PointsBalance } from "@/components/points-balance"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { InfoIcon } from "lucide-react"
 
 // Sample campaign data
 const allCampaigns = [
@@ -16,7 +18,7 @@ const allCampaigns = [
     title: "Summer Product Launch",
     description: "Share our new summer collection",
     type: "Quick Share",
-    status: "Submitted",
+    status: "Submitted URL Required",
     color: "rose",
     timeRemaining: 5,
     joined: true,
@@ -26,7 +28,7 @@ const allCampaigns = [
     title: "Brand Challenge",
     description: "Create a video using our hashtag",
     type: "Creative Challenge",
-    status: "Joined",
+    status: "Content Required",
     color: "cyan",
     timeRemaining: 12,
     joined: true,
@@ -116,10 +118,38 @@ const completedCampaigns = [
 export default function CampaignsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all")
+  const [showCampaignInfo, setShowCampaignInfo] = useState(true)
+  const [campaigns, setCampaigns] = useState(allCampaigns)
+
+  // Listen for custom events to update campaign status
+  useEffect(() => {
+    const handleJoinCampaign = (event: Event) => {
+      const customEvent = event as CustomEvent
+      const slug = customEvent.detail
+
+      setCampaigns((prevCampaigns) =>
+        prevCampaigns.map((campaign) => {
+          if (campaign.slug === slug) {
+            return {
+              ...campaign,
+              joined: true,
+              status: campaign.type === "Quick Share" ? "Submitted URL Required" : "Content Required",
+            }
+          }
+          return campaign
+        }),
+      )
+    }
+
+    window.addEventListener("join-campaign", handleJoinCampaign as EventListener)
+    return () => {
+      window.removeEventListener("join-campaign", handleJoinCampaign as EventListener)
+    }
+  }, [])
 
   // Filter campaigns based on search query and active tab
   const filterCampaigns = () => {
-    let filteredCampaigns = [...allCampaigns]
+    let filteredCampaigns = [...campaigns]
 
     // Filter by tab
     if (activeTab === "active") {
@@ -155,6 +185,31 @@ export default function CampaignsPage() {
         </div>
         <PointsBalance points={3250} />
       </div>
+
+      {showCampaignInfo && (
+        <Alert className="mb-6">
+          <InfoIcon className="h-4 w-4" />
+          <AlertTitle>Campaign Types</AlertTitle>
+          <AlertDescription>
+            <div className="grid gap-2 mt-2">
+              <div>
+                <span className="font-medium">Quick Share:</span> Brand-generated content that you can download and
+                publish directly. No approval needed.
+              </div>
+              <div>
+                <span className="font-medium">Creative Challenge:</span> Create your own content based on brand
+                guidelines. Requires approval before publishing.
+              </div>
+            </div>
+            <button
+              className="text-xs text-muted-foreground hover:underline mt-2"
+              onClick={() => setShowCampaignInfo(false)}
+            >
+              Dismiss
+            </button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
