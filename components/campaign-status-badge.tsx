@@ -6,22 +6,28 @@ interface CampaignStatusBadgeProps {
 
 export function CampaignStatusBadge({ status }: CampaignStatusBadgeProps) {
   switch (status) {
-    case "Joined":
+    case "Submitted URL Required":
       return (
-        <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200">
+        <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
+          URL Required
+        </Badge>
+      )
+    case "Content Required":
+      return (
+        <Badge variant="outline" className="bg-violet-50 text-violet-600 border-violet-200">
           Content Required
         </Badge>
       )
-    case "Submitted":
+    case "Under Review":
       return (
         <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
           Under Review
         </Badge>
       )
-    case "Approved":
+    case "Joined":
       return (
-        <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200">
-          Ready to Post
+        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
+          Joined
         </Badge>
       )
     case "Live":
@@ -32,13 +38,13 @@ export function CampaignStatusBadge({ status }: CampaignStatusBadgeProps) {
       )
     case "Completed":
       return (
-        <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
           Completed
         </Badge>
       )
     default:
       return (
-        <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
           {status}
         </Badge>
       )

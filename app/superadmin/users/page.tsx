@@ -1,8 +1,34 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Search,
+  MoreHorizontal,
+  UserPlus,
+  RefreshCw,
+  Download,
+  Upload,
+  FileDown,
+  CheckCircle,
+  Eye,
+  Edit,
+  AlertTriangle,
+  Mail,
+  Phone,
+  MapPin,
+  Building,
+} from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -10,366 +36,660 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import {
-  Search,
-  Plus,
-  Filter,
-  MoreHorizontal,
-  Upload,
-  UserPlus,
-  User,
-  Shield,
-  Key,
-  Lock,
-  CheckCircle,
-  XCircle,
-} from "lucide-react"
 
-export default function UserAdministration() {
-  return (
-    <div className="p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">User Administration</h1>
-          <p className="text-muted-foreground">Manage users and their access across the platform</p>
-        </div>
-        <div className="mt-4 md:mt-0 flex gap-2">
-          <Button variant="outline" className="gap-1" asChild>
-            <a href="/superadmin/users/import">
-              <Upload className="h-4 w-4" />
-              Import Users
-            </a>
-          </Button>
-          <Button className="gap-1" asChild>
-            <a href="/superadmin/users/create">
-              <UserPlus className="h-4 w-4" />
-              Add User
-            </a>
-          </Button>
-        </div>
-      </div>
+// Mock data for users
+const mockUsers = [
+  {
+    id: "1",
+    name: "John Doe",
+    email: "john@acme.com",
+    role: "Admin",
+    company: "Acme Corporation",
+    status: "Active",
+    lastActive: "2023-05-15",
+    phoneNumber: "+1 (555) 123-4567",
+    city: "New York",
+    stateProvince: "NY",
+    invitationStatus: "Confirmed",
+  },
+  {
+    id: "2",
+    name: "Jane Smith",
+    email: "jane@acme.com",
+    role: "Creator",
+    company: "Acme Corporation",
+    status: "Active",
+    lastActive: "2023-05-14",
+    phoneNumber: "+1 (555) 987-6543",
+    city: "Los Angeles",
+    stateProvince: "CA",
+    invitationStatus: "Confirmed",
+  },
+  {
+    id: "3",
+    name: "Robert Johnson",
+    email: "robert@technova.io",
+    role: "Admin",
+    company: "TechNova Inc.",
+    status: "Active",
+    lastActive: "2023-05-15",
+    phoneNumber: "+1 (555) 234-5678",
+    city: "San Francisco",
+    stateProvince: "CA",
+    invitationStatus: "Confirmed",
+  },
+  {
+    id: "4",
+    name: "Emily Davis",
+    email: "emily@technova.io",
+    role: "Creator",
+    company: "TechNova Inc.",
+    status: "Pending",
+    lastActive: "2023-04-28",
+    phoneNumber: "+1 (555) 876-5432",
+    city: "Chicago",
+    stateProvince: "IL",
+    invitationStatus: "Pending",
+  },
+  {
+    id: "5",
+    name: "Michael Wilson",
+    email: "michael@globalretail.com",
+    role: "Admin",
+    company: "Global Retail Group",
+    status: "Active",
+    lastActive: "2023-05-12",
+    phoneNumber: "+1 (555) 345-6789",
+    city: "Miami",
+    stateProvince: "FL",
+    invitationStatus: "Confirmed",
+  },
+  {
+    id: "6",
+    name: "Sarah Brown",
+    email: "sarah@globalretail.com",
+    role: "Creator",
+    company: "Global Retail Group",
+    status: "Active",
+    lastActive: "2023-05-15",
+    phoneNumber: "+1 (555) 765-4321",
+    city: "Dallas",
+    stateProvince: "TX",
+    invitationStatus: "Confirmed",
+  },
+  {
+    id: "7",
+    name: "David Lee",
+    email: "david@healthplus.org",
+    role: "Admin",
+    company: "HealthPlus Medical",
+    status: "Inactive",
+    lastActive: "2023-04-10",
+    phoneNumber: "+1 (555) 456-7890",
+    city: "Boston",
+    stateProvince: "MA",
+    invitationStatus: "Expired",
+  },
+  {
+    id: "8",
+    name: "Lisa Taylor",
+    email: "lisa@healthplus.org",
+    role: "Creator",
+    company: "HealthPlus Medical",
+    status: "Pending",
+    lastActive: "2023-04-15",
+    phoneNumber: "+1 (555) 654-3210",
+    city: "Seattle",
+    stateProvince: "WA",
+    invitationStatus: "Pending",
+  },
+  {
+    id: "9",
+    name: "James Anderson",
+    email: "james@acme.com",
+    role: "Creator",
+    company: "Acme Corporation",
+    status: "Active",
+    lastActive: "2023-05-13",
+    phoneNumber: "+1 (555) 567-8901",
+    city: "Denver",
+    stateProvince: "CO",
+    invitationStatus: "Confirmed",
+  },
+  {
+    id: "10",
+    name: "Patricia Martinez",
+    email: "patricia@technova.io",
+    role: "Creator",
+    company: "TechNova Inc.",
+    status: "Inactive",
+    lastActive: "2023-05-14",
+    phoneNumber: "+1 (555) 543-2109",
+    city: "Austin",
+    stateProvince: "TX",
+    invitationStatus: "Rejected",
+  },
+]
 
-      <Tabs defaultValue="all" className="w-full mb-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Search users..." className="pl-8" />
-          </div>
-          <TabsList>
-            <TabsTrigger value="all">All Users</TabsTrigger>
-            <TabsTrigger value="admins">Admins</TabsTrigger>
-            <TabsTrigger value="creators">Creators</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-          </TabsList>
-          <Button variant="outline" className="gap-2">
-            <Filter className="h-4 w-4" />
-            Filters
-          </Button>
-        </div>
+// Mock data for companies
+const mockCompanies = [
+  { id: 1, name: "Acme Corporation" },
+  { id: 2, name: "TechNova Inc." },
+  { id: 3, name: "Global Retail Group" },
+  { id: 4, name: "HealthPlus Medical" },
+]
 
-        <TabsContent value="all">
-          <UserList filter="all" />
-        </TabsContent>
+export default function UsersPage() {
+  const router = useRouter()
+  const [users, setUsers] = useState(mockUsers)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [roleFilter, setRoleFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [companyFilter, setCompanyFilter] = useState("all")
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedUsers, setSelectedUsers] = useState([])
+  const { toast } = useToast()
+  const [isInvitationSent, setIsInvitationSent] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [userToDeactivate, setUserToDeactivate] = useState(null)
+  const [showUserDetailsDialog, setShowUserDetailsDialog] = useState(false)
+  const [userToView, setUserToView] = useState(null)
+  const [showActivateDialog, setShowActivateDialog] = useState(false)
+  const [userToActivate, setUserToActivate] = useState(null)
+  const [showBulkActivateDialog, setShowBulkActivateDialog] = useState(false)
 
-        <TabsContent value="admins">
-          <UserList filter="admin" />
-        </TabsContent>
+  // Filter users based on search query and filters
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase()
+    const matchesStatus = statusFilter === "all" || user.status.toLowerCase() === statusFilter.toLowerCase()
+    const matchesCompany = companyFilter === "all" || user.company === companyFilter
+    return matchesSearch && matchesRole && matchesStatus && matchesCompany
+  })
 
-        <TabsContent value="creators">
-          <UserList filter="creator" />
-        </TabsContent>
+  const handleViewUser = (user) => {
+    setUserToView(user)
+    setShowUserDetailsDialog(true)
+  }
 
-        <TabsContent value="pending">
-          <UserList filter="pending" />
-        </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
+  const handleAddUser = () => {
+    router.push("/superadmin/users/add")
+  }
 
-function UserList({ filter }: { filter: string }) {
-  // This would be fetched from an API in a real application
-  const users = [
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      email: "sarah.johnson@company.com",
-      role: "Admin",
-      client: "Acme Corp",
-      status: "active",
-      lastActive: "Today",
-    },
-    {
-      id: "2",
-      name: "Michael Chen",
-      email: "michael.chen@company.com",
-      role: "Creator",
-      client: "Acme Corp",
-      status: "active",
-      lastActive: "Yesterday",
-    },
-    {
-      id: "3",
-      name: "Emily Rodriguez",
-      email: "emily.rodriguez@company.com",
-      role: "Creator",
-      client: "Globex Inc",
-      status: "active",
-      lastActive: "2 days ago",
-    },
-    {
-      id: "4",
-      name: "David Wilson",
-      email: "david.wilson@company.com",
-      role: "Admin",
-      client: "Globex Inc",
-      status: "active",
-      lastActive: "3 days ago",
-    },
-    {
-      id: "5",
-      name: "Lisa Thompson",
-      email: "lisa.thompson@company.com",
-      role: "Creator",
-      client: "Initech",
-      status: "inactive",
-      lastActive: "2 weeks ago",
-    },
-    {
-      id: "6",
-      name: "James Brown",
-      email: "james.brown@company.com",
-      role: "Creator",
-      client: "Acme Corp",
-      status: "pending",
-      lastActive: "Never",
-    },
-    {
-      id: "7",
-      name: "Robert Smith",
-      email: "robert.smith@company.com",
-      role: "Super Admin",
-      client: "System",
-      status: "active",
-      lastActive: "Today",
-    },
-  ]
+  const handleEditUser = (user) => {
+    router.push(`/superadmin/users/${user.id}/edit`)
+  }
 
-  let filteredUsers = users
+  const handleToggleUserStatus = (userId) => {
+    const userToUpdate = users.find((user) => user.id === userId)
+    const newStatus = userToUpdate.status === "Active" ? "Inactive" : "Active"
 
-  if (filter === "admin") {
-    filteredUsers = users.filter((user) => user.role === "Admin" || user.role === "Super Admin")
-  } else if (filter === "creator") {
-    filteredUsers = users.filter((user) => user.role === "Creator")
-  } else if (filter === "pending") {
-    filteredUsers = users.filter((user) => user.status === "pending")
+    const updatedUsers = users.map((user) => (user.id === userId ? { ...user, status: newStatus } : user))
+    setUsers(updatedUsers)
+
+    toast({
+      title: `User ${newStatus}`,
+      description: `${userToUpdate.name} has been ${newStatus === "Active" ? "activated" : "deactivated"}.`,
+    })
+  }
+
+  const handleConfirmDeactivate = (user) => {
+    setUserToDeactivate(user)
+    setShowConfirmDialog(true)
+  }
+
+  const handleConfirmActivate = (user) => {
+    setUserToActivate(user)
+    setShowActivateDialog(true)
+  }
+
+  const handleDeactivateConfirmed = () => {
+    if (userToDeactivate) {
+      handleToggleUserStatus(userToDeactivate.id)
+      setShowConfirmDialog(false)
+      setUserToDeactivate(null)
+    }
+  }
+
+  const handleActivateConfirmed = () => {
+    if (userToActivate) {
+      handleToggleUserStatus(userToActivate.id)
+      setShowActivateDialog(false)
+      setUserToActivate(null)
+    }
+  }
+
+  const handleBulkAction = (action) => {
+    if (selectedUsers.length === 0) {
+      toast({
+        title: "No Users Selected",
+        description: "Please select at least one user to perform this action.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (action === "activate") {
+      setShowBulkActivateDialog(true)
+    } else if (action === "deactivate") {
+      const updatedUsers = users.map((user) =>
+        selectedUsers.includes(user.id) ? { ...user, status: "Inactive" } : user,
+      )
+      setUsers(updatedUsers)
+      toast({
+        title: "Users Deactivated",
+        description: `${selectedUsers.length} users have been deactivated.`,
+      })
+      setSelectedUsers([])
+    }
+  }
+
+  const handleBulkActivateConfirmed = () => {
+    const updatedUsers = users.map((user) => (selectedUsers.includes(user.id) ? { ...user, status: "Active" } : user))
+    setUsers(updatedUsers)
+    toast({
+      title: "Users Activated",
+      description: `${selectedUsers.length} users have been activated.`,
+    })
+    setSelectedUsers([])
+    setShowBulkActivateDialog(false)
+  }
+
+  const toggleSelectUser = (userId) => {
+    setSelectedUsers((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.length === filteredUsers.length) {
+      setSelectedUsers([])
+    } else {
+      setSelectedUsers(filteredUsers.map((user) => user.id))
+    }
+  }
+
+  const handleResendInvitation = (userId) => {
+    toast({
+      title: "Invitation Resent",
+      description: "The invitation email has been resent to the user.",
+    })
   }
 
   return (
-    <Card>
-      <CardHeader className="px-6">
-        <CardTitle>
-          {filter === "all" && "All Users"}
-          {filter === "admin" && "Administrators"}
-          {filter === "creator" && "Creators"}
-          {filter === "pending" && "Pending Users"}
-        </CardTitle>
-        <CardDescription>
-          {filter === "all" && "Manage all users across the platform"}
-          {filter === "admin" && "Manage administrator accounts"}
-          {filter === "creator" && "Manage creator accounts"}
-          {filter === "pending" && "Users awaiting activation"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-6">
-        <div className="rounded-md border">
-          <div className="grid grid-cols-12 p-4 bg-slate-50 text-sm font-medium text-slate-500">
-            <div className="col-span-3">User</div>
-            <div className="col-span-2">Role</div>
-            <div className="col-span-2">Client</div>
-            <div className="col-span-2">Status</div>
-            <div className="col-span-1">Last Active</div>
-            <div className="col-span-2">Actions</div>
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">User Administration</h1>
+        <Button onClick={handleAddUser}>
+          <UserPlus className="mr-2 h-4 w-4" /> Add New User
+        </Button>
+      </div>
+
+      {isInvitationSent && (
+        <Alert className="mb-4">
+          <CheckCircle className="h-4 w-4" />
+          <AlertTitle>Invitation Sent</AlertTitle>
+          <AlertDescription>
+            An invitation email has been sent to the user. They will need to confirm their email and set up their
+            account.
+          </AlertDescription>
+          <Button variant="outline" size="sm" className="mt-2" onClick={() => setIsInvitationSent(false)}>
+            Dismiss
+          </Button>
+        </Alert>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>All Users</CardTitle>
+          <CardDescription>Manage users across all client organizations</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search users by name or email..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="creator">Creator</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by company" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Companies</SelectItem>
+                  {mockCompanies.map((company) => (
+                    <SelectItem key={company.id} value={company.name}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {filteredUsers.map((user) => (
-            <div key={user.id} className="grid grid-cols-12 p-4 border-t items-center">
-              <div className="col-span-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-200"></div>
+          <div className="flex flex-wrap gap-4 mb-4">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkAction("activate")}
+                disabled={selectedUsers.length === 0}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Activate Selected
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkAction("deactivate")}
+                disabled={selectedUsers.length === 0}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Deactivate Selected
+              </Button>
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export Users
+              </Button>
+              <Button variant="outline" size="sm">
+                <Upload className="mr-2 h-4 w-4" />
+                Import Users
+              </Button>
+              <Button variant="outline" size="sm">
+                <FileDown className="mr-2 h-4 w-4" />
+                Download Template
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]">
+                    <Checkbox
+                      checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Account Status</TableHead>
+                  <TableHead>Last Active</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-4">
+                      No users found matching your criteria
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedUsers.includes(user.id)}
+                          onCheckedChange={() => toggleSelectUser(user.id)}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={user.role === "Admin" ? "outline" : "secondary"}>{user.role}</Badge>
+                      </TableCell>
+                      <TableCell>{user.company}</TableCell>
+                      <TableCell>
+                        {user.invitationStatus === "Pending" ? (
+                          <div className="flex items-center gap-1.5">
+                            <Badge variant="warning" className="px-2 py-1">
+                              Invitation Pending
+                            </Badge>
+                          </div>
+                        ) : user.status === "Active" ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span className="text-sm font-medium text-green-700">Active</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            <span className="text-sm font-medium text-red-700">Inactive</span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>{user.lastActive}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Open menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewUser(user)}>
+                              <Eye className="mr-2 h-4 w-4" /> View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                              <Edit className="mr-2 h-4 w-4" /> Edit User
+                            </DropdownMenuItem>
+                            {user.invitationStatus !== "Pending" &&
+                              (user.status === "Active" ? (
+                                <DropdownMenuItem onClick={() => handleConfirmDeactivate(user)}>
+                                  <AlertTriangle className="mr-2 h-4 w-4" /> Deactivate User
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={() => handleConfirmActivate(user)}>
+                                  <CheckCircle className="mr-2 h-4 w-4" /> Activate User
+                                </DropdownMenuItem>
+                              ))}
+                            {user.invitationStatus === "Pending" && (
+                              <DropdownMenuItem onClick={() => handleResendInvitation(user.id)}>
+                                <Mail className="mr-2 h-4 w-4" /> Resend Invitation
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* User Details Dialog */}
+      <Dialog open={showUserDetailsDialog} onOpenChange={setShowUserDetailsDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+          </DialogHeader>
+          {userToView && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-2xl font-semibold">
+                  {userToView.name.charAt(0)}
+                </div>
                 <div>
-                  <p className="font-medium">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                  <h3 className="text-lg font-semibold">{userToView.name}</h3>
+                  <p className="text-sm text-muted-foreground">{userToView.email}</p>
                 </div>
               </div>
-              <div className="col-span-2">
-                <Badge
-                  variant="outline"
-                  className={`${
-                    user.role === "Super Admin"
-                      ? "bg-purple-50 text-purple-600 border-purple-200"
-                      : user.role === "Admin"
-                        ? "bg-blue-50 text-blue-600 border-blue-200"
-                        : "bg-green-50 text-green-600 border-green-200"
-                  }`}
-                >
-                  {user.role}
-                </Badge>
+
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Role</p>
+                    <p className="text-sm">{userToView.role}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Status</p>
+                    <div className="flex items-center gap-1.5">
+                      {userToView.invitationStatus === "Pending" ? (
+                        <Badge variant="warning" className="mt-1">
+                          Invitation Pending
+                        </Badge>
+                      ) : (
+                        <Badge variant={userToView.status === "Active" ? "success" : "destructive"} className="mt-1">
+                          {userToView.status}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Last Active</p>
+                    <p className="text-sm">{userToView.lastActive}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Company</p>
+                      <p className="text-sm">{userToView.company}</p>
+                    </div>
+                  </div>
+                  {userToView.phoneNumber && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Phone</p>
+                        <p className="text-sm">{userToView.phoneNumber}</p>
+                      </div>
+                    </div>
+                  )}
+                  {(userToView.city || userToView.stateProvince) && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Location</p>
+                        <p className="text-sm">
+                          {userToView.city}
+                          {userToView.city && userToView.stateProvince && ", "}
+                          {userToView.stateProvince}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="col-span-2">{user.client}</div>
-              <div className="col-span-2">
-                <Badge
-                  variant={user.status === "active" ? "default" : user.status === "pending" ? "outline" : "secondary"}
-                  className={
-                    user.status === "pending" ? "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-50" : ""
-                  }
-                >
-                  {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-                </Badge>
-              </div>
-              <div className="col-span-1">
-                <p className="text-sm">{user.lastActive}</p>
-              </div>
-              <div className="col-span-2 flex items-center gap-2">
-                <Button variant="ghost" size="sm" asChild>
-                  <a href={`/superadmin/users/${user.id}`}>View</a>
+
+              <div className="flex justify-end gap-2 pt-4 border-t mt-4">
+                <Button variant="outline" onClick={() => handleEditUser(userToView)}>
+                  <Edit className="mr-2 h-4 w-4" /> Edit User
                 </Button>
-                <UserActionsMenu user={user} />
+                {userToView.invitationStatus !== "Pending" &&
+                  (userToView.status === "Active" ? (
+                    <Button variant="destructive" onClick={() => handleConfirmDeactivate(userToView)}>
+                      <AlertTriangle className="mr-2 h-4 w-4" /> Deactivate
+                    </Button>
+                  ) : (
+                    <Button onClick={() => handleConfirmActivate(userToView)}>
+                      <CheckCircle className="mr-2 h-4 w-4" /> Activate
+                    </Button>
+                  ))}
               </div>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
+          )}
+        </DialogContent>
+      </Dialog>
 
-function UserActionsMenu({ user }: { user: any }) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem>
-          <User className="h-4 w-4 mr-2" />
-          Edit Profile
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Shield className="h-4 w-4 mr-2" />
-          Change Role
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Key className="h-4 w-4 mr-2" />
-          Reset Password
-        </DropdownMenuItem>
-        {user.status === "active" ? (
-          <DropdownMenuItem>
-            <Lock className="h-4 w-4 mr-2" />
-            Deactivate Account
-          </DropdownMenuItem>
-        ) : user.status === "inactive" ? (
-          <DropdownMenuItem>
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Activate Account
-          </DropdownMenuItem>
-        ) : (
-          <>
-            <DropdownMenuItem>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Approve User
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600">
-              <XCircle className="h-4 w-4 mr-2" />
-              Reject User
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
+      {/* Confirmation Dialog for Deactivating User */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm User Deactivation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to deactivate {userToDeactivate?.name}? They will no longer be able to access the
+              platform.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeactivateConfirmed}>
+              Deactivate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-function AddUserDialog() {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button className="gap-1">
-          <Plus className="h-4 w-4" />
-          Add User
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
-          <DialogDescription>Create a new user account and assign roles.</DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="first-name">First Name</Label>
-              <Input id="first-name" placeholder="Enter first name" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="last-name">Last Name</Label>
-              <Input id="last-name" placeholder="Enter last name" />
-            </div>
-          </div>
+      {/* Confirmation Dialog for Activating User */}
+      <Dialog open={showActivateDialog} onOpenChange={setShowActivateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm User Activation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to activate {userToActivate?.name}? They will be able to access the platform again.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowActivateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleActivateConfirmed}>Activate</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="Enter email address" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="creator">Creator</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="superadmin">Super Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="client">Client</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select client" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="acme">Acme Corp</SelectItem>
-                  <SelectItem value="globex">Globex Inc</SelectItem>
-                  <SelectItem value="initech">Initech</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="department">Department</Label>
-            <Input id="department" placeholder="Enter department" />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <input type="checkbox" id="send-invite" className="h-4 w-4" />
-            <Label htmlFor="send-invite">Send welcome email with login instructions</Label>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="submit">Create User</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      {/* Confirmation Dialog for Bulk Activating Users */}
+      <Dialog open={showBulkActivateDialog} onOpenChange={setShowBulkActivateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Bulk User Activation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to activate {selectedUsers.length} users? They will be able to access the platform
+              again.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBulkActivateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkActivateConfirmed}>Activate Users</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 }

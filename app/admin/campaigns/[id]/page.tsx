@@ -1,3 +1,5 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -14,11 +16,13 @@ import {
   Copy,
   Trash2,
   Instagram,
-  TwitterIcon as TikTok,
   Download,
   Upload,
   FileText,
+  ArrowLeft,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { TikTokIcon } from "@/components/tik-tok-icon"
 
 interface CampaignDetailProps {
   params: {
@@ -27,6 +31,8 @@ interface CampaignDetailProps {
 }
 
 export default function CampaignDetail({ params }: CampaignDetailProps) {
+  const router = useRouter()
+
   // This would be fetched from an API in a real application
   const campaign = {
     id: params.id,
@@ -63,15 +69,22 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
     ],
   }
 
+  const handleBack = () => {
+    router.back()
+  }
+
   return (
     <div className="p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 mb-1">
+            <Button variant="ghost" size="icon" onClick={handleBack} className="h-8 w-8">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <h1 className="text-2xl font-bold tracking-tight">{campaign.title}</h1>
             <Badge className={`bg-green-50 text-green-600 border-green-200`}>Active</Badge>
           </div>
-          <p className="text-muted-foreground">Campaign management and performance tracking</p>
+          <p className="text-muted-foreground ml-11">Campaign management and performance tracking</p>
         </div>
         <div className="mt-4 md:mt-0 flex gap-2">
           <Button variant="outline" className="gap-1">
@@ -120,7 +133,7 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                                 {platform === "instagram" ? (
                                   <Instagram className="h-3 w-3 mr-1" />
                                 ) : (
-                                  <TikTok className="h-3 w-3 mr-1" />
+                                  <TikTokIcon className="h-3 w-3 mr-1" />
                                 )}
                                 {platform.charAt(0).toUpperCase() + platform.slice(1)}
                               </Badge>
@@ -441,9 +454,6 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                           <Button variant="ghost" size="sm">
                             View
                           </Button>
-                          <Button variant="ghost" size="sm">
-                            Message
-                          </Button>
                         </div>
                       </div>
                     ))}
@@ -488,7 +498,7 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                           <div>
                             <div className="flex justify-between mb-1">
                               <div className="flex items-center">
-                                <TikTok className="h-4 w-4 mr-2 text-cyan-500" />
+                                <TikTokIcon className="h-4 w-4 mr-2 text-cyan-500" />
                                 <span className="text-sm">TikTok</span>
                               </div>
                               <span className="text-sm font-medium">0</span>

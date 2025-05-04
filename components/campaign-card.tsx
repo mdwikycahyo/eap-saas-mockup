@@ -5,7 +5,7 @@ import type React from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Plus } from "lucide-react"
+import { ArrowRight, Plus, Share2 } from "lucide-react"
 import { CampaignStatusBadge } from "./campaign-status-badge"
 import { useState } from "react"
 
@@ -39,6 +39,49 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
     // In a real app, you would make an API call here
   }
 
+  const isQuickShare = campaign.type === "Quick Share"
+
+  // Determine button text based on campaign type and status
+  const getButtonText = () => {
+    if (!isJoined) return "Join"
+
+    if (isQuickShare) {
+      if (campaign.status === "Submitted URL Required") return "Submit URL"
+      if (campaign.status === "Live") return "View"
+      return "View"
+    } else {
+      if (campaign.status === "Content Required") return "Create"
+      if (campaign.status === "Under Review") return "View"
+      if (campaign.status === "Live") return "View"
+      return "View"
+    }
+  }
+
+  // Determine button icon based on campaign type and status
+  const getButtonIcon = () => {
+    if (!isJoined) return <Plus className="h-4 w-4" />
+
+    if (isQuickShare) {
+      if (campaign.status === "Submitted URL Required") return <Share2 className="h-4 w-4" />
+      if (campaign.status === "Live") return <ArrowRight className="h-4 w-4" />
+      return <ArrowRight className="h-4 w-4" />
+    } else {
+      if (campaign.status === "Content Required") return <ArrowRight className="h-4 w-4" />
+      return <ArrowRight className="h-4 w-4" />
+    }
+  }
+
+  // Get the appropriate status display
+  const getStatusDisplay = () => {
+    if (!isJoined) return "Available"
+
+    if (isQuickShare) {
+      return campaign.status || "Submitted URL Required"
+    } else {
+      return campaign.status || "Content Required"
+    }
+  }
+
   return (
     <Card className="overflow-hidden">
       <div
@@ -47,7 +90,12 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
         style={{ cursor: "pointer" }}
       >
         <div className="absolute bottom-3 left-3">
-          <Badge variant="secondary">{campaign.type}</Badge>
+          <Badge
+            variant={isQuickShare ? "secondary" : "outline"}
+            className={isQuickShare ? "" : "bg-violet-50 text-violet-600 border-violet-200"}
+          >
+            {campaign.type}
+          </Badge>
         </div>
       </div>
       <CardContent className="p-4">
@@ -59,7 +107,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
             <p className="text-sm text-muted-foreground">{campaign.description}</p>
           </div>
           {isJoined ? (
-            <CampaignStatusBadge status={campaign.status || "Joined"} />
+            <CampaignStatusBadge status={getStatusDisplay()} />
           ) : (
             <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
               Available
@@ -70,7 +118,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
           <div className="text-sm text-muted-foreground">Ends in {campaign.timeRemaining} days</div>
           {isJoined ? (
             <Button size="sm" className="gap-1" onClick={handleViewDetails}>
-              View <ArrowRight className="h-4 w-4" />
+              {getButtonText()} {getButtonIcon()}
             </Button>
           ) : (
             <Button size="sm" className="gap-1" onClick={handleJoin}>
