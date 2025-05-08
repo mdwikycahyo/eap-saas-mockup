@@ -32,11 +32,6 @@ export function CreatorLayout({ children }: { children: React.ReactNode }) {
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
-      label: "Campaigns",
-      href: "/creator/campaigns",
-      icon: <Megaphone className="h-5 w-5" />,
-    },
-    {
       label: "Create Content",
       href: "/creator/create",
       icon: <PenTool className="h-5 w-5" />,

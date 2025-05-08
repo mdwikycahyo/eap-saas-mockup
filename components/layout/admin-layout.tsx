@@ -52,11 +52,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       icon: <BarChart className="h-5 w-5" />,
     },
     {
-      label: "Rewards",
-      href: "/admin/rewards",
-      icon: <Gift className="h-5 w-5" />,
-    },
-    {
       label: "Settings",
       href: "/admin/settings",
       icon: <Settings className="h-5 w-5" />,

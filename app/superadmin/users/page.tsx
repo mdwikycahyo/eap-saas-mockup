@@ -198,6 +198,8 @@ export default function UsersPage() {
   const [showActivateDialog, setShowActivateDialog] = useState(false)
   const [userToActivate, setUserToActivate] = useState(null)
   const [showBulkActivateDialog, setShowBulkActivateDialog] = useState(false)
+  const [showResendInvitationDialog, setShowResendInvitationDialog] = useState(false)
+  const [userToResendInvitation, setUserToResendInvitation] = useState(null)
 
   // Filter users based on search query and filters
   const filteredUsers = users.filter((user) => {
@@ -310,11 +312,22 @@ export default function UsersPage() {
     }
   }
 
-  const handleResendInvitation = (userId) => {
-    toast({
-      title: "Invitation Resent",
-      description: "The invitation email has been resent to the user.",
-    })
+  const handleConfirmResendInvitation = (user) => {
+    setUserToResendInvitation(user)
+    setShowResendInvitationDialog(true)
+  }
+
+  const handleResendInvitationConfirmed = () => {
+    if (userToResendInvitation) {
+      // In a real app, this would call an API to resend the invitation
+      toast({
+        title: "Invitation Resent",
+        description: `An invitation email has been resent to ${userToResendInvitation.name} (${userToResendInvitation.email}).`,
+      })
+      setShowResendInvitationDialog(false)
+      setUserToResendInvitation(null)
+      setIsInvitationSent(true)
+    }
   }
 
   return (
@@ -520,7 +533,7 @@ export default function UsersPage() {
                                 </DropdownMenuItem>
                               ))}
                             {user.invitationStatus === "Pending" && (
-                              <DropdownMenuItem onClick={() => handleResendInvitation(user.id)}>
+                              <DropdownMenuItem onClick={() => handleConfirmResendInvitation(user)}>
                                 <Mail className="mr-2 h-4 w-4" /> Resend Invitation
                               </DropdownMenuItem>
                             )}
@@ -617,16 +630,19 @@ export default function UsersPage() {
                 <Button variant="outline" onClick={() => handleEditUser(userToView)}>
                   <Edit className="mr-2 h-4 w-4" /> Edit User
                 </Button>
-                {userToView.invitationStatus !== "Pending" &&
-                  (userToView.status === "Active" ? (
-                    <Button variant="destructive" onClick={() => handleConfirmDeactivate(userToView)}>
-                      <AlertTriangle className="mr-2 h-4 w-4" /> Deactivate
-                    </Button>
-                  ) : (
-                    <Button onClick={() => handleConfirmActivate(userToView)}>
-                      <CheckCircle className="mr-2 h-4 w-4" /> Activate
-                    </Button>
-                  ))}
+                {userToView.invitationStatus === "Pending" ? (
+                  <Button onClick={() => handleConfirmResendInvitation(userToView)}>
+                    <Mail className="mr-2 h-4 w-4" /> Resend Invitation
+                  </Button>
+                ) : userToView.status === "Active" ? (
+                  <Button variant="destructive" onClick={() => handleConfirmDeactivate(userToView)}>
+                    <AlertTriangle className="mr-2 h-4 w-4" /> Deactivate
+                  </Button>
+                ) : (
+                  <Button onClick={() => handleConfirmActivate(userToView)}>
+                    <CheckCircle className="mr-2 h-4 w-4" /> Activate
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -687,6 +703,33 @@ export default function UsersPage() {
               Cancel
             </Button>
             <Button onClick={handleBulkActivateConfirmed}>Activate Users</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog for Resending Invitation */}
+      <Dialog open={showResendInvitationDialog} onOpenChange={setShowResendInvitationDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resend Invitation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to resend the invitation email to {userToResendInvitation?.name} (
+              {userToResendInvitation?.email})?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              The user will receive a new email with instructions to set up their account. The previous invitation link
+              will be invalidated.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowResendInvitationDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleResendInvitationConfirmed}>
+              <Mail className="mr-2 h-4 w-4" /> Resend Invitation
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

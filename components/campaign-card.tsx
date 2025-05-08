@@ -85,7 +85,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
   return (
     <Card className="overflow-hidden">
       <div
-        className={`h-40 bg-gradient-to-r from-${campaign.color}-400 to-${campaign.color}-600 relative`}
+        className={`h-40 bg-gradient-to-r from-purple-200 to-purple-300 relative`}
         onClick={handleViewDetails}
         style={{ cursor: "pointer" }}
       >

@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ChevronLeft, Search } from "lucide-react"
 import Link from "next/link"
@@ -147,11 +146,10 @@ export default function EditCampaignPage() {
       </div>
 
       <Tabs defaultValue="details" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="details">Campaign Details</TabsTrigger>
           <TabsTrigger value="creators">Invite Creators</TabsTrigger>
-          <TabsTrigger value="assets">Assets</TabsTrigger>
-          <TabsTrigger value="content">{campaignType === "quick-share" ? "Caption" : "Brief"}</TabsTrigger>
+          <TabsTrigger value="content">Content Assets</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="space-y-4 mt-4">
@@ -235,46 +233,6 @@ export default function EditCampaignPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Rewards</CardTitle>
-              <CardDescription>Define how creators will be rewarded for their participation.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="base-points">Base Points</Label>
-                  <Input
-                    id="base-points"
-                    type="number"
-                    placeholder="e.g. 100"
-                    defaultValue={campaignData.rewards.basePoints}
-                  />
-                  <p className="text-xs text-muted-foreground">Points awarded for basic participation</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bonus-points">Bonus Points</Label>
-                  <Input
-                    id="bonus-points"
-                    type="number"
-                    placeholder="e.g. 50"
-                    defaultValue={campaignData.rewards.bonusPoints}
-                  />
-                  <p className="text-xs text-muted-foreground">Additional points for exceptional content</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="reward-description">Reward Description</Label>
-                <Textarea
-                  id="reward-description"
-                  placeholder="Describe the rewards in detail"
-                  className="min-h-[100px]"
-                  defaultValue={campaignData.rewards.description}
-                />
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="creators" className="space-y-4 mt-4">
@@ -392,14 +350,17 @@ export default function EditCampaignPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="assets" className="space-y-4 mt-4">
+        <TabsContent value="content" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Campaign Assets</CardTitle>
-              <CardDescription>Upload assets for creators to use in their content.</CardDescription>
+              <CardTitle>Content Assets</CardTitle>
+              <CardDescription>Upload assets and provide content for creators to use.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="text-sm font-medium mb-3">
+                  {campaignType === "quick-share" ? "Campaign Assets" : "Upload Brief"}
+                </h3>
                 <div className="border-2 border-dashed rounded-lg p-12 text-center">
                   <div className="mx-auto flex flex-col items-center justify-center">
                     <svg
@@ -419,151 +380,43 @@ export default function EditCampaignPage() {
                     <p className="mb-2 text-sm text-muted-foreground">
                       <span className="font-semibold">Click to upload</span> or drag and drop
                     </p>
-                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF, MP4, PDF up to 10MB</p>
+                    <p className="text-xs text-muted-foreground">
+                      {campaignType === "quick-share" ? "PNG, JPG, GIF, MP4 up to 10MB" : "PDF up to 10MB"}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="hashtags">Suggested Hashtags (Optional)</Label>
-                <Input
-                  id="hashtags"
-                  placeholder="e.g. #BrandCampaign #CompanyName"
-                  defaultValue={campaignData.assets.hashtags}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="mentions">Suggested Mentions (Optional)</Label>
-                <Input id="mentions" placeholder="e.g. @CompanyHandle" defaultValue={campaignData.assets.mentions} />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="asset-notes">Notes About Assets</Label>
-                <Textarea
-                  id="asset-notes"
-                  placeholder="Add any notes about how to use these assets"
-                  className="min-h-[100px]"
-                  defaultValue={campaignData.assets.notes}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="content" className="space-y-4 mt-4">
-          {campaignType === "quick-share" ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Caption Template</CardTitle>
-                <CardDescription>Provide a caption template for creators to use or modify.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <div className="pt-4">
+                <h3 className="text-sm font-medium mb-3">
+                  {campaignType === "quick-share" ? "Caption Template" : "Campaign Brief"}
+                </h3>
                 <div className="space-y-2">
-                  <Label htmlFor="caption">Caption Template</Label>
                   <Textarea
                     id="caption"
-                    placeholder="Enter a template caption that creators can use or modify"
+                    placeholder={
+                      campaignType === "quick-share"
+                        ? "Enter a template caption that creators can use or modify"
+                        : "Write a detailed brief for creators to follow"
+                    }
                     className="min-h-[200px]"
                     defaultValue={campaignData.caption}
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="caption-instructions">Instructions for Creators</Label>
-                  <Textarea
-                    id="caption-instructions"
-                    placeholder="Provide any specific instructions for customizing the caption"
-                    className="min-h-[100px]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Caption Requirements</Label>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="require-hashtags" defaultChecked />
-                    <Label htmlFor="require-hashtags">Require hashtags</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="require-mentions" defaultChecked />
-                    <Label htmlFor="require-mentions">Require mentions</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="allow-modification" defaultChecked />
-                    <Label htmlFor="allow-modification">Allow caption modification</Label>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Campaign Brief</CardTitle>
-                <CardDescription>Provide a detailed brief for the creative challenge.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="brief-document">Upload Brief Document (Optional)</Label>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                    <div className="mx-auto flex flex-col items-center justify-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-8 w-8 text-muted-foreground mb-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                        />
-                      </svg>
-                      <p className="mb-2 text-sm text-muted-foreground">
-                        <span className="font-semibold">Click to upload</span> or drag and drop
-                      </p>
-                      <p className="text-xs text-muted-foreground">PDF, DOCX up to 10MB</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="brief-text">Brief Details</Label>
-                  <Textarea
-                    id="brief-text"
-                    placeholder="Write a detailed brief for creators to follow"
-                    className="min-h-[300px]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="challenge-requirements">Challenge Requirements</Label>
-                  <Textarea
-                    id="challenge-requirements"
-                    placeholder="List specific requirements for the challenge"
-                    className="min-h-[100px]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="submission-guidelines">Submission Guidelines</Label>
-                  <Textarea
-                    id="submission-guidelines"
-                    placeholder="Explain how creators should submit their content"
-                    className="min-h-[100px]"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
-      <div className="flex justify-end gap-2">
-        <Button variant="outline">Cancel</Button>
-        <Button variant="outline">Save as Draft</Button>
-        <Button>Update Campaign</Button>
+      <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+        <Button variant="outline" className="w-full sm:w-auto">
+          Cancel
+        </Button>
+        <Button variant="outline" className="w-full sm:w-auto">
+          Save as Draft
+        </Button>
+        <Button className="w-full sm:w-auto">Update Campaign</Button>
       </div>
     </div>
   )

@@ -36,8 +36,8 @@ const mockClients = [
     industry: "Technology",
     status: "Active",
     subscriptionTier: "tier1",
-    subscriptionStart: "2023-01-15",
-    subscriptionEnd: "2024-01-14",
+    subscriptionStart: "2025-01-15",
+    subscriptionEnd: "2030-01-14",
     subdomain: "dayatech",
     logo: "/placeholder.svg?height=32&width=32",
   },
@@ -358,7 +358,7 @@ export default function ClientsPage() {
                           </div>
                           <div>
                             <p className="font-medium">{client.name}</p>
-                            <p className="text-xs text-muted-foreground">{client.subdomain}.advocacy.com</p>
+                            <p className="text-xs text-muted-foreground">{client.subdomain}.hypearn.com</p>
                           </div>
                         </div>
                       </TableCell>
@@ -462,7 +462,7 @@ export default function ClientsPage() {
                 </div>
                 <div>
                   <p className="font-medium">{clientToDeactivate.name}</p>
-                  <p className="text-xs text-muted-foreground">{clientToDeactivate.subdomain}.advocacy.com</p>
+                  <p className="text-xs text-muted-foreground">{clientToDeactivate.subdomain}.hypearn.com</p>
                 </div>
               </div>
             )}
@@ -500,7 +500,7 @@ export default function ClientsPage() {
                 </div>
                 <div>
                   <p className="font-medium">{clientToRenew.name}</p>
-                  <p className="text-xs text-muted-foreground">{clientToRenew.subdomain}.advocacy.com</p>
+                  <p className="text-xs text-muted-foreground">{clientToRenew.subdomain}.hypearn.com</p>
                 </div>
               </div>
             )}
@@ -609,7 +609,7 @@ function ClientDetails({ client }) {
             <div className="grid grid-cols-1 gap-2 mt-1">
               <div>
                 <p className="text-xs text-muted-foreground">Subdomain</p>
-                <p className="text-sm">{client.subdomain}.advocacy.com</p>
+                <p className="text-sm">{client.subdomain}.hypearn.com</p>
               </div>
               {client.description && (
                 <div>
@@ -710,9 +710,6 @@ function ClientDetails({ client }) {
       <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
         <Button variant="outline" size="sm">
           <Edit className="mr-2 h-4 w-4" /> Edit Client
-        </Button>
-        <Button size="sm">
-          <ExternalLink className="mr-2 h-4 w-4" /> Visit Client Portal
         </Button>
       </div>
     </div>

@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Building, Users, Settings, FileBarChart, CreditCard, LogOut, Menu } from "lucide-react"
+import { LayoutDashboard, Building, Users, Settings, FileBarChart, LogOut, Menu, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useMobile } from "@/hooks/use-mobile"
@@ -42,6 +42,11 @@ export function SuperAdminLayout({ children }: { children: React.ReactNode }) {
       icon: <Users className="h-5 w-5" />,
     },
     {
+      label: "Rewards",
+      href: "/superadmin/rewards",
+      icon: <Gift className="h-5 w-5" />,
+    },
+    {
       label: "System Configuration",
       href: "/superadmin/config",
       icon: <Settings className="h-5 w-5" />,
@@ -50,7 +55,7 @@ export function SuperAdminLayout({ children }: { children: React.ReactNode }) {
       label: "Reporting Hub",
       href: "/superadmin/reports",
       icon: <FileBarChart className="h-5 w-5" />,
-    }
+    },
   ]
 
   if (!isClient) {

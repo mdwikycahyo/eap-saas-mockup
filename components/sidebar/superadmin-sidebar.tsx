@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { BarChart3, Building, LayoutDashboard, Settings, Users } from "lucide-react"
+import { BarChart3, Building, LayoutDashboard, Settings, Users, Gift, CreditCard, ShieldCheck } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -35,12 +35,27 @@ export function SuperAdminSidebar() {
       icon: Users,
     },
     {
+      title: "Reward Catalog",
+      href: "/superadmin/rewards",
+      icon: Gift,
+    },
+    {
+      title: "Financial Reports",
+      href: "/superadmin/finance",
+      icon: CreditCard,
+    },
+    {
       title: "System Configuration",
       href: "/superadmin/config",
       icon: Settings,
     },
     {
-      title: "Financial Reports",
+      title: "Security",
+      href: "/superadmin/security",
+      icon: ShieldCheck,
+    },
+    {
+      title: "Reports",
       href: "/superadmin/reports",
       icon: BarChart3,
     },

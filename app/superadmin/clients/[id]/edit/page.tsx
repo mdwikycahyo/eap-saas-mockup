@@ -392,7 +392,7 @@ function ClientForm({ onSubmit, onCancel, initialData = null, isEditing = false 
                       placeholder="companyname"
                     />
                     <div className="bg-muted px-3 py-2 border border-l-0 border-input rounded-r-md text-muted-foreground">
-                      .advocacy.com
+                      .hypearn.com
                     </div>
                   </div>
                   {formErrors.subdomain ? (
