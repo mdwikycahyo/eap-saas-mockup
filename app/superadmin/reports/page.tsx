@@ -19,17 +19,19 @@ import {
   TrendingUp,
   Building,
   Printer,
-  FileSpreadsheet,
-  FileIcon as FilePdf,
-  Mail,
-  Clock,
   RefreshCw,
   Eye,
 } from "lucide-react"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import {
   AreaChart,
   Area,
@@ -97,12 +99,93 @@ const revenueByPlanData = [
   { name: "Enterprise", value: 10 },
 ]
 
+// Mock invoice data
+const mockInvoices = [
+  {
+    id: "INV-001",
+    client: "Acme Corp",
+    amount: 2500.0,
+    date: "2023-06-15",
+    status: "Paid",
+    items: [
+      { description: "Employee Advocacy Platform - Enterprise Plan", quantity: 1, rate: 2000.0, amount: 2000.0 },
+      { description: "Additional User Licenses", quantity: 5, rate: 100.0, amount: 500.0 },
+    ],
+    subtotal: 2500.0,
+    tax: 0.0,
+    total: 2500.0,
+    paymentMethod: "Credit Card",
+    paymentDate: "2023-06-15",
+  },
+  {
+    id: "INV-002",
+    client: "TechNova Inc.",
+    amount: 1800.0,
+    date: "2023-06-20",
+    status: "Pending",
+    items: [
+      { description: "Employee Advocacy Platform - Business Plan", quantity: 1, rate: 1500.0, amount: 1500.0 },
+      { description: "Additional Storage", quantity: 1, rate: 300.0, amount: 300.0 },
+    ],
+    subtotal: 1800.0,
+    tax: 0.0,
+    total: 1800.0,
+    paymentMethod: "Bank Transfer",
+    paymentDate: null,
+  },
+  {
+    id: "INV-003",
+    client: "Global Retail Group",
+    amount: 950.0,
+    date: "2023-05-28",
+    status: "Overdue",
+    items: [{ description: "Employee Advocacy Platform - Standard Plan", quantity: 1, rate: 950.0, amount: 950.0 }],
+    subtotal: 950.0,
+    tax: 0.0,
+    total: 950.0,
+    paymentMethod: "Bank Transfer",
+    paymentDate: null,
+  },
+  {
+    id: "INV-004",
+    client: "HealthPlus Medical",
+    amount: 3200.0,
+    date: "2023-06-10",
+    status: "Paid",
+    items: [
+      { description: "Employee Advocacy Platform - Enterprise Plan", quantity: 1, rate: 2000.0, amount: 2000.0 },
+      { description: "Premium Support Package", quantity: 1, rate: 800.0, amount: 800.0 },
+      { description: "Additional User Licenses", quantity: 4, rate: 100.0, amount: 400.0 },
+    ],
+    subtotal: 3200.0,
+    tax: 0.0,
+    total: 3200.0,
+    paymentMethod: "Credit Card",
+    paymentDate: "2023-06-10",
+  },
+  {
+    id: "INV-005",
+    client: "EcoSolutions Ltd.",
+    amount: 1500.0,
+    date: "2023-06-25",
+    status: "Pending",
+    items: [{ description: "Employee Advocacy Platform - Business Plan", quantity: 1, rate: 1500.0, amount: 1500.0 }],
+    subtotal: 1500.0,
+    tax: 0.0,
+    total: 1500.0,
+    paymentMethod: "Bank Transfer",
+    paymentDate: null,
+  },
+]
+
 export default function FinancialReportingHub() {
   const [selectedReport, setSelectedReport] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [reportData, setReportData] = useState<any>(null)
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null)
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false)
 
   const handleGenerateReport = () => {
     setIsGenerating(true)
@@ -182,6 +265,33 @@ export default function FinancialReportingHub() {
 
   const openFullPreview = () => {
     setPreviewOpen(true)
+  }
+
+  const handleViewInvoice = (invoice) => {
+    setSelectedInvoice(invoice)
+    setShowInvoiceModal(true)
+  }
+
+  const handleDownloadInvoice = () => {
+    // In a real app, this would generate and download a PDF
+    if (!selectedInvoice) return
+
+    // Simulate download delay
+    const downloadButton = document.getElementById("download-invoice-btn")
+    if (downloadButton) {
+      downloadButton.textContent = "Downloading..."
+      downloadButton.disabled = true
+    }
+
+    setTimeout(() => {
+      if (downloadButton) {
+        downloadButton.textContent = "Download Invoice"
+        downloadButton.disabled = false
+      }
+
+      // Show success message
+      alert(`Invoice ${selectedInvoice.id} has been downloaded.`)
+    }, 1500)
   }
 
   return (
@@ -309,86 +419,35 @@ export default function FinancialReportingHub() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">INV-001</TableCell>
-                    <TableCell>Acme Corp</TableCell>
-                    <TableCell>$2,500.00</TableCell>
-                    <TableCell>2023-06-15</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        Paid
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">INV-002</TableCell>
-                    <TableCell>TechNova Inc.</TableCell>
-                    <TableCell>$1,800.00</TableCell>
-                    <TableCell>2023-06-20</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                        Pending
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">INV-003</TableCell>
-                    <TableCell>Global Retail Group</TableCell>
-                    <TableCell>$950.00</TableCell>
-                    <TableCell>2023-05-28</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                        Overdue
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">INV-004</TableCell>
-                    <TableCell>HealthPlus Medical</TableCell>
-                    <TableCell>$3,200.00</TableCell>
-                    <TableCell>2023-06-10</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        Paid
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">INV-005</TableCell>
-                    <TableCell>EcoSolutions Ltd.</TableCell>
-                    <TableCell>$1,500.00</TableCell>
-                    <TableCell>2023-06-25</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                        Pending
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  {mockInvoices.map((invoice) => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="font-medium">{invoice.id}</TableCell>
+                      <TableCell>{invoice.client}</TableCell>
+                      <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                      <TableCell>{invoice.date}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={`
+                            ${
+                              invoice.status === "Paid"
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : invoice.status === "Pending"
+                                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                                  : "bg-red-50 text-red-700 border-red-200"
+                            }
+                          `}
+                        >
+                          {invoice.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)}>
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
 
@@ -743,69 +802,8 @@ export default function FinancialReportingHub() {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div>
-                  <Label>Include in Report</Label>
-                  <div className="space-y-2 mt-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="charts" defaultChecked />
-                      <label
-                        htmlFor="charts"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Charts and Graphs
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="tables" defaultChecked />
-                      <label
-                        htmlFor="tables"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Data Tables
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="summary" defaultChecked />
-                      <label
-                        htmlFor="summary"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Executive Summary
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="trends" defaultChecked />
-                      <label
-                        htmlFor="trends"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Trend Analysis
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Export Format</Label>
-                  <div className="flex gap-2 mt-2">
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
-                      <FilePdf className="h-4 w-4" />
-                      PDF
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
-                      <FileSpreadsheet className="h-4 w-4" />
-                      Excel
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
-                      <FileText className="h-4 w-4" />
-                      CSV
-                    </Button>
-                  </div>
-                </div>
               </CardContent>
               <CardFooter className="flex justify-between border-t p-4">
-                <Button variant="outline">Save Template</Button>
                 <Button disabled={!selectedReport || isGenerating} onClick={handleGenerateReport} className="gap-2">
                   {isGenerating ? (
                     <>
@@ -1026,20 +1024,6 @@ export default function FinancialReportingHub() {
               </CardContent>
               <CardFooter className="flex justify-between border-t p-4">
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="gap-1" disabled={!showPreview}>
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-1" disabled={!showPreview}>
-                    <Clock className="h-4 w-4" />
-                    Schedule
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" disabled={!showPreview}>
-                    <Printer className="h-4 w-4" />
-                    Print
-                  </Button>
                   <Button size="sm" disabled={!showPreview}>
                     <Download className="h-4 w-4" />
                     Download
@@ -1049,7 +1033,6 @@ export default function FinancialReportingHub() {
             </Card>
           </div>
         </TabsContent>
-
       </Tabs>
 
       {/* Full Report Preview Dialog */}
@@ -1196,15 +1179,7 @@ export default function FinancialReportingHub() {
               )}
 
               <div className="flex justify-between pt-4 border-t">
-                <Button variant="outline" className="gap-2">
-                  <Mail className="h-4 w-4" />
-                  Email Report
-                </Button>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="gap-2">
-                    <Printer className="h-4 w-4" />
-                    Print
-                  </Button>
                   <Button className="gap-2">
                     <Download className="h-4 w-4" />
                     Download
@@ -1213,6 +1188,129 @@ export default function FinancialReportingHub() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Invoice View Modal */}
+      <Dialog open={showInvoiceModal} onOpenChange={setShowInvoiceModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Invoice {selectedInvoice?.id}</DialogTitle>
+            <DialogDescription>Issued on {selectedInvoice?.date}</DialogDescription>
+          </DialogHeader>
+
+          {selectedInvoice && (
+            <div className="space-y-6">
+              <div className="flex justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg">Invoice To:</h3>
+                  <p className="font-medium">{selectedInvoice.client}</p>
+                  <p className="text-sm text-muted-foreground">123 Client Street</p>
+                  <p className="text-sm text-muted-foreground">Business City, 12345</p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center justify-end gap-2 mb-2">
+                    <Badge
+                      variant="outline"
+                      className={`
+                        ${
+                          selectedInvoice.status === "Paid"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : selectedInvoice.status === "Pending"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-red-50 text-red-700 border-red-200"
+                        }
+                      `}
+                    >
+                      {selectedInvoice.status}
+                    </Badge>
+                  </div>
+                  <p className="text-sm">
+                    <span className="text-muted-foreground">Invoice Date:</span> {selectedInvoice.date}
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-muted-foreground">Invoice Number:</span> {selectedInvoice.id}
+                  </p>
+                  {selectedInvoice.paymentDate && (
+                    <p className="text-sm">
+                      <span className="text-muted-foreground">Payment Date:</span> {selectedInvoice.paymentDate}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50%]">Description</TableHead>
+                      <TableHead className="text-right">Quantity</TableHead>
+                      <TableHead className="text-right">Rate</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedInvoice.items.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{item.description}</TableCell>
+                        <TableCell className="text-right">{item.quantity}</TableCell>
+                        <TableCell className="text-right">${item.rate.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">${item.amount.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="flex justify-end">
+                <div className="w-[300px] space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Subtotal:</span>
+                    <span>${selectedInvoice.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Tax:</span>
+                    <span>${selectedInvoice.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 font-bold">
+                    <span>Total:</span>
+                    <span>${selectedInvoice.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-2">Payment Information</h4>
+                <p className="text-sm">
+                  <span className="font-medium">Payment Method:</span> {selectedInvoice.paymentMethod}
+                </p>
+                {selectedInvoice.status === "Paid" ? (
+                  <p className="text-sm text-green-600 font-medium mt-2">
+                    This invoice has been paid in full on {selectedInvoice.paymentDate}.
+                  </p>
+                ) : selectedInvoice.status === "Pending" ? (
+                  <p className="text-sm text-amber-600 font-medium mt-2">Payment for this invoice is pending.</p>
+                ) : (
+                  <p className="text-sm text-red-600 font-medium mt-2">
+                    This invoice is overdue. Please process payment as soon as possible.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex justify-between items-center gap-4 sm:gap-0">
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => window.print()}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+            </div>
+            <Button id="download-invoice-btn" onClick={handleDownloadInvoice}>
+              <Download className="h-4 w-4 mr-2" />
+              Download Invoice
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

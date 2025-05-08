@@ -39,11 +39,11 @@ export function RoleSelection() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <RoleCard
-          title="Creator"
-          description="Share content and earn rewards"
-          icon={<UserCircle className="h-12 w-12 text-rose-500" />}
-          isSelected={selectedRole === "creator"}
-          onClick={() => handleRoleSelect("creator")}
+          title="Super Admin"
+          description="Platform-wide management"
+          icon={<ShieldCheck className="h-12 w-12 text-violet-500" />}
+          isSelected={selectedRole === "superadmin"}
+          onClick={() => handleRoleSelect("superadmin")}
         />
 
         <RoleCard
@@ -55,11 +55,11 @@ export function RoleSelection() {
         />
 
         <RoleCard
-          title="Super Admin"
-          description="Platform-wide management"
-          icon={<ShieldCheck className="h-12 w-12 text-violet-500" />}
-          isSelected={selectedRole === "superadmin"}
-          onClick={() => handleRoleSelect("superadmin")}
+          title="Creator"
+          description="Share content and earn rewards"
+          icon={<UserCircle className="h-12 w-12 text-rose-500" />}
+          isSelected={selectedRole === "creator"}
+          onClick={() => handleRoleSelect("creator")}
         />
       </div>
     </div>

@@ -23,14 +23,25 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { TikTokIcon } from "@/components/tik-tok-icon"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 export default function AdminDashboard() {
   const router = useRouter()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isTopUpModalOpen, setIsTopUpModalOpen] = useState(false)
+  const [topUpAmount, setTopUpAmount] = useState("")
 
   const navigateTo = (path: string) => {
     router.push(path)
@@ -49,6 +60,12 @@ export default function AdminDashboard() {
 
   const prevImage = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex - 1 + sarahImages.length) % sarahImages.length)
+  }
+
+  const handleTopUp = () => {
+    // In a real app, this would send a request to the super admin
+    setIsTopUpModalOpen(false)
+    alert(`Request to top up Rp ${Number.parseInt(topUpAmount).toLocaleString()} has been sent to the super admin.`)
   }
 
   return (
@@ -96,7 +113,12 @@ export default function AdminDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Rp 25.5M</div>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold">Rp 25.5M</div>
+              <Button size="sm" variant="outline" onClick={() => setIsTopUpModalOpen(true)}>
+                Top Up
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground">Available for redemption</p>
           </CardContent>
         </Card>
@@ -700,7 +722,7 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
           <div className="p-4 mt-auto border-t">
-            <Button className="w-full gap-1" onClick={() => navigateTo("/admin/moderation")}>
+            <Button variant="outline" className="w-full gap-1" onClick={() => navigateTo("/admin/moderation")}>
               Review All <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
@@ -777,6 +799,42 @@ export default function AdminDashboard() {
           </div>
         </Card>
       </div>
+
+      {/* Top Up Modal */}
+      <Dialog open={isTopUpModalOpen} onOpenChange={setIsTopUpModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Top Up Reward Balance</DialogTitle>
+            <DialogDescription>After submit the top up request, super admin will contact you immediately.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="amount" className="text-center">
+                Amount
+              </Label>
+              <div className="col-span-3 flex items-center">
+                <span className="mr-2">Rp</span>
+                <Input
+                  id="amount"
+                  type="number"
+                  value={topUpAmount}
+                  onChange={(e) => setTopUpAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTopUpModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleTopUp} disabled={!topUpAmount || Number.parseInt(topUpAmount) <= 0}>
+              Request Top Up
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

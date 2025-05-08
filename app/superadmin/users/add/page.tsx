@@ -417,8 +417,8 @@ function AddUserForm({ onSubmit, onCancel, companies, initialData = null }) {
         <Check className="h-4 w-4" />
         <AlertTitle>Invitation Process</AlertTitle>
         <AlertDescription>
-          An invitation email will be sent to the user. After confirming, they will be redirected to set a password and
-          connect their social media accounts.
+          An invitation email will be sent to the user. After confirming, they will be redirected to set a password, and
+          for creator they will connect their social media accounts.
         </AlertDescription>
       </Alert>
 

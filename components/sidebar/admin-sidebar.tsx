@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { BarChart3, FileText, Gift, LayoutDashboard, MessageSquare, Settings, Users } from "lucide-react"
+import { BarChart3, FileText, LayoutDashboard, MessageSquare, Settings, Users } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -43,11 +43,6 @@ export function AdminSidebar() {
       title: "Analytics",
       href: "/admin/analytics",
       icon: BarChart3,
-    },
-    {
-      title: "Rewards",
-      href: "/admin/rewards",
-      icon: Gift,
     },
     {
       title: "Settings",

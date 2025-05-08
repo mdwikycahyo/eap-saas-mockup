@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Instagram, ExternalLink } from "lucide-react"
+import { Instagram, ExternalLink, CheckCircle, XCircle, Clock, BarChart, RefreshCw } from "lucide-react"
 import { TikTokIcon } from "@/components/tik-tok-icon"
 import { PointsBalance } from "@/components/points-balance"
 import { SubmitUrlModal } from "@/components/submit-url-modal"
@@ -150,7 +150,7 @@ export default function SubmissionsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-slate-50">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Submissions</h1>
@@ -160,16 +160,23 @@ export default function SubmissionsPage() {
       </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="all">All Submissions</TabsTrigger>
-          <TabsTrigger value="approved">Ready to Post</TabsTrigger>
-          <TabsTrigger value="pending">Under Review</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-          <TabsTrigger value="live">Live</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
+        <TabsList className="bg-white shadow-sm">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="approved" className="flex items-center gap-1">
+            <CheckCircle className="h-3.5 w-3.5" /> Ready
+          </TabsTrigger>
+          <TabsTrigger value="pending" className="flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5" /> Pending
+          </TabsTrigger>
+          <TabsTrigger value="rejected" className="flex items-center gap-1">
+            <XCircle className="h-3.5 w-3.5" /> Rejected
+          </TabsTrigger>
+          <TabsTrigger value="live" className="flex items-center gap-1">
+            <BarChart className="h-3.5 w-3.5" /> Live
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all">
+        <TabsContent value="all" className="mt-6">
           <SubmissionsList
             submissions={filteredSubmissions}
             onSubmitUrl={handleSubmitUrl}
@@ -178,7 +185,7 @@ export default function SubmissionsPage() {
           />
         </TabsContent>
 
-        <TabsContent value="approved">
+        <TabsContent value="approved" className="mt-6">
           <SubmissionsList
             submissions={filteredSubmissions}
             onSubmitUrl={handleSubmitUrl}
@@ -187,7 +194,7 @@ export default function SubmissionsPage() {
           />
         </TabsContent>
 
-        <TabsContent value="pending">
+        <TabsContent value="pending" className="mt-6">
           <SubmissionsList
             submissions={filteredSubmissions}
             onSubmitUrl={handleSubmitUrl}
@@ -196,7 +203,7 @@ export default function SubmissionsPage() {
           />
         </TabsContent>
 
-        <TabsContent value="rejected">
+        <TabsContent value="rejected" className="mt-6">
           <SubmissionsList
             submissions={filteredSubmissions}
             onSubmitUrl={handleSubmitUrl}
@@ -205,16 +212,7 @@ export default function SubmissionsPage() {
           />
         </TabsContent>
 
-        <TabsContent value="live">
-          <SubmissionsList
-            submissions={filteredSubmissions}
-            onSubmitUrl={handleSubmitUrl}
-            onResubmit={handleResubmit}
-            onViewAnalytics={handleViewAnalytics}
-          />
-        </TabsContent>
-
-        <TabsContent value="completed">
+        <TabsContent value="live" className="mt-6">
           <SubmissionsList
             submissions={filteredSubmissions}
             onSubmitUrl={handleSubmitUrl}
@@ -263,127 +261,150 @@ interface SubmissionsListProps {
 function SubmissionsList({ submissions, onSubmitUrl, onResubmit, onViewAnalytics }: SubmissionsListProps) {
   if (submissions.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-12 bg-white rounded-lg shadow-sm">
         <p className="text-muted-foreground">No submissions found</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {submissions.map((submission) => {
         const isQuickShare = submission.campaignType === "Quick Share"
 
+        // Determine status icon and color
+        let StatusIcon = Clock
+        let statusColor = "text-blue-500"
+
+        if (submission.status === "Approved") {
+          StatusIcon = CheckCircle
+          statusColor = "text-purple-500"
+        } else if (submission.status === "Rejected") {
+          StatusIcon = XCircle
+          statusColor = "text-red-500"
+        } else if (submission.status === "Live") {
+          StatusIcon = BarChart
+          statusColor = "text-green-500"
+        } else if (submission.status === "Completed") {
+          StatusIcon = CheckCircle
+          statusColor = "text-slate-500"
+        }
+
         return (
-          <Card key={submission.id} className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex flex-col md:flex-row">
-                <div className="w-full md:w-[20%] h-48 md:h-auto">
-                  <img
-                    src={submission.image || "/placeholder.svg"}
-                    alt={submission.campaign}
-                    className="w-full h-full object-cover"
-                  />
+          <Card key={submission.id} className="overflow-hidden bg-white hover:shadow-md transition-shadow">
+            <div className="relative">
+              <img
+                src={submission.image || "/placeholder.svg"}
+                alt={submission.campaign}
+                className="w-full h-48 object-cover"
+              />
+              <div className="absolute top-2 right-2">
+                <Badge
+                  variant="outline"
+                  className={`
+                    ${submission.status === "Approved" ? "bg-purple-50 text-purple-600 border-purple-200" : ""}
+                    ${submission.status === "Under Review" ? "bg-blue-50 text-blue-600 border-blue-200" : ""}
+                    ${submission.status === "Rejected" ? "bg-red-50 text-red-600 border-red-200" : ""}
+                    ${submission.status === "Live" ? "bg-green-50 text-green-600 border-green-200" : ""}
+                    ${submission.status === "Completed" ? "bg-slate-50 text-slate-600 border-slate-200" : ""}
+                  `}
+                >
+                  <StatusIcon className={`h-3.5 w-3.5 mr-1 ${statusColor}`} />
+                  {submission.status === "Approved" ? "Ready to Post" : submission.status}
+                </Badge>
+              </div>
+              <div className="absolute top-2 left-2">
+                <Badge
+                  variant={isQuickShare ? "secondary" : "outline"}
+                  className={isQuickShare ? "" : "bg-violet-50 text-violet-600 border-violet-200"}
+                >
+                  {isQuickShare ? "Quick Share" : "Creative Challenge"}
+                </Badge>
+              </div>
+              {submission.points > 0 && (
+                <div className="absolute bottom-2 right-2">
+                  <Badge className="bg-yellow-400 text-yellow-900 border-0">+{submission.points} points</Badge>
                 </div>
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-medium text-base">{submission.campaign}</h3>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <span>Submitted on {submission.date}</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            {submission.platform === "instagram" ? (
-                              <>
-                                <Instagram className="h-3 w-3" /> Instagram
-                              </>
-                            ) : (
-                              <>
-                                <TikTokIcon className="h-3 w-3" /> TikTok
-                              </>
-                            )}
-                          </span>
-                        </div>
-                        <div className="mt-1">
-                          <Badge
-                            variant={isQuickShare ? "secondary" : "outline"}
-                            className={isQuickShare ? "" : "bg-violet-50 text-violet-600 border-violet-200"}
-                          >
-                            {isQuickShare ? "Quick Share" : "Creative Challenge"}
-                          </Badge>
-                        </div>
-                      </div>
-                      <StatusBadge status={submission.status} />
-                    </div>
+              )}
+            </div>
 
-                    {submission.feedback && (
-                      <div className="mt-2 p-3 bg-red-50 text-red-800 rounded-md text-sm">
-                        <p className="font-medium">Feedback:</p>
-                        <p>{submission.feedback}</p>
-                      </div>
-                    )}
-
-                    {submission.engagement && (
-                      <div className="mt-2 grid grid-cols-3 gap-2">
-                        <div className="p-2 bg-slate-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground">Views</p>
-                          <p className="font-medium">{submission.engagement.views.toLocaleString()}</p>
-                        </div>
-                        <div className="p-2 bg-slate-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground">Likes</p>
-                          <p className="font-medium">{submission.engagement.likes.toLocaleString()}</p>
-                        </div>
-                        <div className="p-2 bg-slate-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground">Comments</p>
-                          <p className="font-medium">{submission.engagement.comments.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {submission.postUrl && (
-                      <div className="mt-2">
-                        <a
-                          href={submission.postUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm flex items-center gap-1 text-blue-600 hover:underline"
-                        >
-                          View Post <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-between items-center mt-4">
-                    {submission.points > 0 ? (
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">Points earned:</span>{" "}
-                        <span className="font-medium">{submission.points}</span>
-                      </div>
+            <CardContent className="p-4">
+              <div className="mb-2">
+                <h3 className="font-medium text-base">{submission.campaign}</h3>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <span>{submission.date}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    {submission.platform === "instagram" ? (
+                      <>
+                        <Instagram className="h-3 w-3" /> Instagram
+                      </>
                     ) : (
-                      <div className="text-sm text-muted-foreground">No points earned yet</div>
+                      <>
+                        <TikTokIcon className="h-3 w-3" /> TikTok
+                      </>
                     )}
+                  </span>
+                </div>
+              </div>
 
-                    <div className="flex gap-2">
-                      {submission.status === "Rejected" && (
-                        <Button size="sm" onClick={() => onResubmit(submission)}>
-                          Resubmit
-                        </Button>
-                      )}
-                      {submission.status === "Approved" && (
-                        <Button size="sm" variant="outline" onClick={() => onSubmitUrl(submission)}>
-                          Submit URL
-                        </Button>
-                      )}
-                      {(submission.status === "Live" || submission.status === "Completed") && (
-                        <Button size="sm" variant="outline" onClick={() => onViewAnalytics(submission)}>
-                          View Analytics
-                        </Button>
-                      )}
-                    </div>
+              {submission.feedback && (
+                <div className="mt-2 p-2 bg-red-50 text-red-800 rounded-md text-sm">
+                  <p className="font-medium">Feedback:</p>
+                  <p className="text-xs">{submission.feedback}</p>
+                </div>
+              )}
+
+              {submission.engagement && (
+                <div className="mt-2 flex justify-between gap-2 text-sm">
+                  <div className="text-center">
+                    <p className="font-medium">{submission.engagement.views.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">Views</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-medium">{submission.engagement.likes.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">Likes</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-medium">{submission.engagement.comments.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">Comments</p>
                   </div>
                 </div>
+              )}
+
+              {submission.postUrl && (
+                <div className="mt-2">
+                  <a
+                    href={submission.postUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm flex items-center gap-1 text-blue-600 hover:underline"
+                  >
+                    View Post <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
+
+              <div className="mt-4 flex justify-end">
+                {submission.status === "Rejected" && (
+                  <Button size="sm" variant="outline" className="gap-1" onClick={() => onResubmit(submission)}>
+                    <RefreshCw className="h-3.5 w-3.5" /> Resubmit
+                  </Button>
+                )}
+                {submission.status === "Approved" && (
+                  <Button
+                    size="sm"
+                    className="gap-1 bg-purple-600 hover:bg-purple-700"
+                    onClick={() => onSubmitUrl(submission)}
+                  >
+                    Submit URL
+                  </Button>
+                )}
+                {(submission.status === "Live" || submission.status === "Completed") && (
+                  <Button size="sm" variant="outline" className="gap-1" onClick={() => onViewAnalytics(submission)}>
+                    <BarChart className="h-3.5 w-3.5" /> Analytics
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -391,45 +412,4 @@ function SubmissionsList({ submissions, onSubmitUrl, onResubmit, onViewAnalytics
       })}
     </div>
   )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case "Approved":
-      return (
-        <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200">
-          Ready to Post
-        </Badge>
-      )
-    case "Under Review":
-      return (
-        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
-          Under Review
-        </Badge>
-      )
-    case "Rejected":
-      return (
-        <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
-          Rejected
-        </Badge>
-      )
-    case "Live":
-      return (
-        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-          Live
-        </Badge>
-      )
-    case "Completed":
-      return (
-        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
-          Completed
-        </Badge>
-      )
-    default:
-      return (
-        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
-          {status}
-        </Badge>
-      )
-  }
 }

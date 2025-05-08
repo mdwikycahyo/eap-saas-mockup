@@ -6,19 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Calendar,
-  BarChart3,
-  Copy,
-  Edit,
-  Trash2,
-  Eye,
-  CheckCircle,
-  XCircle,
-} from "lucide-react"
+import { Search, Plus, MoreHorizontal, Edit, Trash2, Eye, ThumbsUp, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export default function AdminCampaigns() {
@@ -36,19 +24,26 @@ export default function AdminCampaigns() {
         </div>
       </div>
 
-      <Tabs defaultValue="active" className="w-full mb-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
-          <div className="relative flex-1">
+      <Tabs defaultValue="all" className="w-full mb-6">
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="relative w-full">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input type="search" placeholder="Search campaigns..." className="pl-8" />
           </div>
-          <TabsList>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="drafts">Drafts</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="active">Active</TabsTrigger>
+              <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
+              <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger value="drafts">Drafts</TabsTrigger>
+            </TabsList>
+          </div>
         </div>
+
+        <TabsContent value="all">
+          <CampaignList status="all" />
+        </TabsContent>
 
         <TabsContent value="active">
           <CampaignList status="active" />
@@ -86,6 +81,8 @@ function CampaignList({ status }: { status: string }) {
       submissions: 28,
       engagement: "24.5K",
       views: "45.2K",
+      likes: 1850,
+      comments: 320,
     },
     {
       id: 2,
@@ -93,11 +90,13 @@ function CampaignList({ status }: { status: string }) {
       type: "Creative Challenge",
       platforms: ["tiktok"],
       dueDate: "Aug 15, 2023",
-      status: "active",
-      participants: 36,
-      submissions: 15,
-      engagement: "18.3K",
-      views: "32.7K",
+      status: "draft",
+      participants: 0,
+      submissions: 0,
+      engagement: "0",
+      views: "0",
+      likes: 0,
+      comments: 0,
     },
     {
       id: 3,
@@ -105,11 +104,13 @@ function CampaignList({ status }: { status: string }) {
       type: "Quick Share",
       platforms: ["instagram", "tiktok"],
       dueDate: "Aug 10, 2023",
-      status: "active",
+      status: "scheduled",
       participants: 28,
       submissions: 22,
       engagement: "9.8K",
       views: "21.4K",
+      likes: 780,
+      comments: 95,
     },
     {
       id: 4,
@@ -117,11 +118,13 @@ function CampaignList({ status }: { status: string }) {
       type: "Quick Share",
       platforms: ["instagram"],
       dueDate: "Aug 20, 2023",
-      status: "scheduled",
-      participants: 0,
-      submissions: 0,
-      engagement: "0",
-      views: "0",
+      status: "paused",
+      participants: 36,
+      submissions: 15,
+      engagement: "18.3K",
+      views: "32.7K",
+      likes: 1240,
+      comments: 215,
     },
     {
       id: 5,
@@ -134,6 +137,8 @@ function CampaignList({ status }: { status: string }) {
       submissions: 7,
       engagement: "5.6K",
       views: "12.8K",
+      likes: 420,
+      comments: 68,
     },
     {
       id: 6,
@@ -146,6 +151,8 @@ function CampaignList({ status }: { status: string }) {
       submissions: 38,
       engagement: "32.1K",
       views: "58.9K",
+      likes: 2450,
+      comments: 380,
     },
     {
       id: 7,
@@ -158,16 +165,21 @@ function CampaignList({ status }: { status: string }) {
       submissions: 0,
       engagement: "0",
       views: "0",
+      likes: 0,
+      comments: 0,
     },
   ]
 
-  const filteredCampaigns = campaigns.filter((campaign) => campaign.status === status)
+  const filteredCampaigns = status === "all" ? campaigns : campaigns.filter((campaign) => campaign.status === status)
 
   return (
     <Card>
       <CardHeader className="px-6">
-        <CardTitle>{status.charAt(0).toUpperCase() + status.slice(1)} Campaigns</CardTitle>
+        <CardTitle>
+          {status === "all" ? "All Campaigns" : `${status.charAt(0).toUpperCase() + status.slice(1)} Campaigns`}
+        </CardTitle>
         <CardDescription>
+          {status === "all" && "All campaigns across all statuses"}
           {status === "active" && "Currently running campaigns"}
           {status === "scheduled" && "Upcoming campaigns"}
           {status === "completed" && "Past campaigns"}
@@ -175,63 +187,77 @@ function CampaignList({ status }: { status: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="px-6">
-        <div className="rounded-md border overflow-hidden">
-          <div className="grid grid-cols-12 p-4 bg-slate-50 text-sm font-medium text-slate-500">
-            <div className="col-span-3">Campaign</div>
-            <div className="col-span-1">Status</div>
-            <div className="col-span-2">Due Date</div>
-            <div className="col-span-2">Participants</div>
-            <div className="col-span-1">Views</div>
-            <div className="col-span-2">Engagement</div>
-            <div className="col-span-1">Actions</div>
-          </div>
+        <div className="rounded-md border overflow-x-auto">
+          <div className="min-w-max">
+            <div className="grid grid-cols-12 p-4 bg-slate-50 text-sm font-medium text-slate-500">
+              <div className="col-span-3">Campaign</div>
+              <div className="col-span-1">Status</div>
+              <div className="col-span-2">Due Date</div>
+              <div className="col-span-2">Participants</div>
+              <div className="col-span-1">Views</div>
+              <div className="col-span-2">Engagement</div>
+              <div className="col-span-1">Actions</div>
+            </div>
 
-          {filteredCampaigns.length > 0 ? (
-            filteredCampaigns.map((campaign) => (
-              <div key={campaign.id} className="grid grid-cols-12 p-4 border-t items-center">
-                <div className="col-span-3">
-                  <p className="font-medium truncate">{campaign.title}</p>
-                  <Badge variant="outline" className="text-xs mt-1">
-                    {campaign.type}
-                  </Badge>
-                </div>
-                <div className="col-span-1">
-                  <Badge
-                    className={`
-                    ${campaign.status === "active" ? "bg-green-50 text-green-600 border-green-200" : ""}
-                    ${campaign.status === "scheduled" ? "bg-blue-50 text-blue-600 border-blue-200" : ""}
-                    ${campaign.status === "completed" ? "bg-gray-50 text-gray-600 border-gray-200" : ""}
-                    ${campaign.status === "draft" ? "bg-amber-50 text-amber-600 border-amber-200" : ""}
-                  `}
-                  >
-                    {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-                  </Badge>
-                </div>
-                <div className="col-span-2 flex items-center gap-1">
-                  <Calendar className="h-4 w-4 text-slate-400" />
-                  <span className="text-sm">{campaign.dueDate}</span>
-                </div>
-                <div className="col-span-2">
-                  <div className="flex flex-col">
-                    <span className="font-medium">{campaign.participants} Creators</span>
-                    <span className="text-xs text-muted-foreground">{campaign.submissions} Submissions</span>
+            {filteredCampaigns.length > 0 ? (
+              filteredCampaigns.map((campaign) => (
+                <div key={campaign.id} className="grid grid-cols-12 p-4 border-t items-center">
+                  <div className="col-span-3">
+                    <p className="font-medium truncate">{campaign.title}</p>
+                    <Badge variant="outline" className="text-xs mt-1">
+                      {campaign.type}
+                    </Badge>
+                  </div>
+                  <div className="col-span-1">
+                    <Badge
+                      className={`
+                        ${campaign.status === "active" ? "bg-green-50 text-green-600 border-green-200" : ""}
+                        ${campaign.status === "scheduled" ? "bg-blue-50 text-blue-600 border-blue-200" : ""}
+                        ${campaign.status === "completed" ? "bg-gray-50 text-gray-600 border-gray-200" : ""}
+                        ${campaign.status === "draft" ? "bg-amber-50 text-amber-600 border-amber-200" : ""}
+                        ${campaign.status === "paused" ? "bg-purple-50 text-purple-600 border-purple-200" : ""}
+                      `}
+                    >
+                      {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                    </Badge>
+                  </div>
+                  <div className="col-span-2 flex items-center">
+                    <span className="text-sm">{campaign.dueDate}</span>
+                  </div>
+                  <div className="col-span-2">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{campaign.participants} Creators</span>
+                      <span className="text-xs text-muted-foreground">{campaign.submissions} Submissions</span>
+                    </div>
+                  </div>
+                  <div className="col-span-1">
+                    <span>{campaign.views}</span>
+                  </div>
+                  <div className="col-span-2">
+                    <div className="flex items-center gap-3">
+                      {campaign.likes > 0 && (
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <div className="flex items-center">
+                            <ThumbsUp className="h-3 w-3 mr-1" />
+                            {campaign.likes}
+                          </div>
+                          <div className="flex items-center">
+                            <MessageCircle className="h-3 w-3 mr-1" />
+                            {campaign.comments}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-span-1 flex items-center">
+                    <CampaignActionsMenu campaign={campaign} />
                   </div>
                 </div>
-                <div className="col-span-1">
-                  <span>{campaign.views}</span>
-                </div>
-                <div className="col-span-2 flex items-center gap-1">
-                  <BarChart3 className="h-4 w-4 text-slate-400" />
-                  <span>{campaign.engagement}</span>
-                </div>
-                <div className="col-span-1 flex items-center">
-                  <CampaignActionsMenu campaign={campaign} />
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="p-8 text-center text-muted-foreground">No {status} campaigns found.</div>
-          )}
+              ))
+            ) : (
+              <div className="p-8 text-center text-muted-foreground">No {status} campaigns found.</div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -261,23 +287,6 @@ function CampaignActionsMenu({ campaign }: { campaign: any }) {
           <Edit className="h-4 w-4 mr-2" />
           Edit Campaign
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Copy className="h-4 w-4 mr-2" />
-          Duplicate
-        </DropdownMenuItem>
-        {campaign.status === "active" && (
-          <DropdownMenuItem>
-            <XCircle className="h-4 w-4 mr-2" />
-            Deactivate
-          </DropdownMenuItem>
-        )}
-        {campaign.status === "scheduled" ||
-          (campaign.status === "draft" && (
-            <DropdownMenuItem>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Activate
-            </DropdownMenuItem>
-          ))}
         <DropdownMenuItem className="text-red-600">
           <Trash2 className="h-4 w-4 mr-2" />
           Delete
