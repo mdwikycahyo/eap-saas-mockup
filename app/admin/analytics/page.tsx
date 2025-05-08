@@ -1,21 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { DatePicker } from "@/components/ui/date-picker"
 import { Download, BarChart3, Users, Calendar, Award } from "lucide-react"
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart as RPieChart,
-  Pie,
-  Cell,
-  LineChart as RLineChart,
-  Line,
-} from "recharts"
 
 export default function AdminAnalytics() {
   return (
@@ -144,46 +130,6 @@ export default function AdminAnalytics() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Department Participation</CardTitle>
-                <CardDescription>Participation breakdown by department</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RPieChart>
-                    <Pie
-                      data={[
-                        { name: "Marketing", value: 35, color: "#8884d8" },
-                        { name: "Sales", value: 25, color: "#82ca9d" },
-                        { name: "Product", value: 18, color: "#ffc658" },
-                        { name: "Engineering", value: 15, color: "#ff8042" },
-                        { name: "HR", value: 7, color: "#0088fe" },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {[
-                        { name: "Marketing", value: 35, color: "#8884d8" },
-                        { name: "Sales", value: 25, color: "#82ca9d" },
-                        { name: "Product", value: 18, color: "#ffc658" },
-                        { name: "Engineering", value: 15, color: "#ff8042" },
-                        { name: "HR", value: 7, color: "#0088fe" },
-                      ].map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`${value} Creators`, "Participation"]} />
-                    <Legend />
-                  </RPieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
           </div>
         </TabsContent>
 
@@ -281,39 +227,6 @@ export default function AdminAnalytics() {
             </CardContent>
           </Card>
 
-          <div className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Campaign Engagement Over Time</CardTitle>
-                <CardDescription>Engagement metrics across all campaigns</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RLineChart
-                    data={[
-                      { date: "Jan", likes: 1200, comments: 240, shares: 320 },
-                      { date: "Feb", likes: 1900, comments: 380, shares: 410 },
-                      { date: "Mar", likes: 2400, comments: 480, shares: 590 },
-                      { date: "Apr", likes: 1800, comments: 360, shares: 430 },
-                      { date: "May", likes: 2800, comments: 560, shares: 680 },
-                      { date: "Jun", likes: 3600, comments: 720, shares: 850 },
-                      { date: "Jul", likes: 4200, comments: 840, shares: 970 },
-                    ]}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="likes" stroke="#8884d8" activeDot={{ r: 8 }} name="Likes" />
-                    <Line type="monotone" dataKey="comments" stroke="#82ca9d" name="Comments" />
-                    <Line type="monotone" dataKey="shares" stroke="#ffc658" name="Shares" />
-                  </RLineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         <TabsContent value="rewards" className="mt-6">
