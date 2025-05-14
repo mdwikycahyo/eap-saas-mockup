@@ -117,10 +117,7 @@ export default function CreateCampaignPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="paused">Paused</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -289,7 +286,7 @@ export default function CreateCampaignPage() {
                       <span className="font-semibold">Click to upload</span> or drag and drop
                     </p>
                     <p className="text-xs text-muted-foreground">
-                    {campaignType === "quick-share" ? "PNG, JPG, GIF, MP4 up to 10MB" : "PDF up to 10MB"}
+                      {campaignType === "quick-share" ? "PNG, JPG, GIF, MP4 up to 10MB" : "PDF up to 10MB"}
                     </p>
                   </div>
                 </div>

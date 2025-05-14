@@ -30,7 +30,7 @@ export function AdminSidebar() {
       icon: FileText,
     },
     {
-      title: "Content Moderation",
+      title: "Approval",
       href: "/admin/moderation",
       icon: MessageSquare,
     },

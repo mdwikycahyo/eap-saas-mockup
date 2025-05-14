@@ -5,9 +5,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, Plus, MoreHorizontal, Edit, Trash2, Eye, ThumbsUp, MessageCircle } from "lucide-react"
+import { Search, Plus, Edit, Trash2, Eye, ThumbsUp, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function AdminCampaigns() {
   const router = useRouter()
@@ -34,7 +34,6 @@ export default function AdminCampaigns() {
             <TabsList className="w-full justify-start">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
               <TabsTrigger value="drafts">Drafts</TabsTrigger>
             </TabsList>
@@ -47,10 +46,6 @@ export default function AdminCampaigns() {
 
         <TabsContent value="active">
           <CampaignList status="active" />
-        </TabsContent>
-
-        <TabsContent value="scheduled">
-          <CampaignList status="scheduled" />
         </TabsContent>
 
         <TabsContent value="completed">
@@ -170,7 +165,10 @@ function CampaignList({ status }: { status: string }) {
     },
   ]
 
-  const filteredCampaigns = status === "all" ? campaigns : campaigns.filter((campaign) => campaign.status === status)
+  const filteredCampaigns =
+    status === "all"
+      ? campaigns.filter((campaign) => ["draft", "active", "completed"].includes(campaign.status))
+      : campaigns.filter((campaign) => campaign.status === status)
 
   return (
     <Card>
@@ -212,10 +210,8 @@ function CampaignList({ status }: { status: string }) {
                     <Badge
                       className={`
                         ${campaign.status === "active" ? "bg-green-50 text-green-600 border-green-200" : ""}
-                        ${campaign.status === "scheduled" ? "bg-blue-50 text-blue-600 border-blue-200" : ""}
                         ${campaign.status === "completed" ? "bg-gray-50 text-gray-600 border-gray-200" : ""}
                         ${campaign.status === "draft" ? "bg-amber-50 text-amber-600 border-amber-200" : ""}
-                        ${campaign.status === "paused" ? "bg-purple-50 text-purple-600 border-purple-200" : ""}
                       `}
                     >
                       {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
@@ -250,7 +246,50 @@ function CampaignList({ status }: { status: string }) {
                     </div>
                   </div>
                   <div className="col-span-1 flex items-center">
-                    <CampaignActionsMenu campaign={campaign} />
+                    <TooltipProvider>
+                      <div className="flex gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => router.push(`/admin/campaigns/${campaign.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>View Details</p>
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => router.push(`/admin/campaigns/${campaign.id}/edit`)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Edit Campaign</p>
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-red-600">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Delete Campaign</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TooltipProvider>
                   </div>
                 </div>
               ))
@@ -261,38 +300,6 @@ function CampaignList({ status }: { status: string }) {
         </div>
       </CardContent>
     </Card>
-  )
-}
-
-function CampaignActionsMenu({ campaign }: { campaign: any }) {
-  const router = useRouter()
-
-  const handleViewDetails = () => {
-    router.push(`/admin/campaigns/${campaign.id}`)
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleViewDetails}>
-          <Eye className="h-4 w-4 mr-2" />
-          View Details
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push(`/admin/campaigns/${campaign.id}/edit`)}>
-          <Edit className="h-4 w-4 mr-2" />
-          Edit Campaign
-        </DropdownMenuItem>
-        <DropdownMenuItem className="text-red-600">
-          <Trash2 className="h-4 w-4 mr-2" />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
 

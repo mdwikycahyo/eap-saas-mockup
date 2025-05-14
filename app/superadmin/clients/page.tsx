@@ -13,20 +13,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, MoreHorizontal, PlusCircle, Edit, ExternalLink, Calendar } from "lucide-react"
+import { Search, PlusCircle, Edit, Calendar, Eye, RefreshCw, Power } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
 import { Label } from "@/components/ui/label"
 import { DatePicker } from "@/components/ui/date-picker"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Mock data for clients
 const mockClients = [
@@ -273,273 +267,320 @@ export default function ClientsPage() {
   }, [clients])
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Client Management</h1>
-        <Button onClick={handleAddClient}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add New Client
-        </Button>
-      </div>
+    <TooltipProvider>
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Client Management</h1>
+          <Button onClick={handleAddClient}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add New Client
+          </Button>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Clients Overview</CardTitle>
-          <CardDescription>Manage and monitor all client accounts in one place</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search clients..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        <Card>
+          <CardHeader>
+            <CardTitle>Clients Overview</CardTitle>
+            <CardDescription>Manage and monitor all client accounts in one place</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search clients..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={industryFilter} onValueChange={setIndustryFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Industries</SelectItem>
+                    <SelectItem value="technology">Technology</SelectItem>
+                    <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="energy">Energy</SelectItem>
+                    <SelectItem value="defense">Defense</SelectItem>
+                    <SelectItem value="pharmaceuticals">Pharmaceuticals</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={industryFilter} onValueChange={setIndustryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by industry" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Industries</SelectItem>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="energy">Energy</SelectItem>
-                  <SelectItem value="defense">Defense</SelectItem>
-                  <SelectItem value="pharmaceuticals">Pharmaceuticals</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client Name</TableHead>
-                  <TableHead>Industry</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Subscription Tier</TableHead>
-                  <TableHead>Subscription Duration</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredClients.length === 0 ? (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      No clients found
-                    </TableCell>
+                    <TableHead>Client Name</TableHead>
+                    <TableHead>Industry</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Subscription Tier</TableHead>
+                    <TableHead>Subscription Duration</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ) : (
-                  filteredClients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden">
-                            <img
-                              src={client.logo || "/placeholder.svg"}
-                              alt={`${client.name} logo`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{client.name}</p>
-                            <p className="text-xs text-muted-foreground">{client.subdomain}.hypearn.com</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{client.industry}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            client.status === "Active"
-                              ? "success"
-                              : client.status === "Inactive"
-                                ? "destructive"
-                                : "outline"
-                          }
-                        >
-                          {client.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatSubscriptionTier(client.subscriptionTier)}</TableCell>
-                      <TableCell>
-                        {formatSubscriptionDuration(client.subscriptionStart, client.subscriptionEnd)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Open menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewClient(client)}>View Details</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditClient(client.id)}>Edit Client</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {client.status === "Expired" ? (
-                              <DropdownMenuItem onClick={() => handleRenewClient(client)}>
-                                Renew Subscription
-                              </DropdownMenuItem>
-                            ) : client.status === "Active" ? (
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => {
-                                  setClientToDeactivate(client)
-                                  setIsDeactivateDialogOpen(true)
-                                }}
-                              >
-                                Deactivate
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem
-                                className="text-green-600"
-                                onClick={() => {
-                                  setClientToDeactivate(client)
-                                  setIsDeactivateDialogOpen(true)
-                                }}
-                              >
-                                Activate
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                </TableHeader>
+                <TableBody>
+                  {filteredClients.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4">
+                        No clients found
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  ) : (
+                    filteredClients.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden">
+                              <img
+                                src={client.logo || "/placeholder.svg"}
+                                alt={`${client.name} logo`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium">{client.name}</p>
+                              <p className="text-xs text-muted-foreground">{client.subdomain}.hypearn.com</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{client.industry}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              client.status === "Active"
+                                ? "success"
+                                : client.status === "Inactive"
+                                  ? "destructive"
+                                  : "outline"
+                            }
+                          >
+                            {client.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatSubscriptionTier(client.subscriptionTier)}</TableCell>
+                        <TableCell>
+                          {formatSubscriptionDuration(client.subscriptionStart, client.subscriptionEnd)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleViewClient(client)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">View Details</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View client details</TooltipContent>
+                            </Tooltip>
 
-      {/* Client Details Dialog */}
-      <Dialog open={isClientDetailsOpen} onOpenChange={setIsClientDetailsOpen}>
-        <DialogContent className="sm:max-w-[800px]">
-          <DialogHeader>
-            <DialogTitle>Client Details</DialogTitle>
-          </DialogHeader>
-          {selectedClient && <ClientDetails client={selectedClient} />}
-        </DialogContent>
-      </Dialog>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleEditClient(client.id)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                  <span className="sr-only">Edit Client</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Edit client information</TooltipContent>
+                            </Tooltip>
 
-      {/* Deactivate Client Confirmation Dialog */}
-      <Dialog open={isDeactivateDialogOpen} onOpenChange={setIsDeactivateDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{clientToDeactivate?.status === "Active" ? "Deactivate" : "Activate"} Client</DialogTitle>
-            <DialogDescription>
-              {clientToDeactivate?.status === "Active"
-                ? "Are you sure you want to deactivate this client? This will suspend their access to the platform."
-                : "Are you sure you want to activate this client? This will restore their access to the platform."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            {clientToDeactivate && (
-              <div className="flex items-center gap-3 p-3 bg-muted rounded-md">
-                <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden">
-                  <img
-                    src={clientToDeactivate.logo || "/placeholder.svg"}
-                    alt={`${clientToDeactivate.name} logo`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <p className="font-medium">{clientToDeactivate.name}</p>
-                  <p className="text-xs text-muted-foreground">{clientToDeactivate.subdomain}.hypearn.com</p>
-                </div>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeactivateDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant={clientToDeactivate?.status === "Active" ? "destructive" : "default"}
-              onClick={handleDeactivateClient}
-            >
-              {clientToDeactivate?.status === "Active" ? "Yes, Deactivate" : "Yes, Activate"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Renew Subscription Dialog */}
-      <Dialog open={isRenewDialogOpen} onOpenChange={setIsRenewDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Renew Client Subscription</DialogTitle>
-            <DialogDescription>Set a new subscription end date for {clientToRenew?.name}</DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            {clientToRenew && (
-              <div className="flex items-center gap-3 p-3 bg-muted rounded-md">
-                <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden">
-                  <img
-                    src={clientToRenew.logo || "/placeholder.svg"}
-                    alt={`${clientToRenew.name} logo`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <p className="font-medium">{clientToRenew.name}</p>
-                  <p className="text-xs text-muted-foreground">{clientToRenew.subdomain}.hypearn.com</p>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="subscription-tier">Subscription Tier</Label>
-              </div>
-              <Select defaultValue={clientToRenew?.subscriptionTier}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select subscription tier" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tier1">Starter (2 admins, 50 creators)</SelectItem>
-                  <SelectItem value="tier2">Growth (5 admins, 150 creators)</SelectItem>
-                  <SelectItem value="tier3">Business (10 admins, 500 creators)</SelectItem>
-                  <SelectItem value="tier4">Enterprise (Unlimited)</SelectItem>
-                </SelectContent>
-              </Select>
+                            {client.status === "Expired" ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-green-600"
+                                    onClick={() => handleRenewClient(client)}
+                                  >
+                                    <RefreshCw className="h-4 w-4" />
+                                    <span className="sr-only">Renew Subscription</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Renew client subscription</TooltipContent>
+                              </Tooltip>
+                            ) : client.status === "Active" ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-red-600"
+                                    onClick={() => {
+                                      setClientToDeactivate(client)
+                                      setIsDeactivateDialogOpen(true)
+                                    }}
+                                  >
+                                    <Power className="h-4 w-4" />
+                                    <span className="sr-only">Deactivate</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Deactivate client account</TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-green-600"
+                                    onClick={() => {
+                                      setClientToDeactivate(client)
+                                      setIsDeactivateDialogOpen(true)
+                                    }}
+                                  >
+                                    <Power className="h-4 w-4" />
+                                    <span className="sr-only">Activate</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Activate client account</TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="renewal-date">Subscription End Date</Label>
-              </div>
-              <DatePicker date={renewalDate} setDate={setRenewalDate} />
+        {/* Client Details Dialog */}
+        <Dialog open={isClientDetailsOpen} onOpenChange={setIsClientDetailsOpen}>
+          <DialogContent className="sm:max-w-[800px]">
+            <DialogHeader>
+              <DialogTitle>Client Details</DialogTitle>
+            </DialogHeader>
+            {selectedClient && <ClientDetails client={selectedClient} />}
+          </DialogContent>
+        </Dialog>
+
+        {/* Deactivate Client Confirmation Dialog */}
+        <Dialog open={isDeactivateDialogOpen} onOpenChange={setIsDeactivateDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>{clientToDeactivate?.status === "Active" ? "Deactivate" : "Activate"} Client</DialogTitle>
+              <DialogDescription>
+                {clientToDeactivate?.status === "Active"
+                  ? "Are you sure you want to deactivate this client? This will suspend their access to the platform."
+                  : "Are you sure you want to activate this client? This will restore their access to the platform."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              {clientToDeactivate && (
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-md">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden">
+                    <img
+                      src={clientToDeactivate.logo || "/placeholder.svg"}
+                      alt={`${clientToDeactivate.name} logo`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-medium">{clientToDeactivate.name}</p>
+                    <p className="text-xs text-muted-foreground">{clientToDeactivate.subdomain}.hypearn.com</p>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRenewDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleRenewalConfirm}>Renew Subscription</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeactivateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant={clientToDeactivate?.status === "Active" ? "destructive" : "default"}
+                onClick={handleDeactivateClient}
+              >
+                {clientToDeactivate?.status === "Active" ? "Yes, Deactivate" : "Yes, Activate"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Renew Subscription Dialog */}
+        <Dialog open={isRenewDialogOpen} onOpenChange={setIsRenewDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Renew Client Subscription</DialogTitle>
+              <DialogDescription>Set a new subscription end date for {clientToRenew?.name}</DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              {clientToRenew && (
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-md">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden">
+                    <img
+                      src={clientToRenew.logo || "/placeholder.svg"}
+                      alt={`${clientToRenew.name} logo`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-medium">{clientToRenew.name}</p>
+                    <p className="text-xs text-muted-foreground">{clientToRenew.subdomain}.hypearn.com</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="subscription-tier">Subscription Tier</Label>
+                </div>
+                <Select defaultValue={clientToRenew?.subscriptionTier}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select subscription tier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="trial">Trial (30 Days) - 1 admin, 10 creators</SelectItem>
+                    <SelectItem value="tier1">Starter - 2 admins, 50 creators</SelectItem>
+                    <SelectItem value="flexible">Flexible - Custom admins & creators</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="renewal-date">Subscription End Date</Label>
+                </div>
+                <DatePicker date={renewalDate} setDate={setRenewalDate} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsRenewDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleRenewalConfirm}>Renew Subscription</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </TooltipProvider>
   )
 }
 
@@ -549,10 +590,9 @@ function ClientDetails({ client }) {
   // Format subscription tier with details
   const formatSubscriptionTier = (tierCode) => {
     const tiers = {
+      trial: { name: "Trial", admins: 1, creators: 10 },
       tier1: { name: "Starter", admins: 2, creators: 50 },
-      tier2: { name: "Growth", admins: 5, creators: 150 },
-      tier3: { name: "Business", admins: 10, creators: 500 },
-      tier4: { name: "Enterprise", admins: "Unlimited", creators: "Unlimited" },
+      flexible: { name: "Flexible", admins: "Custom", creators: "Custom" },
     }
 
     const tier = tiers[tierCode]

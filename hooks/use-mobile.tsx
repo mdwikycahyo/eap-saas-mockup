@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 
-export function useMobile() {
+export function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -24,4 +24,4 @@ export function useMobile() {
   return isMobile
 }
 
-export default useMobile
+export default useIsMobile

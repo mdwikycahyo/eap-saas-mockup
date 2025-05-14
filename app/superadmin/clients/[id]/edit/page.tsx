@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlusCircle, Upload, AlertCircle, Check, ArrowLeft, Loader2, ChevronDown } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
@@ -20,6 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 // Initial industries list
 const initialIndustries = [
@@ -47,40 +48,30 @@ const mockClients = [
     name: "Dayatech",
     industry: "Technology",
     subdomain: "dayatech",
-    description: "Leading technology solutions provider",
-    streetAddress: "123 Tech Blvd",
-    city: "Jakarta",
-    stateProvince: "DKI Jakarta",
-    postalCode: "12345",
-    country: "Indonesia",
-    primaryEmail: "contact@dayatech.com",
-    phoneNumber: "+62 21 1234 5678",
-    internalNotes: "Strategic client with high growth potential",
-    subscriptionTier: "tier3",
+    address: "123 Tech Blvd, Jakarta, DKI Jakarta 12345, Indonesia",
+    rewardBalance: "5000",
+    subscriptionTier: "tier1",
     subscriptionStart: "2023-01-01",
     subscriptionEnd: "2024-01-01",
     status: "active",
     logo: "/placeholder.svg?height=100&width=100",
+    adminCount: "2",
+    creatorCount: "50",
   },
   {
     id: "2",
     name: "Global Retail Group",
     industry: "Retail",
     subdomain: "globalretail",
-    description: "International retail chain",
-    streetAddress: "456 Market St",
-    city: "Surabaya",
-    stateProvince: "East Java",
-    postalCode: "67890",
-    country: "Indonesia",
-    primaryEmail: "info@globalretail.com",
-    phoneNumber: "+62 31 9876 5432",
-    internalNotes: "Expanding to new locations in Q3",
-    subscriptionTier: "tier2",
+    address: "456 Market St, Surabaya, East Java 67890, Indonesia",
+    rewardBalance: "10000",
+    subscriptionTier: "flexible",
     subscriptionStart: "2023-03-15",
     subscriptionEnd: "2024-03-15",
     status: "active",
     logo: "/placeholder.svg?height=100&width=100",
+    adminCount: "5",
+    creatorCount: "120",
   },
 ]
 
@@ -150,48 +141,42 @@ export default function EditClientPage() {
       </div>
 
       {clientData && (
-        <ClientForm onSubmit={handleUpdateClient} onCancel={handleCancel} initialData={clientData} isEditing={true} />
+        <AddClientForm
+          onSubmit={handleUpdateClient}
+          onCancel={handleCancel}
+          initialData={clientData}
+          isEditing={true}
+        />
       )}
     </div>
   )
 }
 
-function ClientForm({ onSubmit, onCancel, initialData = null, isEditing = false }) {
+function AddClientForm({ onSubmit, onCancel, initialData = null, isEditing = false }) {
   const [formData, setFormData] = useState({
     // Company Information
     id: initialData?.id || null,
     name: initialData?.name || "",
     industry: initialData?.industry || "",
     subdomain: initialData?.subdomain || "",
-    description: initialData?.description || "",
+    address: initialData?.address || "",
+    rewardBalance: initialData?.rewardBalance || "0",
 
-    // Address Information
-    streetAddress: initialData?.streetAddress || "",
-    city: initialData?.city || "",
-    stateProvince: initialData?.stateProvince || "",
-    postalCode: initialData?.postalCode || "",
-    country: initialData?.country || "",
-
-    // Contact Information
-    primaryEmail: initialData?.primaryEmail || "",
-    phoneNumber: initialData?.phoneNumber || "",
-
-    // Additional Information
-    internalNotes: initialData?.internalNotes || "",
-
-    // Subscription
+    // Subscription Information
     subscriptionTier: initialData?.subscriptionTier || "tier1",
     subscriptionStartDate: initialData?.subscriptionStart || "",
     subscriptionEndDate: initialData?.subscriptionEnd || "",
+    isDateFieldsDisabled: initialData?.subscriptionTier === "trial",
+    adminCount: initialData?.adminCount || "1",
+    creatorCount: initialData?.creatorCount || "10",
   })
 
-  const [activeTab, setActiveTab] = useState("company")
   const [industries, setIndustries] = useState(initialIndustries)
   const [newIndustry, setNewIndustry] = useState("")
   const [formErrors, setFormErrors] = useState({})
   const { toast } = useToast()
-  const [showIndustryDropdown, setShowIndustryDropdown] = useState(false)
   const [industrySearch, setIndustrySearch] = useState("")
+  const [openIndustryCombobox, setOpenIndustryCombobox] = useState(false)
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false)
 
   const handleChange = (e) => {
@@ -249,8 +234,6 @@ function ClientForm({ onSubmit, onCancel, initialData = null, isEditing = false 
     if (validateForm()) {
       onSubmit(formData)
     } else {
-      // If there are errors, switch to the company tab where most required fields are
-      setActiveTab("company")
       toast({
         title: "Form Incomplete",
         description: "Please fill in all required fields before submitting.",
@@ -266,402 +249,323 @@ function ClientForm({ onSubmit, onCancel, initialData = null, isEditing = false 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 pb-10">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 w-full">
-          <TabsTrigger value="company">Company Information</TabsTrigger>
-          <TabsTrigger value="address">Address Information</TabsTrigger>
-          <TabsTrigger value="branding">Company Branding</TabsTrigger>
-          <TabsTrigger value="contact">Contact & Additional</TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Left Column - Company Information */}
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium">Company Information</h3>
+            <p className="text-sm text-muted-foreground">Enter the basic information about the company</p>
+          </div>
 
-        {/* Company Information Tab */}
-        <TabsContent value="company" className="space-y-6 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left Column - Company Information */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-medium">Company Information</h3>
-                <p className="text-sm text-muted-foreground">Enter the basic information about the company</p>
-              </div>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name" className={cn(formErrors.name && "text-destructive")}>
+                Company Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Enter company name"
+                className={cn(formErrors.name && "border-destructive")}
+                required
+              />
+              {formErrors.name && <p className="text-xs text-destructive mt-1">{formErrors.name}</p>}
+            </div>
 
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className={cn(formErrors.name && "text-destructive")}>
-                    Company Name <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter company name"
-                    className={cn(formErrors.name && "border-destructive")}
-                    required
-                  />
-                  {formErrors.name && <p className="text-xs text-destructive mt-1">{formErrors.name}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="industry" className={cn(formErrors.industry && "text-destructive")}>
-                    Industry <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <div
-                      className={cn(
-                        "flex items-center justify-between px-3 py-2 border rounded-md cursor-pointer",
-                        formErrors.industry && "border-destructive",
-                        showIndustryDropdown && "border-primary",
-                      )}
-                      onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
-                    >
-                      <span className={cn(!formData.industry && "text-muted-foreground")}>
-                        {formData.industry || "Select industry"}
-                      </span>
-                      <ChevronDown
-                        className={cn("h-4 w-4 transition-transform", showIndustryDropdown && "transform rotate-180")}
-                      />
-                    </div>
-
-                    {showIndustryDropdown && (
-                      <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg">
-                        <div className="p-2 border-b">
-                          <Input
-                            placeholder="Search..."
-                            value={industrySearch}
-                            onChange={(e) => setIndustrySearch(e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="max-h-[200px] overflow-y-auto">
-                          {filteredIndustries.length > 0 ? (
-                            filteredIndustries.map((industry) => (
-                              <div
-                                key={industry}
-                                className="px-3 py-2 hover:bg-muted cursor-pointer flex items-center"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setFormData((prev) => ({ ...prev, industry }))
-                                  setShowIndustryDropdown(false)
-                                  setIndustrySearch("")
-                                  if (formErrors.industry) {
-                                    setFormErrors((prev) => ({ ...prev, industry: undefined }))
-                                  }
-                                }}
-                              >
+            <div className="space-y-2">
+              <Label htmlFor="industry" className={cn(formErrors.industry && "text-destructive")}>
+                Industry <span className="text-destructive">*</span>
+              </Label>
+              <Popover open={openIndustryCombobox} onOpenChange={setOpenIndustryCombobox}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openIndustryCombobox}
+                    className={cn(
+                      "w-full justify-between",
+                      formErrors.industry && "border-destructive",
+                      !formData.industry && "text-muted-foreground",
+                    )}
+                  >
+                    {formData.industry || "Select industry..."}
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search industry..."
+                      value={industrySearch}
+                      onValueChange={setIndustrySearch}
+                    />
+                    <CommandList>
+                      {filteredIndustries.length > 0 ? (
+                        <CommandGroup>
+                          {filteredIndustries.map((industry) => (
+                            <CommandItem
+                              key={industry}
+                              value={industry}
+                              onSelect={() => {
+                                setFormData((prev) => ({ ...prev, industry }))
+                                setOpenIndustryCombobox(false)
+                                setIndustrySearch("")
+                                if (formErrors.industry) {
+                                  setFormErrors((prev) => ({ ...prev, industry: undefined }))
+                                }
+                              }}
+                            >
+                              <div className="flex items-center">
                                 {formData.industry === industry && (
                                   <Check className="mr-2 h-4 w-4 text-primary flex-shrink-0" />
                                 )}
                                 <span className={formData.industry === industry ? "font-medium" : ""}>{industry}</span>
                               </div>
-                            ))
-                          ) : (
-                            <div className="p-4 text-center">
-                              <p className="text-sm text-muted-foreground mb-4">No matching industries found.</p>
-                              <div
-                                className="flex items-center justify-center gap-2 cursor-pointer hover:text-primary"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setNewIndustry(industrySearch)
-                                  setShowConfirmationDialog(true)
-                                }}
-                              >
-                                <PlusCircle className="h-4 w-4" />
-                                <span>Add "{industrySearch}"</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  {formErrors.industry && <p className="text-xs text-destructive mt-1">{formErrors.industry}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="subdomain" className={cn(formErrors.subdomain && "text-destructive")}>
-                    Company Subdomain <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="flex items-center">
-                    <Input
-                      id="subdomain"
-                      name="subdomain"
-                      value={formData.subdomain}
-                      onChange={handleChange}
-                      className={cn("rounded-r-none", formErrors.subdomain && "border-destructive")}
-                      placeholder="companyname"
-                    />
-                    <div className="bg-muted px-3 py-2 border border-l-0 border-input rounded-r-md text-muted-foreground">
-                      .hypearn.com
-                    </div>
-                  </div>
-                  {formErrors.subdomain ? (
-                    <p className="text-xs text-destructive mt-1">{formErrors.subdomain}</p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      This subdomain will be used for company access and participant registration
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Company Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="min-h-[100px]"
-                    placeholder="Brief description of the company"
-                  />
-                </div>
-              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      ) : (
+                        <CommandEmpty className="py-6 text-center">
+                          <p className="text-sm text-muted-foreground mb-4">No matching industries found</p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setNewIndustry(industrySearch)
+                              setShowConfirmationDialog(true)
+                              setOpenIndustryCombobox(false)
+                            }}
+                          >
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add "{industrySearch}"
+                          </Button>
+                        </CommandEmpty>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {formErrors.industry && <p className="text-xs text-destructive mt-1">{formErrors.industry}</p>}
             </div>
 
-            {/* Right Column - Subscription Details */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-medium">Subscription Details</h3>
-                <p className="text-sm text-muted-foreground">Set the subscription tier and duration</p>
-              </div>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="subscriptionTier">
-                    Subscription Tier <span className="text-destructive">*</span>
-                  </Label>
-                  <Select
-                    value={formData.subscriptionTier}
-                    onValueChange={(value) => handleSelectChange("subscriptionTier", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select subscription tier" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="tier1">Tier 1 (Starter) - 2 admins, 50 creators</SelectItem>
-                      <SelectItem value="tier2">Tier 2 (Growth) - 5 admins, 150 creators</SelectItem>
-                      <SelectItem value="tier3">Tier 3 (Business) - 10 admins, 500 creators</SelectItem>
-                      <SelectItem value="tier4">Tier 4 (Enterprise) - Unlimited users</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="subscriptionStartDate"
-                    className={cn(formErrors.subscriptionStartDate && "text-destructive")}
-                  >
-                    Start Date <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="subscriptionStartDate"
-                    name="subscriptionStartDate"
-                    type="date"
-                    value={formData.subscriptionStartDate}
-                    onChange={handleChange}
-                    className={cn(formErrors.subscriptionStartDate && "border-destructive")}
-                    required
-                  />
-                  {formErrors.subscriptionStartDate && (
-                    <p className="text-xs text-destructive mt-1">{formErrors.subscriptionStartDate}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="subscriptionEndDate"
-                    className={cn(formErrors.subscriptionEndDate && "text-destructive")}
-                  >
-                    End Date <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="subscriptionEndDate"
-                    name="subscriptionEndDate"
-                    type="date"
-                    value={formData.subscriptionEndDate}
-                    onChange={handleChange}
-                    className={cn(formErrors.subscriptionEndDate && "border-destructive")}
-                    required
-                  />
-                  {formErrors.subscriptionEndDate && (
-                    <p className="text-xs text-destructive mt-1">{formErrors.subscriptionEndDate}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {Object.keys(formErrors).length > 0 && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>Please fill in all required fields marked with an asterisk (*).</AlertDescription>
-            </Alert>
-          )}
-        </TabsContent>
-
-        {/* Address Information Tab */}
-        <TabsContent value="address" className="space-y-4 pt-4">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Address Information</h3>
-            <p className="text-sm text-muted-foreground">Enter the physical address of the company</p>
-
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="streetAddress">Street Address</Label>
+            <div className="space-y-2">
+              <Label htmlFor="subdomain" className={cn(formErrors.subdomain && "text-destructive")}>
+                Company Subdomain <span className="text-destructive">*</span>
+              </Label>
+              <div className="flex items-center">
                 <Input
-                  id="streetAddress"
-                  name="streetAddress"
-                  value={formData.streetAddress}
+                  id="subdomain"
+                  name="subdomain"
+                  value={formData.subdomain}
                   onChange={handleChange}
-                  placeholder="123 Business Ave"
+                  className={cn("rounded-r-none", formErrors.subdomain && "border-destructive")}
+                  placeholder="companyname"
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input id="city" name="city" value={formData.city} onChange={handleChange} placeholder="City" />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="stateProvince">State/Province</Label>
-                  <Input
-                    id="stateProvince"
-                    name="stateProvince"
-                    value={formData.stateProvince}
-                    onChange={handleChange}
-                    placeholder="State/Province"
-                  />
+                <div className="bg-muted px-3 py-2 border border-l-0 border-input rounded-r-md text-muted-foreground">
+                  .hypearn.com
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="postalCode">Postal Code</Label>
-                  <Input
-                    id="postalCode"
-                    name="postalCode"
-                    value={formData.postalCode}
-                    onChange={handleChange}
-                    placeholder="Postal Code"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
-                  <Input
-                    id="country"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    placeholder="Country"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Company Branding Tab */}
-        <TabsContent value="branding" className="space-y-4 pt-4">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Company Branding</h3>
-            <p className="text-sm text-muted-foreground">Upload company logo in both square and horizontal formats</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <Label>Square Logo (1:1)</Label>
-                <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center bg-slate-50">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <Upload className="h-8 w-8 text-slate-400" />
-                    <p className="text-sm font-medium">Upload square logo</p>
-                    <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="mt-4">
-                    Select File
-                  </Button>
-                </div>
+              {formErrors.subdomain ? (
+                <p className="text-xs text-destructive mt-1">{formErrors.subdomain}</p>
+              ) : (
                 <p className="text-xs text-muted-foreground">
-                  This logo will be used for profile icons and small displays
+                  This subdomain will be used for company access and participant registration
                 </p>
-              </div>
+              )}
+            </div>
 
-              <div className="space-y-4">
-                <Label>Horizontal Logo (3:1)</Label>
-                <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center bg-slate-50">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <Upload className="h-8 w-8 text-slate-400" />
-                    <p className="text-sm font-medium">Upload horizontal logo</p>
-                    <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="mt-4">
-                    Select File
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">This logo will be used for headers and wider displays</p>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address Information</Label>
+              <Textarea
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="min-h-[100px]"
+                placeholder="Enter company address"
+              />
             </div>
           </div>
-        </TabsContent>
+        </div>
 
-        {/* Contact & Additional Tab */}
-        <TabsContent value="contact" className="space-y-4 pt-4">
+        {/* Right Column - Subscription Details & Branding */}
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium">Subscription Details</h3>
+            <p className="text-sm text-muted-foreground">Set the subscription tier and duration</p>
+          </div>
+
           <div className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Contact Information</h3>
-              <p className="text-sm text-muted-foreground">Add contact details for the company</p>
-
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="primaryEmail">Primary Email</Label>
-                  <Input
-                    id="primaryEmail"
-                    name="primaryEmail"
-                    type="email"
-                    value={formData.primaryEmail}
-                    onChange={handleChange}
-                    placeholder="contact@company.com"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
-                  <Input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    placeholder="+1 (555) 123-4567"
-                  />
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="rewardBalance">Reward Balance</Label>
+              <Input
+                id="rewardBalance"
+                name="rewardBalance"
+                type="number"
+                min="0"
+                value={formData.rewardBalance}
+                onChange={handleChange}
+                placeholder="Enter initial reward balance"
+              />
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Additional Information</h3>
-              <p className="text-sm text-muted-foreground">Add any additional details about the company</p>
+            <div className="space-y-2">
+              <Label htmlFor="subscriptionTier">
+                Subscription Tier <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={formData.subscriptionTier}
+                onValueChange={(value) => {
+                  handleSelectChange("subscriptionTier", value)
 
-              <div className="grid gap-4">
+                  // Auto-populate dates for Trial tier
+                  if (value === "trial") {
+                    const today = new Date()
+                    const startDate = today.toISOString().split("T")[0]
+
+                    // Set end date to 30 days from today
+                    const endDate = new Date(today)
+                    endDate.setDate(today.getDate() + 30)
+                    const formattedEndDate = endDate.toISOString().split("T")[0]
+
+                    setFormData((prev) => ({
+                      ...prev,
+                      subscriptionStartDate: startDate,
+                      subscriptionEndDate: formattedEndDate,
+                      isDateFieldsDisabled: true,
+                    }))
+                  } else {
+                    setFormData((prev) => ({
+                      ...prev,
+                      isDateFieldsDisabled: false,
+                    }))
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select subscription tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="trial">Trial (30 Days) - 1 admin, 10 creators</SelectItem>
+                  <SelectItem value="tier1">Starter - 2 admins, 50 creators</SelectItem>
+                  <SelectItem value="flexible">Flexible - Custom admins & creators</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {formData.subscriptionTier === "flexible" && (
+              <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="internalNotes">Internal Notes</Label>
-                  <Textarea
-                    id="internalNotes"
-                    name="internalNotes"
-                    value={formData.internalNotes}
+                  <Label htmlFor="adminCount">Number of Admins</Label>
+                  <Input
+                    id="adminCount"
+                    name="adminCount"
+                    type="number"
+                    min="1"
+                    value={formData.adminCount || "1"}
                     onChange={handleChange}
-                    className="min-h-[100px]"
-                    placeholder="Notes visible only to administrators"
+                    placeholder="Enter number of admins"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    These notes are only visible to platform administrators
-                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="creatorCount">Number of Creators</Label>
+                  <Input
+                    id="creatorCount"
+                    name="creatorCount"
+                    type="number"
+                    min="10"
+                    value={formData.creatorCount || "10"}
+                    onChange={handleChange}
+                    placeholder="Enter number of creators"
+                  />
                 </div>
               </div>
+            )}
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="subscriptionStartDate"
+                className={cn(formErrors.subscriptionStartDate && "text-destructive")}
+              >
+                Start Date <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="subscriptionStartDate"
+                name="subscriptionStartDate"
+                type="date"
+                value={formData.subscriptionStartDate}
+                onChange={handleChange}
+                className={cn(formErrors.subscriptionStartDate && "border-destructive")}
+                disabled={formData.isDateFieldsDisabled}
+                required
+              />
+              {formErrors.subscriptionStartDate && (
+                <p className="text-xs text-destructive mt-1">{formErrors.subscriptionStartDate}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="subscriptionEndDate" className={cn(formErrors.subscriptionEndDate && "text-destructive")}>
+                End Date <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="subscriptionEndDate"
+                name="subscriptionEndDate"
+                type="date"
+                value={formData.subscriptionEndDate}
+                onChange={handleChange}
+                className={cn(formErrors.subscriptionEndDate && "border-destructive")}
+                disabled={formData.isDateFieldsDisabled}
+                required
+              />
+              {formErrors.subscriptionEndDate && (
+                <p className="text-xs text-destructive mt-1">{formErrors.subscriptionEndDate}</p>
+              )}
             </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+
+        <div className="col-span-2">
+          <h3 className="text-lg font-medium">Company Branding</h3>
+          <p className="text-sm text-muted-foreground">Upload company logo in both square and horizontal formats</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div className="space-y-4">
+              <Label>Square Logo (1:1)</Label>
+              <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <Upload className="h-8 w-8 text-slate-400" />
+                  <p className="text-sm font-medium">Upload square logo</p>
+                  <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
+                </div>
+                <Button variant="outline" size="sm" className="mt-4">
+                  Select File
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This logo will be used for profile icons and small displays
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <Label>Horizontal Logo (3:1)</Label>
+              <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <Upload className="h-8 w-8 text-slate-400" />
+                  <p className="text-sm font-medium">Upload horizontal logo</p>
+                  <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
+                </div>
+                <Button variant="outline" size="sm" className="mt-4">
+                  Select File
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">This logo will be used for headers and wider displays</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmationDialog} onOpenChange={setShowConfirmationDialog}>
@@ -678,6 +582,14 @@ function ClientForm({ onSubmit, onCancel, initialData = null, isEditing = false 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {Object.keys(formErrors).length > 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>Please fill in all required fields marked with an asterisk (*).</AlertDescription>
+        </Alert>
+      )}
 
       <div className="flex justify-end gap-4 pt-6">
         <Button type="button" variant="outline" onClick={onCancel}>

@@ -5,10 +5,10 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Megaphone, PenTool, History, Gift, User, LogOut, Menu } from "lucide-react"
+import { LayoutDashboard, PenTool, History, Gift, User, LogOut, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface NavItem {
   label: string
@@ -18,7 +18,7 @@ interface NavItem {
 
 export function CreatorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isMobile = useMobile()
+  const isMobile = useIsMobile()
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {

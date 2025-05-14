@@ -3,70 +3,8 @@
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Building, Users, Bell, TrendingUp, Share2 } from "lucide-react"
+import { Building, Users, Bell, TrendingUp, Share2, Calendar, MessageSquare, Award, AlertTriangle } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-
-// Mock data for notifications
-const notificationsMock = [
-  {
-    id: 1,
-    type: "urgent",
-    title: "Subscription Expiring",
-    description: "HealthPlus Medical subscription expires in 3 days",
-    time: "2 hours ago",
-    icon: Calendar,
-    iconColor: "text-red-600",
-    bgColor: "bg-red-100",
-    read: false,
-  },
-  {
-    id: 2,
-    type: "support",
-    title: "Support Request",
-    description: "Urgent support request from Global Retail Group",
-    time: "5 hours ago",
-    icon: MessageSquare,
-    iconColor: "text-blue-600",
-    bgColor: "bg-blue-100",
-    read: false,
-  },
-  {
-    id: 3,
-    type: "success",
-    title: "New Client Onboarded",
-    description: "Global Retail Group has been successfully onboarded",
-    time: "1 day ago",
-    icon: Award,
-    iconColor: "text-green-600",
-    bgColor: "bg-green-100",
-    read: true,
-  },
-  {
-    id: 4,
-    type: "warning",
-    title: "User Limit Approaching",
-    description: "Acme Corporation is at 95% of their user limit",
-    time: "1 day ago",
-    icon: Users,
-    iconColor: "text-violet-600",
-    bgColor: "bg-violet-100",
-    read: true,
-  },
-  {
-    id: 5,
-    type: "warning",
-    title: "System Maintenance",
-    description: "Scheduled maintenance in 2 days",
-    time: "2 days ago",
-    icon: AlertTriangle,
-    iconColor: "text-amber-600",
-    bgColor: "bg-amber-100",
-    read: true,
-  },
-]
-
-// Import missing icons
-import { Calendar, MessageSquare, Award, AlertTriangle } from "lucide-react"
 
 // Mock data for metrics
 const metricsData = {
@@ -76,11 +14,70 @@ const metricsData = {
 }
 
 export default function SuperAdminDashboard() {
-  // Add state for unread notifications count
+  // Mock data for notifications
+  const notificationsMock = [
+    {
+      id: 1,
+      type: "urgent",
+      title: "Subscription Expiring",
+      description: "HealthPlus Medical subscription expires in 3 days",
+      time: "2 hours ago",
+      icon: Calendar,
+      iconColor: "text-red-600",
+      bgColor: "bg-red-100",
+      read: false,
+    },
+    {
+      id: 2,
+      type: "support",
+      title: "Support Request",
+      description: "Urgent support request from Global Retail Group",
+      time: "5 hours ago",
+      icon: MessageSquare,
+      iconColor: "text-blue-600",
+      bgColor: "bg-blue-100",
+      read: false,
+    },
+    {
+      id: 3,
+      type: "success",
+      title: "New Client Onboarded",
+      description: "Global Retail Group has been successfully onboarded",
+      time: "1 day ago",
+      icon: Award,
+      iconColor: "text-green-600",
+      bgColor: "bg-green-100",
+      read: true,
+    },
+    {
+      id: 4,
+      type: "warning",
+      title: "User Limit Approaching",
+      description: "Acme Corporation is at 95% of their user limit",
+      time: "1 day ago",
+      icon: Users,
+      iconColor: "text-violet-600",
+      bgColor: "bg-violet-100",
+      read: true,
+    },
+    {
+      id: 5,
+      type: "warning",
+      title: "System Maintenance",
+      description: "Scheduled maintenance in 2 days",
+      time: "2 days ago",
+      icon: AlertTriangle,
+      iconColor: "text-amber-600",
+      bgColor: "bg-amber-100",
+      read: true,
+    },
+  ]
+
+  // State for notifications
   const [unreadNotifications, setUnreadNotifications] = useState(2)
   const [notificationItems, setNotificationItems] = useState(notificationsMock)
 
-  // Add function to mark notification as read
+  // Function to mark notification as read
   const markNotificationAsRead = (notificationId) => {
     setNotificationItems((prev) =>
       prev.map((notification) => (notification.id === notificationId ? { ...notification, read: true } : notification)),
@@ -91,7 +88,7 @@ export default function SuperAdminDashboard() {
     setUnreadNotifications(unreadCount > 0 ? unreadCount : 0)
   }
 
-  // Add function to mark all notifications as read
+  // Function to mark all notifications as read
   const markAllAsRead = () => {
     setNotificationItems((prev) => prev.map((notification) => ({ ...notification, read: true })))
     setUnreadNotifications(0)
@@ -111,7 +108,7 @@ export default function SuperAdminDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{greeting}, Super Admin</h1>
-          <p className="text-muted-foreground">Here's an overview of your platform</p>
+          <p className="text-muted-foreground">Here is an overview of your platform</p>
         </div>
         <div className="mt-4 md:mt-0 flex gap-2">
           <DropdownMenu>

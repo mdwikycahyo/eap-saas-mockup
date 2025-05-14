@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Check, Clock, Copy, Download, FileText, Share2 } from "lucide-react"
+import { Calendar, Check, Clock, Copy, Download, FileText, Share2, Plus } from "lucide-react"
 import { CampaignStatusBadge } from "./campaign-status-badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Textarea } from "@/components/ui/textarea"
@@ -268,6 +268,26 @@ export function CampaignModal() {
                   </Card>
                 </div>
               </div>
+
+              {/* Add join campaign button for available campaigns */}
+              {campaign.status === "Available" && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    size="lg"
+                    className="gap-2"
+                    onClick={() => {
+                      // Dispatch event to update campaign status
+                      const event = new CustomEvent("join-campaign", {
+                        detail: campaignSlug,
+                      })
+                      window.dispatchEvent(event)
+                      setOpen(false)
+                    }}
+                  >
+                    <Plus className="h-4 w-4" /> Join This Campaign
+                  </Button>
+                </div>
+              )}
             </div>
           </TabsContent>
 
