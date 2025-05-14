@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {
   Dialog,
   DialogContent,
@@ -21,18 +20,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Award,
-  Edit,
-  Trash2,
-  CheckCircle,
-  XCircle,
-  ImageIcon,
-  Filter,
-} from "lucide-react"
+import { Search, Plus, Award, Edit, Trash2, CheckCircle, XCircle, ImageIcon, Eye } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Form schema for adding/editing rewards
 const rewardFormSchema = z.object({
@@ -260,22 +249,22 @@ export default function RewardsManagement() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Filter className="h-4 w-4" />
-                {categoryFilter ? `Category: ${categoryFilter}` : "All Categories"}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setCategoryFilter(null)}>All Categories</DropdownMenuItem>
+          <Select
+            value={categoryFilter || "all"}
+            onValueChange={(value) => setCategoryFilter(value === "all" ? null : value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
-                <DropdownMenuItem key={category} onClick={() => setCategoryFilter(category)}>
+                <SelectItem key={category} value={category}>
                   {category}
-                </DropdownMenuItem>
+                </SelectItem>
               ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </SelectContent>
+          </Select>
         </div>
 
         <RewardsCatalog
@@ -376,7 +365,56 @@ function RewardCard({
             <CardTitle className="text-lg">{reward.name}</CardTitle>
             <CardDescription className="text-xs">{reward.category}</CardDescription>
           </div>
-          <RewardActionsMenu reward={reward} onEdit={onEdit} onDelete={onDelete} onToggleStatus={onToggleStatus} />
+          <div className="flex space-x-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Reward</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`h-8 w-8 ${reward.status === "active" ? "text-amber-500 hover:text-amber-600" : "text-green-500 hover:text-green-600"}`}
+                    onClick={onToggleStatus}
+                  >
+                    {reward.status === "active" ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{reward.status === "active" ? "Deactivate" : "Activate"} Reward</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-500 hover:text-red-600"
+                    onClick={onDelete}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete Reward</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -386,49 +424,6 @@ function RewardCard({
         <div className="text-xs text-muted-foreground">{reward.redemptions} redemptions</div>
       </CardFooter>
     </Card>
-  )
-}
-
-function RewardActionsMenu({
-  reward,
-  onEdit,
-  onDelete,
-  onToggleStatus,
-}: {
-  reward: Reward
-  onEdit: () => void
-  onDelete: () => void
-  onToggleStatus: () => void
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={onEdit}>
-          <Edit className="h-4 w-4 mr-2" />
-          Edit Reward
-        </DropdownMenuItem>
-        {reward.status === "active" ? (
-          <DropdownMenuItem onClick={onToggleStatus}>
-            <XCircle className="h-4 w-4 mr-2" />
-            Deactivate
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={onToggleStatus}>
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Activate
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuItem className="text-red-600" onClick={onDelete}>
-          <Trash2 className="h-4 w-4 mr-2" />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
 

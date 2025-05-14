@@ -8,10 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "lucide-react"
 import { Search } from "lucide-react"
 
-export default function ContentModeration() {
+export default function Approval() {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [allSubmissions, setAllSubmissions] = useState<any[]>([])
@@ -210,7 +210,7 @@ export default function ContentModeration() {
     <div className="p-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Content Moderation</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Approval</h1>
           <p className="text-muted-foreground">Review and manage creator content submissions</p>
         </div>
       </div>

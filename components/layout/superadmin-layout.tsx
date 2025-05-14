@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation"
 import { LayoutDashboard, Building, Users, Settings, FileBarChart, LogOut, Menu, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface NavItem {
   label: string
@@ -18,7 +18,7 @@ interface NavItem {
 
 export function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isMobile = useMobile()
+  const isMobile = useIsMobile()
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {

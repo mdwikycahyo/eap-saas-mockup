@@ -239,19 +239,11 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
 
                     <div className="p-4 border rounded-md">
                       <h3 className="font-medium mb-3">Performance Summary</h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="p-2 bg-slate-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground">Approval Rate</p>
-                          <p className="text-lg font-bold">
-                            {Math.round((campaign.submissions.approved / campaign.submissions.total) * 100)}%
-                          </p>
-                        </div>
-                        <div className="p-2 bg-slate-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground">Avg. Engagement</p>
-                          <p className="text-lg font-bold">
-                            {Math.round(campaign.engagement.views / campaign.submissions.approved).toLocaleString()}
-                          </p>
-                        </div>
+                      <div className="p-2 bg-slate-50 rounded-md text-center">
+                        <p className="text-xs text-muted-foreground">Approval Rate</p>
+                        <p className="text-lg font-bold">
+                          {Math.round((campaign.submissions.approved / campaign.submissions.total) * 100)}%
+                        </p>
                       </div>
                     </div>
                   </div>

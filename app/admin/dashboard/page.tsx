@@ -805,7 +805,9 @@ export default function AdminDashboard() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Top Up Reward Balance</DialogTitle>
-            <DialogDescription>After submit the top up request, super admin will contact you immediately.</DialogDescription>
+            <DialogDescription>
+              After submit the top up request, super admin will contact you immediately.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
