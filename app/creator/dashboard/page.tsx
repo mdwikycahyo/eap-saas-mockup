@@ -235,10 +235,13 @@ export default function CreatorDashboard() {
     }
   }
 
-  const handleCardClick = (slug: string) => {
+  const handleCardClick = (slug: string, isActive: boolean) => {
     // Dispatch custom event to open the campaign modal
     const event = new CustomEvent("open-campaign-modal", {
-      detail: slug,
+      detail: {
+        slug,
+        mode: isActive ? "full" : "details-only",
+      },
     })
     window.dispatchEvent(event)
   }
@@ -401,7 +404,7 @@ export default function CreatorDashboard() {
               <div key={campaign.id} className="min-w-[300px] md:min-w-[350px]">
                 <Card
                   className="overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer h-full flex flex-col"
-                  onClick={() => handleCardClick(campaign.slug)}
+                  onClick={() => handleCardClick(campaign.slug, true)}
                 >
                   <div className="relative">
                     <img
@@ -517,7 +520,7 @@ export default function CreatorDashboard() {
             <div key={campaign.slug} className="min-w-[300px] md:min-w-[350px]">
               <Card
                 className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer h-full flex flex-col"
-                onClick={() => handleCardClick(campaign.slug)}
+                onClick={() => handleCardClick(campaign.slug, false)}
               >
                 <div className="relative">
                   <img
@@ -550,7 +553,15 @@ export default function CreatorDashboard() {
                   </div>
                 </CardContent>
                 <CardContent className="px-4 pb-4 pt-0 flex justify-between">
-                  <Button size="sm" variant="outline" className="gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleCardClick(campaign.slug, false)
+                    }}
+                  >
                     View Details <ArrowRight className="h-3.5 w-3.5" />
                   </Button>
                   <Button size="sm" className="gap-1" onClick={(e) => handleJoinClick(e, campaign.slug)}>

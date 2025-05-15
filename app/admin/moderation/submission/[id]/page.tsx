@@ -312,17 +312,6 @@ function PendingSubmissionView({
             <p className="font-medium text-sm">{submission.creator.name}</p>
             <p className="text-xs text-muted-foreground">{submission.creator.department}</p>
           </div>
-          <Badge
-            variant="outline"
-            className={`ml-auto ${submission.platform === "instagram" ? "text-rose-600" : "text-cyan-600"}`}
-          >
-            {submission.platform === "instagram" ? (
-              <Instagram className="h-3 w-3 mr-1" />
-            ) : (
-              <TikTokIcon className="h-3 w-3 mr-1" />
-            )}
-            {submission.platform.charAt(0).toUpperCase() + submission.platform.slice(1)}
-          </Badge>
         </div>
 
         <div className="relative">
@@ -477,17 +466,6 @@ function ApprovedSubmissionView({
             <p className="font-medium text-sm">{submission.creator.name}</p>
             <p className="text-xs text-muted-foreground">{submission.creator.department}</p>
           </div>
-          <Badge
-            variant="outline"
-            className={`ml-auto ${submission.platform === "instagram" ? "text-rose-600" : "text-cyan-600"}`}
-          >
-            {submission.platform === "instagram" ? (
-              <Instagram className="h-3 w-3 mr-1" />
-            ) : (
-              <TikTokIcon className="h-3 w-3 mr-1" />
-            )}
-            {submission.platform.charAt(0).toUpperCase() + submission.platform.slice(1)}
-          </Badge>
         </div>
 
         <div className="relative">
@@ -652,17 +630,6 @@ function RejectedSubmissionView({
             <p className="font-medium text-sm">{submission.creator.name}</p>
             <p className="text-xs text-muted-foreground">{submission.creator.department}</p>
           </div>
-          <Badge
-            variant="outline"
-            className={`ml-auto ${submission.platform === "instagram" ? "text-rose-600" : "text-cyan-600"}`}
-          >
-            {submission.platform === "instagram" ? (
-              <Instagram className="h-3 w-3 mr-1" />
-            ) : (
-              <TikTokIcon className="h-3 w-3 mr-1" />
-            )}
-            {submission.platform.charAt(0).toUpperCase() + submission.platform.slice(1)}
-          </Badge>
         </div>
 
         <div className="relative">

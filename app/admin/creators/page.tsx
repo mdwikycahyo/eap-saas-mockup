@@ -14,13 +14,35 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Search, Award, Plus, User, History, Clock, Pencil, Mail, MoreHorizontal } from "lucide-react"
+import {
+  Search,
+  Award,
+  Plus,
+  User,
+  History,
+  Clock,
+  Pencil,
+  Mail,
+  MoreHorizontal,
+  Upload,
+  Download,
+  FileSpreadsheet,
+} from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export default function CreatorManagement() {
   const [isAddCreatorOpen, setIsAddCreatorOpen] = useState(false)
+  const [isImportCreatorsOpen, setIsImportCreatorsOpen] = useState(false)
+
+  const handleDownloadTemplate = () => {
+    toast({
+      title: "Template Downloaded",
+      description: "The creator import template has been downloaded.",
+    })
+    // In a real app, this would trigger a file download
+  }
 
   return (
     <div className="p-6">
@@ -30,6 +52,14 @@ export default function CreatorManagement() {
           <p className="text-muted-foreground">Manage and monitor your employee advocates</p>
         </div>
         <div className="mt-4 md:mt-0 flex gap-2">
+          <Button variant="outline" className="gap-1" onClick={handleDownloadTemplate}>
+            <Download className="h-4 w-4" />
+            Download Template
+          </Button>
+          <Button variant="outline" className="gap-1" onClick={() => setIsImportCreatorsOpen(true)}>
+            <FileSpreadsheet className="h-4 w-4" />
+            Import Creators
+          </Button>
           <Button className="gap-1" onClick={() => setIsAddCreatorOpen(true)}>
             <Plus className="h-4 w-4" />
             Add Creator
@@ -190,6 +220,69 @@ export default function CreatorManagement() {
               }}
             >
               Add Creator
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Creators Dialog */}
+      <Dialog open={isImportCreatorsOpen} onOpenChange={setIsImportCreatorsOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Import Creators</DialogTitle>
+            <DialogDescription>
+              Upload an Excel file with creator information. Make sure to use the correct template format.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50">
+              <FileSpreadsheet className="h-10 w-10 text-gray-400 mb-2" />
+              <p className="text-sm text-center text-gray-600 mb-4">
+                Drag and drop your Excel file here, or click to browse
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleDownloadTemplate}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Template
+                </Button>
+                <Button>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Browse Files
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <input type="checkbox" className="rounded border-gray-300" defaultChecked />
+                <span>Send invitation emails to all imported creators</span>
+              </Label>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-amber-800">
+              <p className="font-medium mb-1">Important Notes:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Make sure all required fields are filled in the template</li>
+                <li>Email addresses must be unique and valid</li>
+                <li>Maximum 100 creators per import</li>
+                <li>Supported file formats: .xlsx, .xls</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsImportCreatorsOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                toast({
+                  title: "Creators imported",
+                  description: "6 creators have been successfully imported.",
+                })
+                setIsImportCreatorsOpen(false)
+              }}
+            >
+              Import Creators
             </Button>
           </DialogFooter>
         </DialogContent>
