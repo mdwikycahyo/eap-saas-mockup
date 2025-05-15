@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "lucide-react"
-import { Search } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Search, CheckCircle, XCircle, Clock } from "lucide-react"
 
 export default function Approval() {
   const router = useRouter()
@@ -290,58 +290,86 @@ function SubmissionTable({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="px-6">
-        <div className="rounded-md border">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-50 text-sm font-medium text-slate-500">
-                <th className="p-4 text-left w-1/3">Creator</th>
-                <th className="p-4 text-left w-1/3">Campaign</th>
-                <th className="p-4 text-left w-1/6">Submitted</th>
-                <th className="p-4 text-left w-1/6">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {submissions.length > 0 ? (
-                submissions.map((submission) => (
-                  <tr key={submission.id} className="border-t">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-200"></div>
-                        <div>
-                          <p className="font-medium">{submission.creator.name}</p>
-                          <p className="text-xs text-muted-foreground">{submission.creator.department}</p>
+        <div className="overflow-x-auto">
+          <div className="rounded-md border min-w-[900px]">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50 text-sm font-medium text-slate-500">
+                  <th className="p-4 text-left w-1/4">Creator</th>
+                  <th className="p-4 text-left w-1/4">Campaign</th>
+                  <th className="p-4 text-left w-1/6">Submitted</th>
+                  <th className="p-4 text-left w-1/6">Status</th>
+                  <th className="p-4 text-left w-1/6">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submissions.length > 0 ? (
+                  submissions.map((submission) => (
+                    <tr key={submission.id} className="border-t">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-slate-200"></div>
+                          <div>
+                            <p className="font-medium">{submission.creator.name}</p>
+                            <p className="text-xs text-muted-foreground">{submission.creator.department}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p>{submission.campaign}</p>
-                      <Badge variant="outline" className="text-xs mt-1">
-                        {submission.campaignType}
-                      </Badge>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm">{submission.submittedAt}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => onViewSubmission(submission.id)}>
-                          {status === "pending" ? "Review" : "View"}
-                        </Button>
-                      </div>
+                      </td>
+                      <td className="p-4">
+                        <p>{submission.campaign}</p>
+                        <Badge variant="outline" className="text-xs mt-1">
+                          {submission.campaignType}
+                        </Badge>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm">{submission.submittedAt}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          {submission.status === "pending" && (
+                            <Badge
+                              variant="outline"
+                              className="flex items-center gap-1 border-amber-500 text-amber-500"
+                            >
+                              <Clock className="h-3 w-3" />
+                              <span>Pending</span>
+                            </Badge>
+                          )}
+                          {submission.status === "approved" && (
+                            <Badge variant="default" className="flex items-center gap-1 bg-green-500">
+                              <CheckCircle className="h-3 w-3" />
+                              <span>Approved</span>
+                            </Badge>
+                          )}
+                          {submission.status === "rejected" && (
+                            <Badge variant="secondary" className="flex items-center gap-1 bg-red-100 text-red-600">
+                              <XCircle className="h-3 w-3" />
+                              <span>Rejected</span>
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => onViewSubmission(submission.id)}>
+                            {status === "pending" ? "Review" : "View"}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                      No {status} submissions found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
-                    No {status} submissions found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </CardContent>
     </Card>

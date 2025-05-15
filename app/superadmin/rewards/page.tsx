@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,7 +20,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Search, Plus, Award, Edit, Trash2, CheckCircle, XCircle, ImageIcon, Eye } from "lucide-react"
+import { Search, Plus, Award, Edit, Trash2, CheckCircle, XCircle, ImageIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Form schema for adding/editing rewards
@@ -33,6 +33,9 @@ const rewardFormSchema = z.object({
   }),
   points: z.coerce.number().min(1, {
     message: "Points must be at least 1.",
+  }),
+  rupiah_value: z.coerce.number().min(0, {
+    message: "Rupiah value must be a positive number.",
   }),
   description: z.string().optional(),
   status: z.enum(["active", "inactive"]),
@@ -49,11 +52,15 @@ type Reward = {
   name: string
   category: string
   points: number
+  rupiah_value: number
   status: string
   redemptions: number
   description?: string
   imageUrl: string
 }
+
+// Exchange rate: 1 point = X rupiah
+const POINT_TO_RUPIAH_RATE = 1000
 
 export default function RewardsManagement() {
   const [rewards, setRewards] = useState<Reward[]>([
@@ -62,6 +69,7 @@ export default function RewardsManagement() {
       name: "Company Branded T-Shirt",
       category: "Merchandise",
       points: 500,
+      rupiah_value: 50000,
       status: "active",
       redemptions: 28,
       description: "High-quality cotton t-shirt with company logo.",
@@ -72,6 +80,7 @@ export default function RewardsManagement() {
       name: "Wireless Earbuds",
       category: "Electronics",
       points: 2500,
+      rupiah_value: 250000,
       status: "active",
       redemptions: 8,
       description: "Premium wireless earbuds with noise cancellation.",
@@ -82,6 +91,7 @@ export default function RewardsManagement() {
       name: "Coffee Shop Gift Card",
       category: "Gift Cards",
       points: 1000,
+      rupiah_value: 100000,
       status: "active",
       redemptions: 15,
       description: "Gift card for popular coffee shop chain.",
@@ -92,6 +102,7 @@ export default function RewardsManagement() {
       name: "Premium Notebook Set",
       category: "Office Supplies",
       points: 750,
+      rupiah_value: 75000,
       status: "active",
       redemptions: 12,
       description: "Set of premium notebooks with company branding.",
@@ -102,6 +113,7 @@ export default function RewardsManagement() {
       name: "Weekend Getaway",
       category: "Experiences",
       points: 10000,
+      rupiah_value: 1000000,
       status: "active",
       redemptions: 1,
       description: "Two-night stay at a luxury hotel.",
@@ -112,6 +124,7 @@ export default function RewardsManagement() {
       name: "Limited Edition Hoodie",
       category: "Merchandise",
       points: 1200,
+      rupiah_value: 120000,
       status: "inactive",
       redemptions: 20,
       description: "Limited edition hoodie with exclusive design.",
@@ -145,6 +158,7 @@ export default function RewardsManagement() {
       name: data.name,
       category: data.category,
       points: data.points,
+      rupiah_value: data.rupiah_value,
       status: data.status,
       redemptions: 0,
       description: data.description,
@@ -171,6 +185,7 @@ export default function RewardsManagement() {
             name: data.name,
             category: data.category,
             points: data.points,
+            rupiah_value: data.rupiah_value,
             status: data.status,
             description: data.description,
             imageUrl: data.imageUrl,
@@ -279,7 +294,12 @@ export default function RewardsManagement() {
       </div>
 
       {/* Add Reward Modal */}
-      <AddRewardModal isOpen={isAddRewardOpen} onClose={() => setIsAddRewardOpen(false)} onSubmit={handleAddReward} />
+      <AddRewardModal
+        isOpen={isAddRewardOpen}
+        onClose={() => setIsAddRewardOpen(false)}
+        onSubmit={handleAddReward}
+        pointToRupiahRate={POINT_TO_RUPIAH_RATE}
+      />
 
       {/* Edit Reward Modal */}
       {currentReward && (
@@ -291,6 +311,7 @@ export default function RewardsManagement() {
           }}
           reward={currentReward}
           onSubmit={handleEditReward}
+          pointToRupiahRate={POINT_TO_RUPIAH_RATE}
         />
       )}
     </div>
@@ -364,6 +385,7 @@ function RewardCard({
           <div>
             <CardTitle className="text-lg">{reward.name}</CardTitle>
             <CardDescription className="text-xs">{reward.category}</CardDescription>
+            <p className="text-xs text-muted-foreground mt-1">Value: Rp {reward.rupiah_value.toLocaleString()}</p>
           </div>
           <div className="flex space-x-1">
             <TooltipProvider>
@@ -431,10 +453,12 @@ function AddRewardModal({
   isOpen,
   onClose,
   onSubmit,
+  pointToRupiahRate,
 }: {
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: z.infer<typeof rewardFormSchema>) => void
+  pointToRupiahRate: number
 }) {
   const form = useForm<z.infer<typeof rewardFormSchema>>({
     resolver: zodResolver(rewardFormSchema),
@@ -442,11 +466,20 @@ function AddRewardModal({
       name: "",
       category: "",
       points: 0,
+      rupiah_value: 0,
       description: "",
       status: "active",
       imageUrl: "/placeholder.svg?height=200&width=400", // Default placeholder
     },
   })
+
+  // Update rupiah value when points change
+  useEffect(() => {
+    const points = form.getValues("points")
+    if (points && !isNaN(points)) {
+      form.setValue("rupiah_value", points * pointToRupiahRate, { shouldValidate: true })
+    }
+  }, [form.getValues("points"), pointToRupiahRate, form])
 
   function handleSubmit(data: z.infer<typeof rewardFormSchema>) {
     onSubmit(data)
@@ -514,43 +547,35 @@ function AddRewardModal({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="points"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Points Required</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
+                      <Input type="number" min="1" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Merchandise">Merchandise</SelectItem>
-                      <SelectItem value="Electronics">Electronics</SelectItem>
-                      <SelectItem value="Gift Cards">Gift Cards</SelectItem>
-                      <SelectItem value="Experiences">Experiences</SelectItem>
-                      <SelectItem value="Office Supplies">Office Supplies</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="points"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Points Required</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="1" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="rupiah_value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Value in Rupiah (IDR)</FormLabel>
+                    <FormControl>
+                      <Input type="number" min="0" {...field} />
+                    </FormControl>
+                    <FormDescription>1 point = Rp {pointToRupiahRate}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="description"
@@ -604,11 +629,13 @@ function EditRewardModal({
   onClose,
   reward,
   onSubmit,
+  pointToRupiahRate,
 }: {
   isOpen: boolean
   onClose: () => void
   reward: Reward
   onSubmit: (data: z.infer<typeof rewardFormSchema>) => void
+  pointToRupiahRate: number
 }) {
   const form = useForm<z.infer<typeof rewardFormSchema>>({
     resolver: zodResolver(rewardFormSchema),
@@ -616,11 +643,20 @@ function EditRewardModal({
       name: reward.name,
       category: reward.category,
       points: reward.points,
+      rupiah_value: reward.rupiah_value,
       description: reward.description || "",
       status: reward.status as "active" | "inactive",
       imageUrl: reward.imageUrl,
     },
   })
+
+  // Update rupiah value when points change
+  useEffect(() => {
+    const points = form.getValues("points")
+    if (points && !isNaN(points)) {
+      form.setValue("rupiah_value", points * pointToRupiahRate, { shouldValidate: true })
+    }
+  }, [form.getValues("points"), pointToRupiahRate, form])
 
   function handleSubmit(data: z.infer<typeof rewardFormSchema>) {
     onSubmit(data)
@@ -688,43 +724,35 @@ function EditRewardModal({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="points"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Points Required</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
+                      <Input type="number" min="1" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Merchandise">Merchandise</SelectItem>
-                      <SelectItem value="Electronics">Electronics</SelectItem>
-                      <SelectItem value="Gift Cards">Gift Cards</SelectItem>
-                      <SelectItem value="Experiences">Experiences</SelectItem>
-                      <SelectItem value="Office Supplies">Office Supplies</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="points"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Points Required</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="1" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="rupiah_value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Value in Rupiah (IDR)</FormLabel>
+                    <FormControl>
+                      <Input type="number" min="0" {...field} />
+                    </FormControl>
+                    <FormDescription>1 point = Rp {pointToRupiahRate}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="description"
