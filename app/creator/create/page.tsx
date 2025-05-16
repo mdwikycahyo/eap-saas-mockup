@@ -4,21 +4,36 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Instagram } from "lucide-react"
+import { Instagram, Check, Clock } from "lucide-react"
 import { TikTokIcon } from "@/components/tik-tok-icon"
 import { PointsBalance } from "@/components/points-balance"
+import { Badge } from "@/components/ui/badge"
 
 // Define campaign data outside the component to avoid re-creation on each render
 const campaigns = [
-  { value: "summer-launch", label: "Summer Product Launch" },
-  { value: "brand-challenge", label: "Brand Challenge" },
-  { value: "customer-stories", label: "Customer Stories" },
-  { value: "sustainability", label: "Sustainability Initiative" },
+  {
+    value: "brand-challenge",
+    label: "Brand Challenge",
+    description: "Create a video using our hashtag #BrandChallenge",
+    type: "Creative Challenge",
+    platform: "tiktok",
+    image: "/placeholder.svg?height=300&width=600&text=Brand+Challenge",
+    timeRemaining: 12,
+    points: 250,
+  },
+  {
+    value: "sustainability",
+    label: "Sustainability Initiative",
+    description: "Showcase our commitment to sustainability",
+    type: "Creative Challenge",
+    platform: "instagram",
+    image: "/placeholder.svg?height=300&width=600&text=Sustainability",
+    timeRemaining: 15,
+    points: 200,
+  },
 ]
 
 export default function CreateContentPage() {
@@ -70,38 +85,65 @@ export default function CreateContentPage() {
       <Card>
         <CardHeader>
           <CardTitle>Content Submission</CardTitle>
-          <CardDescription>Create and submit content for your selected campaign</CardDescription>
+          <CardDescription>Create and submit content for your selected Creative Challenge campaign.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="campaign">Select Campaign</Label>
-              <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
-                <SelectTrigger id="campaign">
-                  <SelectValue placeholder="Select a campaign" />
-                </SelectTrigger>
-                <SelectContent>
+              <div className="h-[400px] overflow-y-auto pr-2">
+                <div className="grid grid-cols-2 gap-4">
                   {campaigns.map((campaign) => (
-                    <SelectItem key={campaign.value} value={campaign.value}>
-                      {campaign.label}
-                    </SelectItem>
+                    <div
+                      key={campaign.value}
+                      className={`
+                        relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all
+                        ${
+                          selectedCampaign === campaign.value
+                            ? "border-primary ring-2 ring-primary/20"
+                            : "border-border hover:border-primary/50"
+                        }
+                      `}
+                      onClick={() => setSelectedCampaign(campaign.value)}
+                    >
+                      {selectedCampaign === campaign.value && (
+                        <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1 z-10">
+                          <Check className="h-4 w-4" />
+                        </div>
+                      )}
+                      <div className="relative aspect-[16/9]">
+                        <img
+                          src={campaign.image || "/placeholder.svg"}
+                          alt={campaign.label}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 left-2">
+                          <Badge
+                            variant={campaign.type === "Quick Share" ? "secondary" : "outline"}
+                            className={
+                              campaign.type === "Quick Share" ? "" : "bg-violet-50 text-violet-600 border-violet-200"
+                            }
+                          >
+                            {campaign.type}
+                          </Badge>
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                          <h3 className="font-medium text-white">{campaign.label}</h3>
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{campaign.description}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>{campaign.timeRemaining} days left</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Platform</Label>
-              <Tabs defaultValue={platform} onValueChange={setPlatform} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="instagram" className="flex items-center gap-2">
-                    <Instagram className="h-4 w-4" /> Instagram
-                  </TabsTrigger>
-                  <TabsTrigger value="tiktok" className="flex items-center gap-2">
-                    <TikTokIcon className="h-4 w-4" /> TikTok
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -154,7 +196,7 @@ export default function CreateContentPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={!selectedCampaign || !caption || !files}>
               Submit Content
             </Button>
           </form>

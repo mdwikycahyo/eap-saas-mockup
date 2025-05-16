@@ -37,11 +37,6 @@ export function CreatorLayout({ children }: { children: React.ReactNode }) {
       icon: <PenTool className="h-5 w-5" />,
     },
     {
-      label: "Submissions",
-      href: "/creator/submissions",
-      icon: <History className="h-5 w-5" />,
-    },
-    {
       label: "Rewards",
       href: "/creator/rewards",
       icon: <Gift className="h-5 w-5" />,
