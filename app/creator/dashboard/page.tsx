@@ -4,12 +4,9 @@ import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Award,
   Users,
-  Eye,
-  ThumbsUp,
   Instagram,
   ChevronLeft,
   ChevronRight,
@@ -21,9 +18,11 @@ import {
   FileText,
   CheckCircle,
   XCircle,
+  TrendingUp,
 } from "lucide-react"
 import { TikTokIcon } from "@/components/tik-tok-icon"
-import { CampaignModal } from "@/components/campaign-modal"
+import CampaignModal from "@/components/campaign-modal"
+import { JoinCampaignModal } from "@/components/join-campaign-modal"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
@@ -45,17 +44,18 @@ const activeCampaigns = [
   },
   {
     id: 2,
-    slug: "brand-challenge",
-    title: "Brand Challenge",
-    description: "Create a video using our hashtag",
-    type: "Creative Challenge",
-    status: "Content Required",
-    platform: "tiktok",
-    image: "/placeholder.svg?height=300&width=600&text=Brand+Challenge",
-    timeRemaining: 12,
-    date: "July 10, 2023",
+    slug: "sustainability",
+    title: "Sustainability Initiative",
+    description: "Share our commitment to sustainability",
+    type: "Quick Share",
+    status: "URL Under Review",
+    platform: "instagram",
+    image: "/placeholder.svg?height=300&width=600&text=Sustainability",
+    timeRemaining: 15,
+    date: "July 5, 2023",
     points: 0,
     joined: true,
+    postUrl: "https://www.instagram.com/p/DEF456",
   },
   {
     id: 3,
@@ -79,18 +79,17 @@ const activeCampaigns = [
   },
   {
     id: 4,
-    slug: "sustainability",
-    title: "Sustainability Initiative",
-    description: "Share our commitment to sustainability",
-    type: "Quick Share",
-    status: "URL Under Review",
-    platform: "instagram",
-    image: "/placeholder.svg?height=300&width=600&text=Sustainability",
-    timeRemaining: 15,
-    date: "July 5, 2023",
+    slug: "brand-challenge",
+    title: "Brand Challenge",
+    description: "Create a video using our hashtag",
+    type: "Creative Challenge",
+    status: "Content Required",
+    platform: "tiktok",
+    image: "/placeholder.svg?height=300&width=600&text=Brand+Challenge",
+    timeRemaining: 12,
+    date: "July 10, 2023",
     points: 0,
     joined: true,
-    postUrl: "https://www.instagram.com/p/DEF456",
   },
   {
     id: 5,
@@ -105,6 +104,40 @@ const activeCampaigns = [
     date: "July 1, 2023",
     points: 0,
     joined: true,
+  },
+  {
+    id: 6,
+    slug: "brand-ambassador",
+    title: "Brand Ambassador Program",
+    description: "Show how you represent our brand in daily life",
+    type: "Creative Challenge",
+    status: "URL Required",
+    platform: "tiktok",
+    image: "/placeholder.svg?height=300&width=600&text=Brand+Ambassador",
+    timeRemaining: 25,
+    date: "July 3, 2023",
+    points: 0,
+    joined: true,
+  },
+  {
+    id: 7,
+    slug: "fitness-challenge",
+    title: "Fitness Challenge",
+    description: "Show how our products help with your fitness journey",
+    type: "Creative Challenge",
+    status: "Live",
+    platform: "instagram",
+    image: "/placeholder.svg?height=300&width=600&text=Fitness+Challenge",
+    timeRemaining: 20,
+    date: "June 25, 2023",
+    points: 400,
+    joined: true,
+    engagement: {
+      views: 2500,
+      likes: 320,
+      comments: 45,
+    },
+    postUrl: "https://www.instagram.com/p/GHI789",
   },
 ]
 
@@ -141,16 +174,6 @@ const availableCampaigns = [
     joined: false,
   },
   {
-    slug: "brand-ambassador",
-    title: "Brand Ambassador Program",
-    description: "Show how you represent our brand in daily life",
-    type: "Creative Challenge",
-    status: "Available",
-    image: "/placeholder.svg?height=300&width=600&text=Brand+Ambassador",
-    timeRemaining: 25,
-    joined: false,
-  },
-  {
     slug: "user-testimonial",
     title: "User Testimonial",
     description: "Share your experience with our products",
@@ -163,11 +186,14 @@ const availableCampaigns = [
 ]
 
 export default function CreatorDashboard() {
-  const [activeTab, setActiveTab] = useState("all")
   const activeScrollContainerRef = useRef<HTMLDivElement>(null)
   const availableScrollContainerRef = useRef<HTMLDivElement>(null)
   const [availableCampaignsList, setAvailableCampaignsList] = useState(availableCampaigns)
   const [activeCampaignsList, setActiveCampaignsList] = useState(activeCampaigns)
+
+  // Join campaign modal state
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false)
+  const [campaignToJoin, setCampaignToJoin] = useState<(typeof availableCampaigns)[0] | null>(null)
 
   // Listen for join campaign events
   useEffect(() => {
@@ -199,29 +225,13 @@ export default function CreatorDashboard() {
     }
   }, [availableCampaignsList])
 
-  // Platform-specific metrics
+  // Performance metrics
   const metrics = {
-    all: {
-      points: { value: 3250, change: "+350 this month" },
-      content: { value: 28, change: "+5 this month" },
-      views: { value: "12.4K", change: "+2.3K this month" },
-      likes: { value: 1842, change: "+342 this month" },
-    },
-    instagram: {
-      points: { value: 2150, change: "+250 this month" },
-      content: { value: 18, change: "+3 this month" },
-      views: { value: "8.2K", change: "+1.5K this month" },
-      likes: { value: 1245, change: "+220 this month" },
-    },
-    tiktok: {
-      points: { value: 1100, change: "+100 this month" },
-      content: { value: 10, change: "+2 this month" },
-      views: { value: "4.2K", change: "+800 this month" },
-      likes: { value: 597, change: "+122 this month" },
-    },
+    points: { value: 3250, change: "+350 this month" },
+    content: { value: 28, change: "+5 this month" },
+    views: { value: "12.4K", change: "+2.3K this month" },
+    likes: { value: 1842, change: "+342 this month" },
   }
-
-  const currentMetrics = metrics[activeTab as keyof typeof metrics]
 
   const scrollLeft = (ref: React.RefObject<HTMLDivElement>) => {
     if (ref.current) {
@@ -246,86 +256,140 @@ export default function CreatorDashboard() {
     window.dispatchEvent(event)
   }
 
-  const handleJoinClick = (e: React.MouseEvent, slug: string) => {
+  const handleJoinClick = (e: React.MouseEvent, campaign: (typeof availableCampaigns)[0]) => {
     e.stopPropagation() // Prevent card click from triggering
 
-    // Dispatch event to join the campaign
-    const event = new CustomEvent("join-campaign", {
-      detail: slug,
-    })
-    window.dispatchEvent(event)
+    // Open the join confirmation modal
+    setCampaignToJoin(campaign)
+    setIsJoinModalOpen(true)
+  }
+
+  const handleConfirmJoin = () => {
+    if (campaignToJoin) {
+      // Close the modal
+      setIsJoinModalOpen(false)
+
+      // Dispatch event to join the campaign
+      const event = new CustomEvent("join-campaign", {
+        detail: campaignToJoin.slug,
+      })
+      window.dispatchEvent(event)
+
+      // Reset the campaign to join
+      setCampaignToJoin(null)
+    }
   }
 
   return (
     <div className="p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Creator Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, Sarah! Here's your advocacy overview.</p>
-        </div>
-        <div className="mt-4 md:mt-0">
-          <Tabs defaultValue="all" className="w-full" onValueChange={(value) => setActiveTab(value)}>
-            <TabsList>
-              <TabsTrigger value="all">All Platforms</TabsTrigger>
-              <TabsTrigger value="instagram" className="flex items-center gap-1">
-                <Instagram className="h-4 w-4" />
-                Instagram
-              </TabsTrigger>
-              <TabsTrigger value="tiktok" className="flex items-center gap-1">
-                <TikTokIcon className="h-4 w-4" />
-                TikTok
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Creator Dashboard</h1>
+        <p className="text-muted-foreground">Welcome back, Sarah! Here's your advocacy overview.</p>
       </div>
 
-      {/* Key Metrics Section */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <Card className="bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg border-0 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-white">Total Points</CardTitle>
-            <Award className="h-4 w-4 text-white" />
+      {/* New Dashboard Layout */}
+      <div className="grid gap-6 md:grid-cols-12 mb-6">
+        {/* Top Row - First Card - Points from sketch */}
+        <Card className="md:col-span-4 bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg border-0">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-white">Total Points</CardTitle>
+              <Award className="h-4 w-4 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currentMetrics.points.value}</div>
-            <p className="text-xs text-white/80">{currentMetrics.points.change}</p>
-            <div className="mt-3 h-2 bg-white/20 rounded-full">
+            <div className="text-5xl font-bold mb-1">3250</div>
+            <div className="flex items-center gap-1 text-sm text-white/90 mb-4">
+              <TrendingUp className="h-3 w-3" />
+              +350 this month
+            </div>
+            <div className="h-2 bg-white/20 rounded-full mb-2">
               <div className="h-full bg-white rounded-full" style={{ width: "65%" }}></div>
             </div>
-            <p className="text-xs text-white/80 mt-2">Silver Tier (750 points until Gold)</p>
+            <p className="text-sm text-white/90">Silver Tier (750 points until Gold)</p>
           </CardContent>
         </Card>
-        <Card className="bg-cyan-50">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Content Published</CardTitle>
-            <Users className="h-4 w-4 text-cyan-500" />
+
+        {/* Top Row - Second Card - Content Published from sketch */}
+        <Card className="md:col-span-4">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Content Published</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currentMetrics.content.value}</div>
-            <p className="text-xs text-muted-foreground">{currentMetrics.content.change}</p>
+            <div className="mb-4">
+              <div className="text-4xl font-bold">28</div>
+              <div className="flex items-center gap-1 text-sm text-green-500">
+                <TrendingUp className="h-3 w-3" />
+                +5 this month
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex items-center gap-2 bg-pink-50 p-3 rounded-lg flex-1">
+                <div className="text-pink-500">
+                  <Instagram className="h-4 w-4" />
+                </div>
+                <div className="text-lg font-medium">18</div>
+                <div className="text-sm text-muted-foreground">Instagram</div>
+              </div>
+
+              <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg flex-1">
+                <TikTokIcon className="h-4 w-4" />
+                <div className="text-lg font-medium">10</div>
+                <div className="text-sm text-muted-foreground">TikTok</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
-        <Card className="bg-amber-50">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Views</CardTitle>
-            <Eye className="h-4 w-4 text-amber-500" />
+
+        {/* Top Row - Third Card - Engagement with new layout from sketch */}
+        <Card className="md:col-span-4">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Engagement</CardTitle>
+              <BarChart className="h-4 w-4 text-muted-foreground" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currentMetrics.views.value}</div>
-            <p className="text-xs text-muted-foreground">{currentMetrics.views.change}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-emerald-50">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Likes</CardTitle>
-            <ThumbsUp className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{currentMetrics.likes.value}</div>
-            <p className="text-xs text-muted-foreground">{currentMetrics.likes.change}</p>
+            {/* Main metrics row */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="flex flex-col items-center">
+                <div className="text-2xl font-bold">12.4K</div>
+                <div className="text-sm text-amber-500">Views</div>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="text-2xl font-bold">1,842</div>
+                <div className="text-sm text-green-500">Likes</div>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="text-2xl font-bold">580</div>
+                <div className="text-sm text-blue-500">Comments</div>
+              </div>
+            </div>
+
+            {/* Platform breakdown */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="text-pink-500">
+                    <Instagram className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">Instagram</span>
+                </div>
+                <div className="text-sm text-muted-foreground">8.2K / 1,245 / 380</div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TikTokIcon className="h-4 w-4" />
+                  <span className="text-sm">TikTok</span>
+                </div>
+                <div className="text-sm text-muted-foreground">4.2K / 597 / 200</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -564,7 +628,7 @@ export default function CreatorDashboard() {
                   >
                     View Details <ArrowRight className="h-3.5 w-3.5" />
                   </Button>
-                  <Button size="sm" className="gap-1" onClick={(e) => handleJoinClick(e, campaign.slug)}>
+                  <Button size="sm" className="gap-1" onClick={(e) => handleJoinClick(e, campaign)}>
                     Join Campaign
                   </Button>
                 </CardContent>
@@ -576,6 +640,17 @@ export default function CreatorDashboard() {
 
       {/* Campaign Modal */}
       <CampaignModal />
+
+      {/* Join Campaign Confirmation Modal */}
+      <JoinCampaignModal
+        isOpen={isJoinModalOpen}
+        onClose={() => {
+          setIsJoinModalOpen(false)
+          setCampaignToJoin(null)
+        }}
+        onConfirm={handleConfirmJoin}
+        campaign={campaignToJoin}
+      />
     </div>
   )
 }

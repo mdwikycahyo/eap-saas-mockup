@@ -60,7 +60,7 @@ type Reward = {
 }
 
 // Exchange rate: 1 point = X rupiah
-const POINT_TO_RUPIAH_RATE = 1000
+const POINT_TO_RUPIAH_RATE = 100
 
 export default function RewardsManagement() {
   const [rewards, setRewards] = useState<Reward[]>([
