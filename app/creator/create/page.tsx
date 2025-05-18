@@ -7,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Instagram, Check, Clock } from "lucide-react"
-import { TikTokIcon } from "@/components/tik-tok-icon"
+import { Check, Clock } from "lucide-react"
 import { PointsBalance } from "@/components/points-balance"
 import { Badge } from "@/components/ui/badge"
 

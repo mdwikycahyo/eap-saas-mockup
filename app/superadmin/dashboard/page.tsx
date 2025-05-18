@@ -1,16 +1,28 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Building, Users, Bell, TrendingUp, Share2, Calendar, MessageSquare, Award, AlertTriangle } from "lucide-react"
+import { Building, Users, Bell, Share2, Calendar } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-// Mock data for metrics
+// Update the metricsData object to include the new breakdown information
 const metricsData = {
-  activeClients: { count: 24, change: 3, percentage: 14.3 },
-  totalUsers: { count: 3842, change: 256, percentage: 7.1 },
-  activeCampaigns: { count: 156, change: 12, percentage: 8.3 },
+  totalClients: {
+    count: 24,
+    active: 18,
+    inactive: 4,
+    expired: 2,
+  },
+  totalUsers: {
+    count: 3842,
+    admins: 124,
+    creators: 3718,
+  },
+  activeCampaigns: {
+    count: 156,
+    totalRewardsRedeemed: "Rp 45.7M",
+  },
 }
 
 export default function SuperAdminDashboard() {
@@ -27,54 +39,10 @@ export default function SuperAdminDashboard() {
       bgColor: "bg-red-100",
       read: false,
     },
-    {
-      id: 2,
-      type: "support",
-      title: "Support Request",
-      description: "Urgent support request from Global Retail Group",
-      time: "5 hours ago",
-      icon: MessageSquare,
-      iconColor: "text-blue-600",
-      bgColor: "bg-blue-100",
-      read: false,
-    },
-    {
-      id: 3,
-      type: "success",
-      title: "New Client Onboarded",
-      description: "Global Retail Group has been successfully onboarded",
-      time: "1 day ago",
-      icon: Award,
-      iconColor: "text-green-600",
-      bgColor: "bg-green-100",
-      read: true,
-    },
-    {
-      id: 4,
-      type: "warning",
-      title: "User Limit Approaching",
-      description: "Acme Corporation is at 95% of their user limit",
-      time: "1 day ago",
-      icon: Users,
-      iconColor: "text-violet-600",
-      bgColor: "bg-violet-100",
-      read: true,
-    },
-    {
-      id: 5,
-      type: "warning",
-      title: "System Maintenance",
-      description: "Scheduled maintenance in 2 days",
-      time: "2 days ago",
-      icon: AlertTriangle,
-      iconColor: "text-amber-600",
-      bgColor: "bg-amber-100",
-      read: true,
-    },
   ]
 
   // State for notifications
-  const [unreadNotifications, setUnreadNotifications] = useState(2)
+  const [unreadNotifications, setUnreadNotifications] = useState(1)
   const [notificationItems, setNotificationItems] = useState(notificationsMock)
 
   // Function to mark notification as read
@@ -168,15 +136,24 @@ export default function SuperAdminDashboard() {
       <div className="grid gap-4 md:grid-cols-3 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Clients</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Company Clients</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metricsData.activeClients.count}</div>
-            <p className="text-xs text-muted-foreground">+{metricsData.activeClients.change} from last month</p>
-            <div className="mt-3 flex items-center text-xs text-green-500">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              {metricsData.activeClients.percentage}% increase
+            <div className="text-2xl font-bold">{metricsData.totalClients.count}</div>
+            <div className="mt-2 space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Active:</span>
+                <span className="font-medium">{metricsData.totalClients.active}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Inactive:</span>
+                <span className="font-medium">{metricsData.totalClients.inactive}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Expired:</span>
+                <span className="font-medium">{metricsData.totalClients.expired}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -188,10 +165,15 @@ export default function SuperAdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metricsData.totalUsers.count.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+{metricsData.totalUsers.change} from last month</p>
-            <div className="mt-3 flex items-center text-xs text-green-500">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              {metricsData.totalUsers.percentage}% increase
+            <div className="mt-2 space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Admins:</span>
+                <span className="font-medium">{metricsData.totalUsers.admins.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Creators:</span>
+                <span className="font-medium">{metricsData.totalUsers.creators.toLocaleString()}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -203,68 +185,15 @@ export default function SuperAdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metricsData.activeCampaigns.count}</div>
-            <p className="text-xs text-muted-foreground">+{metricsData.activeCampaigns.change} from last month</p>
-            <div className="mt-3 flex items-center text-xs text-green-500">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              {metricsData.activeCampaigns.percentage}% increase
+            <div className="mt-2 space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Total Rewards Redeemed:</span>
+                <span className="font-medium">{metricsData.activeCampaigns.totalRewardsRedeemed}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Additional descriptive data */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Platform Summary</CardTitle>
-          <CardDescription>Key statistics and information about your platform</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Client Distribution</h3>
-              <ul className="space-y-2">
-                <li className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Active clients:</span>
-                  <span>18</span>
-                </li>
-                <li className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Inactive clients:</span>
-                  <span>4</span>
-                </li>
-                <li className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Expired subscriptions:</span>
-                  <span>2</span>
-                </li>
-                <li className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subscriptions expiring this month:</span>
-                  <span>3</span>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium mb-2">User Statistics</h3>
-              <ul className="space-y-2">
-                <li className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Admin users:</span>
-                  <span>124</span>
-                </li>
-                <li className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Creator users:</span>
-                  <span>3,718</span>
-                </li>
-                <li className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Active users (last 30 days):</span>
-                  <span>2,945</span>
-                </li>
-                <li className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Pending invitations:</span>
-                  <span>37</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

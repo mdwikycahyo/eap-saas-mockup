@@ -10,7 +10,6 @@ import {
   Megaphone,
   CheckCircle,
   XCircle,
-  Instagram,
   ArrowRight,
   Plus,
   DollarSign,
@@ -32,7 +31,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { TikTokIcon } from "@/components/tik-tok-icon"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
@@ -87,7 +85,7 @@ export default function AdminDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Creators</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Creators</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -421,13 +419,6 @@ export default function AdminDashboard() {
                                   ))}
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Badge variant="outline" className="text-rose-600">
-                                  <Instagram className="h-3 w-3 mr-1" />
-                                  Instagram
-                                </Badge>
-                                <Badge variant="outline">Image</Badge>
-                              </div>
                             </div>
                           </div>
                           <div>
@@ -516,13 +507,6 @@ export default function AdminDashboard() {
                           <div className="mb-4">
                             <h3 className="text-sm font-medium mb-2">Content Preview</h3>
                             <div className="aspect-video bg-slate-100 rounded-md mb-2"></div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Badge variant="outline" className="text-cyan-600">
-                                <TikTokIcon className="h-3 w-3 mr-1" />
-                                TikTok
-                              </Badge>
-                              <Badge variant="outline">Video</Badge>
-                            </div>
                           </div>
                           <div>
                             <h3 className="text-sm font-medium mb-2">Caption</h3>
@@ -609,13 +593,6 @@ export default function AdminDashboard() {
                           <div className="mb-4">
                             <h3 className="text-sm font-medium mb-2">Content Preview</h3>
                             <div className="aspect-square bg-slate-100 rounded-md mb-2"></div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Badge variant="outline" className="text-rose-600">
-                                <Instagram className="h-3 w-3 mr-1" />
-                                Instagram
-                              </Badge>
-                              <Badge variant="outline">Image</Badge>
-                            </div>
                           </div>
                           <div>
                             <h3 className="text-sm font-medium mb-2">Caption</h3>

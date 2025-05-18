@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, Plus, Edit, Trash2, Eye, ThumbsUp, MessageCircle } from "lucide-react"
+import { Search, Plus, Edit, Eye, ThumbsUp, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -275,17 +275,6 @@ function CampaignList({ status }: { status: string }) {
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Edit Campaign</p>
-                          </TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-red-600">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Delete Campaign</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>

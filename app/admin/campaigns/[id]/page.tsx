@@ -4,9 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar, Download, Upload, ArrowLeft } from "lucide-react"
+import { Calendar, Download, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface CampaignDetailProps {
@@ -29,7 +28,9 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
     startDate: "July 1, 2023",
     endDate: "July 31, 2023",
     status: "active",
+    invited: 60,
     participants: 42,
+    posted: 28,
     submissions: {
       total: 28,
       approved: 22,
@@ -76,7 +77,7 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="w-full justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="content">Assets</TabsTrigger>
           <TabsTrigger value="creators">Creators</TabsTrigger>
         </TabsList>
 
@@ -111,15 +112,6 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Description</h3>
                       <p>{campaign.description}</p>
                     </div>
-
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Requirements</h3>
-                      <ul className="list-disc pl-5 space-y-1">
-                        {campaign.requirements.map((req, index) => (
-                          <li key={index}>{req}</li>
-                        ))}
-                      </ul>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -130,37 +122,55 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                     <CardTitle>Participation</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium">Creators Joined</span>
-                          <span className="text-sm font-medium">{campaign.participants}</span>
+                    <div className="space-y-6">
+                      <h3 className="text-sm font-medium">Creators Status</h3>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="p-3 bg-blue-50 rounded-md text-center">
+                          <p className="text-xs text-muted-foreground mb-1">Invited</p>
+                          <p className="text-lg font-bold text-blue-600">{campaign.invited}</p>
+                          <p className="text-xs text-muted-foreground">100% - Base</p>
                         </div>
-                        <Progress value={70} className="h-2" />
-                        <p className="text-xs text-muted-foreground mt-1">70% of invited creators</p>
+                        <div className="p-3 bg-amber-50 rounded-md text-center">
+                          <p className="text-xs text-muted-foreground mb-1">Joined</p>
+                          <p className="text-lg font-bold text-amber-600">{campaign.participants}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {Math.round((campaign.participants / campaign.invited) * 100)}% of Invited
+                          </p>
+                        </div>
+                        <div className="p-3 bg-green-50 rounded-md text-center">
+                          <p className="text-xs text-muted-foreground mb-1">Posted</p>
+                          <p className="text-lg font-bold text-green-600">{campaign.posted}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {Math.round((campaign.posted / campaign.participants) * 100)}% of Joined
+                          </p>
+                        </div>
                       </div>
 
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium">Content Submissions</span>
-                          <span className="text-sm font-medium">{campaign.submissions.total}</span>
+                      <h3 className="text-sm font-medium">Content Status</h3>
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div className="p-3 bg-green-50 rounded-md">
+                          <p className="text-xs text-muted-foreground mb-1">Approved</p>
+                          <p className="text-lg font-bold text-green-600">{campaign.submissions.approved}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {Math.round((campaign.submissions.approved / campaign.submissions.total) * 100)}% of
+                            submissions
+                          </p>
                         </div>
-                        <Progress value={67} className="h-2" />
-                        <p className="text-xs text-muted-foreground mt-1">67% of participants have submitted content</p>
-                      </div>
-
-                      <div className="pt-2 grid grid-cols-3 gap-2 text-center">
-                        <div className="p-2 bg-green-50 rounded-md">
-                          <p className="text-sm font-medium text-green-600">{campaign.submissions.approved}</p>
-                          <p className="text-xs text-muted-foreground">Approved</p>
+                        <div className="p-3 bg-amber-50 rounded-md">
+                          <p className="text-xs text-muted-foreground mb-1">Pending</p>
+                          <p className="text-lg font-bold text-amber-600">{campaign.submissions.pending}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {Math.round((campaign.submissions.pending / campaign.submissions.total) * 100)}% of
+                            submissions
+                          </p>
                         </div>
-                        <div className="p-2 bg-amber-50 rounded-md">
-                          <p className="text-sm font-medium text-amber-600">{campaign.submissions.pending}</p>
-                          <p className="text-xs text-muted-foreground">Pending</p>
-                        </div>
-                        <div className="p-2 bg-red-50 rounded-md">
-                          <p className="text-sm font-medium text-red-600">{campaign.submissions.rejected}</p>
-                          <p className="text-xs text-muted-foreground">Rejected</p>
+                        <div className="p-3 bg-red-50 rounded-md">
+                          <p className="text-xs text-muted-foreground mb-1">Rejected</p>
+                          <p className="text-lg font-bold text-red-600">{campaign.submissions.rejected}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {Math.round((campaign.submissions.rejected / campaign.submissions.total) * 100)}% of
+                            submissions
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -172,41 +182,49 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                     <CardTitle>Platform Breakdown</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div>
-                        <div className="flex justify-between mb-1">
-                          <div className="flex items-center">
-                            <span className="text-sm">Instagram</span>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-sm font-medium">Instagram</span>
+                          <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200">
+                            22 Posts
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="p-3 bg-slate-50 rounded-md text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Views</p>
+                            <p className="text-lg font-bold">24.5K</p>
                           </div>
-                          <span className="text-sm font-medium">24.5K</span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-rose-500 rounded-full" style={{ width: "100%" }}></div>
-                        </div>
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          <div className="flex justify-between">
-                            <span>Views: 24.5K</span>
-                            <span>Likes: 1.85K</span>
-                            <span>Comments: 320</span>
+                          <div className="p-3 bg-slate-50 rounded-md text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Likes</p>
+                            <p className="text-lg font-bold">1.85K</p>
+                          </div>
+                          <div className="p-3 bg-slate-50 rounded-md text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Comments</p>
+                            <p className="text-lg font-bold">320</p>
                           </div>
                         </div>
                       </div>
 
                       <div>
-                        <div className="flex justify-between mb-1">
-                          <div className="flex items-center">
-                            <span className="text-sm">TikTok</span>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-sm font-medium">TikTok</span>
+                          <Badge variant="outline" className="bg-cyan-50 text-cyan-600 border-cyan-200">
+                            0 Posts
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="p-3 bg-slate-50 rounded-md text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Views</p>
+                            <p className="text-lg font-bold">0</p>
                           </div>
-                          <span className="text-sm font-medium">0</span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-cyan-500 rounded-full" style={{ width: "0%" }}></div>
-                        </div>
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          <div className="flex justify-between">
-                            <span>Views: 0</span>
-                            <span>Likes: 0</span>
-                            <span>Comments: 0</span>
+                          <div className="p-3 bg-slate-50 rounded-md text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Likes</p>
+                            <p className="text-lg font-bold">0</p>
+                          </div>
+                          <div className="p-3 bg-slate-50 rounded-md text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Comments</p>
+                            <p className="text-lg font-bold">0</p>
                           </div>
                         </div>
                       </div>
@@ -287,10 +305,6 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                           </div>
                         </div>
                       ))}
-                      <div className="border border-dashed rounded-md p-2 flex flex-col items-center justify-center">
-                        <Upload className="h-6 w-6 text-muted-foreground mb-1" />
-                        <span className="text-xs text-muted-foreground">Upload Asset</span>
-                      </div>
                     </div>
                   </div>
 
@@ -299,10 +313,8 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                     <Textarea
                       className="min-h-[120px]"
                       defaultValue="Summer is here and so is the new collection from @brandname! 🌞 Check out these amazing new products that are perfect for the season. #SummerCollection #BrandNameSummer #NewArrivals"
+                      disabled
                     />
-                    <div className="flex justify-end mt-2">
-                      <Button size="sm">Save Caption</Button>
-                    </div>
                   </div>
                 </div>
               ) : (
