@@ -146,17 +146,6 @@ export default function CreateContentPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="caption">Caption</Label>
-              <Textarea
-                id="caption"
-                placeholder="Write your caption here..."
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                rows={4}
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="media">Upload Media</Label>
               <div className="border-2 border-dashed rounded-md p-6 text-center">
                 <input
@@ -176,6 +165,17 @@ export default function CreateContentPage() {
                   </div>
                 </Label>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="caption">Caption</Label>
+              <Textarea
+                id="caption"
+                placeholder="Write your caption here..."
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                rows={4}
+              />
             </div>
 
             {previewUrls.length > 0 && (
