@@ -190,11 +190,15 @@ export default function EditCampaignPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Start Date</Label>
+                  <div>
+                    <Label>Start Date</Label>
+                  </div>
                   <DatePicker defaultDate={campaignData.startDate} />
                 </div>
                 <div className="space-y-2">
-                  <Label>End Date</Label>
+                  <div>
+                    <Label>End Date</Label>
+                  </div>
                   <DatePicker defaultDate={campaignData.endDate} />
                 </div>
               </div>
@@ -229,7 +233,6 @@ export default function EditCampaignPage() {
               </div>
             </CardContent>
           </Card>
-
         </TabsContent>
 
         <TabsContent value="creators" className="space-y-4 mt-4">

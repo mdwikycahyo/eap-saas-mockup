@@ -129,7 +129,6 @@ export default function AdminAnalytics() {
                 </div>
               </CardContent>
             </Card>
-
           </div>
         </TabsContent>
 
@@ -226,7 +225,6 @@ export default function AdminAnalytics() {
               </div>
             </CardContent>
           </Card>
-
         </TabsContent>
 
         <TabsContent value="rewards" className="mt-6">

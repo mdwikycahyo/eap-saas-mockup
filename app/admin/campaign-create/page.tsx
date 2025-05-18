@@ -100,11 +100,15 @@ export default function CreateCampaignPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Start Date</Label>
+                  <div>
+                    <Label>Start Date</Label>
+                  </div>
                   <DatePicker />
                 </div>
                 <div className="space-y-2">
-                  <Label>End Date</Label>
+                  <div>
+                    <Label>End Date</Label>
+                  </div>
                   <DatePicker />
                 </div>
               </div>
