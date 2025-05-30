@@ -9,8 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Search,
   UserPlus,
-  RefreshCw,
-  Download,
   Upload,
   FileDown,
   CheckCircle,
@@ -25,7 +23,6 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useRouter } from "next/navigation"
 import {
@@ -188,7 +185,6 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [companyFilter, setCompanyFilter] = useState("all")
   const [selectedUser, setSelectedUser] = useState(null)
-  const [selectedUsers, setSelectedUsers] = useState([])
   const { toast } = useToast()
   const [isInvitationSent, setIsInvitationSent] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
@@ -197,9 +193,17 @@ export default function UsersPage() {
   const [userToView, setUserToView] = useState(null)
   const [showActivateDialog, setShowActivateDialog] = useState(false)
   const [userToActivate, setUserToActivate] = useState(null)
-  const [showBulkActivateDialog, setShowBulkActivateDialog] = useState(false)
   const [showResendInvitationDialog, setShowResendInvitationDialog] = useState(false)
   const [userToResendInvitation, setUserToResendInvitation] = useState(null)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [uploadForm, setUploadForm] = useState({
+    company: "",
+    file: null,
+  })
+  const [uploadErrors, setUploadErrors] = useState({
+    company: "",
+    file: "",
+  })
 
   // Filter users based on search query and filters
   const filteredUsers = users.filter((user) => {
@@ -264,54 +268,6 @@ export default function UsersPage() {
     }
   }
 
-  const handleBulkAction = (action) => {
-    if (selectedUsers.length === 0) {
-      toast({
-        title: "No Users Selected",
-        description: "Please select at least one user to perform this action.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (action === "activate") {
-      setShowBulkActivateDialog(true)
-    } else if (action === "deactivate") {
-      const updatedUsers = users.map((user) =>
-        selectedUsers.includes(user.id) ? { ...user, status: "Inactive" } : user,
-      )
-      setUsers(updatedUsers)
-      toast({
-        title: "Users Deactivated",
-        description: `${selectedUsers.length} users have been deactivated.`,
-      })
-      setSelectedUsers([])
-    }
-  }
-
-  const handleBulkActivateConfirmed = () => {
-    const updatedUsers = users.map((user) => (selectedUsers.includes(user.id) ? { ...user, status: "Active" } : user))
-    setUsers(updatedUsers)
-    toast({
-      title: "Users Activated",
-      description: `${selectedUsers.length} users have been activated.`,
-    })
-    setSelectedUsers([])
-    setShowBulkActivateDialog(false)
-  }
-
-  const toggleSelectUser = (userId) => {
-    setSelectedUsers((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
-  }
-
-  const toggleSelectAll = () => {
-    if (selectedUsers.length === filteredUsers.length) {
-      setSelectedUsers([])
-    } else {
-      setSelectedUsers(filteredUsers.map((user) => user.id))
-    }
-  }
-
   const handleConfirmResendInvitation = (user) => {
     setUserToResendInvitation(user)
     setShowResendInvitationDialog(true)
@@ -330,11 +286,61 @@ export default function UsersPage() {
     }
   }
 
+  const handleUploadUsers = () => {
+    setShowUploadModal(true)
+  }
+
+  const handleUploadCancel = () => {
+    setShowUploadModal(false)
+    setUploadForm({ company: "", file: null })
+    setUploadErrors({ company: "", file: "" })
+  }
+
+  const handleUploadSave = () => {
+    const errors = { company: "", file: "" }
+
+    if (!uploadForm.company) {
+      errors.company = "Please select a company"
+    }
+
+    if (!uploadForm.file) {
+      errors.file = "Please select a file to upload"
+    }
+
+    setUploadErrors(errors)
+
+    if (!errors.company && !errors.file) {
+      // In a real app, this would upload the file
+      toast({
+        title: "Users Uploaded Successfully",
+        description: `Users have been uploaded for ${uploadForm.company}.`,
+      })
+      setShowUploadModal(false)
+      setUploadForm({ company: "", file: null })
+      setUploadErrors({ company: "", file: "" })
+    }
+  }
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0]
+    setUploadForm((prev) => ({ ...prev, file }))
+    if (file) {
+      setUploadErrors((prev) => ({ ...prev, file: "" }))
+    }
+  }
+
+  const handleCompanySelect = (value) => {
+    setUploadForm((prev) => ({ ...prev, company: value }))
+    if (value) {
+      setUploadErrors((prev) => ({ ...prev, company: "" }))
+    }
+  }
+
   return (
     <TooltipProvider>
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">User Administration</h1>
+          <h1 className="text-3xl font-bold">Manage User</h1>
           <Button onClick={handleAddUser}>
             <UserPlus className="mr-2 h-4 w-4" /> Add New User
           </Button>
@@ -411,34 +417,9 @@ export default function UsersPage() {
 
             <div className="flex flex-wrap gap-4 mb-4">
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkAction("activate")}
-                  disabled={selectedUsers.length === 0}
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Activate Selected
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkAction("deactivate")}
-                  disabled={selectedUsers.length === 0}
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Deactivate Selected
-                </Button>
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export Users
-                </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleUploadUsers}>
                   <Upload className="mr-2 h-4 w-4" />
-                  Import Users
+                  Upload Users
                 </Button>
                 <Button variant="outline" size="sm">
                   <FileDown className="mr-2 h-4 w-4" />
@@ -451,14 +432,7 @@ export default function UsersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px]">
-                      <Checkbox
-                        checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                      />
-                    </TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
+                    <TableHead>User</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Company</TableHead>
                     <TableHead>Account Status</TableHead>
@@ -469,7 +443,7 @@ export default function UsersPage() {
                 <TableBody>
                   {filteredUsers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-4">
+                      <TableCell colSpan={6} className="text-center py-4">
                         No users found matching your criteria
                       </TableCell>
                     </TableRow>
@@ -477,13 +451,11 @@ export default function UsersPage() {
                     filteredUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>
-                          <Checkbox
-                            checked={selectedUsers.includes(user.id)}
-                            onCheckedChange={() => toggleSelectUser(user.id)}
-                          />
+                          <div>
+                            <div className="font-medium">{user.name}</div>
+                            <div className="text-sm text-muted-foreground">{user.email}</div>
+                          </div>
                         </TableCell>
-                        <TableCell className="font-medium">{user.name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
                         <TableCell>
                           <Badge variant={user.role === "Admin" ? "outline" : "secondary"}>{user.role}</Badge>
                         </TableCell>
@@ -749,25 +721,6 @@ export default function UsersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Confirmation Dialog for Bulk Activating Users */}
-        <Dialog open={showBulkActivateDialog} onOpenChange={setShowBulkActivateDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirm Bulk User Activation</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to activate {selectedUsers.length} users? They will be able to access the platform
-                again.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowBulkActivateDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleBulkActivateConfirmed}>Activate Users</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
         {/* Confirmation Dialog for Resending Invitation */}
         <Dialog open={showResendInvitationDialog} onOpenChange={setShowResendInvitationDialog}>
           <DialogContent>
@@ -791,6 +744,72 @@ export default function UsersPage() {
               <Button onClick={handleResendInvitationConfirmed}>
                 <Mail className="mr-2 h-4 w-4" /> Resend Invitation
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Upload Users Modal */}
+        <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Upload Users</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              {/* Company Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Company <span className="text-red-500">*</span>
+                </label>
+                <Select value={uploadForm.company} onValueChange={handleCompanySelect}>
+                  <SelectTrigger className={uploadErrors.company ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Search" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockCompanies.map((company) => (
+                      <SelectItem key={company.id} value={company.name}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {uploadErrors.company && <p className="text-sm text-red-500">{uploadErrors.company}</p>}
+              </div>
+
+              {/* File Upload */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Upload Employee <span className="text-red-500">*</span>
+                </label>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center ${
+                    uploadErrors.file ? "border-red-500" : "border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept=".xls,.xlsx"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <Button variant="outline" type="button" asChild>
+                      <span>Select File</span>
+                    </Button>
+                  </label>
+                  {uploadForm.file && <p className="mt-2 text-sm text-gray-600">{uploadForm.file.name}</p>}
+                </div>
+                {uploadErrors.file && <p className="text-sm text-red-500">{uploadErrors.file}</p>}
+                <p className="text-sm text-red-500">
+                  Single upload file should not be more 5MB. Only the .xls/.xlsx file types are allowed
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleUploadCancel}>
+                Cancel
+              </Button>
+              <Button onClick={handleUploadSave}>Save</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
