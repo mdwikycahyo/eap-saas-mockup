@@ -186,6 +186,8 @@ function AddUserForm({ onSubmit, onCancel, companies, initialData = null }) {
     if (!formData.name) errors.name = "Full name is required"
     if (!formData.email) errors.email = "Email is required"
     if (!formData.company) errors.company = "Company is required"
+    if (!formData.province) errors.province = "Province is required"
+    if (!formData.city) errors.city = "City is required"
 
     setFormErrors(errors)
     return Object.keys(errors).length === 0
@@ -300,14 +302,16 @@ function AddUserForm({ onSubmit, onCancel, companies, initialData = null }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="province">Province</Label>
+            <Label htmlFor="province" className={cn(formErrors.province && "text-destructive")}>
+              Province <span className="text-destructive">*</span>
+            </Label>
             <Popover open={openProvinceCombobox} onOpenChange={setOpenProvinceCombobox}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   role="combobox"
                   aria-expanded={openProvinceCombobox}
-                  className="w-full justify-between"
+                  className={cn("w-full justify-between", formErrors.province && "border-destructive")}
                 >
                   {formData.province || "Select province..."}
                   <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -348,17 +352,24 @@ function AddUserForm({ onSubmit, onCancel, companies, initialData = null }) {
                 </Command>
               </PopoverContent>
             </Popover>
+            {formErrors.province && <p className="text-xs text-destructive mt-1">{formErrors.province}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="city">City</Label>
+            <Label htmlFor="city" className={cn(formErrors.city && "text-destructive")}>
+              City <span className="text-destructive">*</span>
+            </Label>
             <Popover open={openCityCombobox} onOpenChange={setOpenCityCombobox} disabled={!formData.province}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   role="combobox"
                   aria-expanded={openCityCombobox}
-                  className={cn("w-full justify-between", !formData.province && "opacity-50 cursor-not-allowed")}
+                  className={cn(
+                    "w-full justify-between",
+                    !formData.province && "opacity-50 cursor-not-allowed",
+                    formErrors.city && "border-destructive",
+                  )}
                   disabled={!formData.province}
                 >
                   {formData.city || (formData.province ? "Select city..." : "Select province first")}
@@ -401,6 +412,7 @@ function AddUserForm({ onSubmit, onCancel, companies, initialData = null }) {
                 </PopoverContent>
               )}
             </Popover>
+            {formErrors.city && <p className="text-xs text-destructive mt-1">{formErrors.city}</p>}
           </div>
         </div>
       </div>

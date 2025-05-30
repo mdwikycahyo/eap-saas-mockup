@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, PlusCircle, Edit, Tag } from "lucide-react"
+import { Search, PlusCircle, Edit, Tag, Wallet } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
@@ -154,6 +154,10 @@ export default function ClientsPage() {
     router.push(`/superadmin/clients/${clientId}/subscription`)
   }
 
+  const handleManageRewardBalance = (clientId) => {
+    router.push(`/superadmin/clients/${clientId}/reward-balance`)
+  }
+
   // Format subscription duration
   const formatSubscriptionDuration = (start, end) => {
     const startDate = new Date(start)
@@ -279,6 +283,21 @@ export default function ClientsPage() {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>Manage Subscription</TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleManageRewardBalance(client.id)}
+                                >
+                                  <Wallet className="h-4 w-4" />
+                                  <span className="sr-only">Manage Reward Balance</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Manage Reward Balance</TooltipContent>
                             </Tooltip>
                           </div>
                         </TableCell>
