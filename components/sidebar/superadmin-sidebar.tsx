@@ -25,7 +25,7 @@ export function SuperAdminSidebar() {
       icon: LayoutDashboard,
     },
     {
-      title: "Client Management",
+      title: "Manage Company",
       href: "/superadmin/clients",
       icon: Building,
     },

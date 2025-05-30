@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusCircle, Upload, AlertCircle, Check, ArrowLeft, ChevronDown } from "lucide-react"
+import { PlusCircle, Upload, AlertCircle, Check, ArrowLeft, ChevronDown, Coins } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 // Initial industries list
 const initialIndustries = [
@@ -48,7 +48,7 @@ export default function AddClientPage() {
   const handleAddClient = (formData) => {
     // In a real app, this would be an API call
     toast({
-      title: "Client Added",
+      title: "Company Added",
       description: `${formData.name} has been successfully added.`,
     })
 
@@ -65,7 +65,7 @@ export default function AddClientPage() {
         <Button variant="ghost" size="sm" onClick={handleCancel}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-3xl font-bold">Add New Client</h1>
+        <h1 className="text-3xl font-bold">Add New Company</h1>
       </div>
 
       <AddClientForm onSubmit={handleAddClient} onCancel={handleCancel} />
@@ -82,17 +82,9 @@ function AddClientForm({ onSubmit, onCancel, initialData = null, isEditing = fal
     subdomain: initialData?.subdomain || "",
     address: initialData?.address || "",
     rewardBalance: initialData?.rewardBalance || "0",
-
-    // Subscription Information
-    subscriptionTier: initialData?.subscriptionTier || "tier1",
-    subscriptionStartDate: initialData?.subscriptionStart || "",
-    subscriptionEndDate: initialData?.subscriptionEnd || "",
-    isDateFieldsDisabled: false,
-    adminCount: initialData?.adminCount || "1",
-    creatorCount: initialData?.creatorCount || "10",
+    status: "Inactive", // Add this line
   })
 
-  const [activeTab, setActiveTab] = useState("company")
   const [industries, setIndustries] = useState(initialIndustries)
   const [newIndustry, setNewIndustry] = useState("")
   const [formErrors, setFormErrors] = useState({})
@@ -142,10 +134,6 @@ function AddClientForm({ onSubmit, onCancel, initialData = null, isEditing = fal
     if (!formData.industry) errors.industry = "Industry is required"
     if (!formData.subdomain) errors.subdomain = "Subdomain is required"
 
-    // Required fields in Subscription section
-    if (!formData.subscriptionStartDate) errors.subscriptionStartDate = "Start date is required"
-    if (!formData.subscriptionEndDate) errors.subscriptionEndDate = "End date is required"
-
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -156,8 +144,6 @@ function AddClientForm({ onSubmit, onCancel, initialData = null, isEditing = fal
     if (validateForm()) {
       onSubmit(formData)
     } else {
-      // If there are errors, switch to the company tab where most required fields are
-      setActiveTab("company")
       toast({
         title: "Form Incomplete",
         description: "Please fill in all required fields before submitting.",
@@ -315,177 +301,79 @@ function AddClientForm({ onSubmit, onCancel, initialData = null, isEditing = fal
           </div>
         </div>
 
-        {/* Right Column - Subscription Details & Branding */}
+        {/* Right Column - Initial Setup & Branding */}
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium">Subscription Details</h3>
-            <p className="text-sm text-muted-foreground">Set the subscription tier and duration</p>
+            <h3 className="text-lg font-medium">Initial Setup</h3>
+            <p className="text-sm text-muted-foreground">Configure initial company settings</p>
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="rewardBalance">Reward Balance</Label>
-              <Input
-                id="rewardBalance"
-                name="rewardBalance"
-                type="number"
-                min="0"
-                value={formData.rewardBalance}
-                onChange={handleChange}
-                placeholder="Enter initial reward balance"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="subscriptionTier">
-                Subscription Tier <span className="text-destructive">*</span>
-              </Label>
-              <Select
-                value={formData.subscriptionTier}
-                onValueChange={(value) => {
-                  handleSelectChange("subscriptionTier", value)
-
-                  // Auto-populate dates for Trial tier
-                  if (value === "trial") {
-                    const today = new Date()
-                    const startDate = today.toISOString().split("T")[0]
-
-                    // Set end date to 30 days from today
-                    const endDate = new Date(today)
-                    endDate.setDate(today.getDate() + 30)
-                    const formattedEndDate = endDate.toISOString().split("T")[0]
-
-                    setFormData((prev) => ({
-                      ...prev,
-                      subscriptionStartDate: startDate,
-                      subscriptionEndDate: formattedEndDate,
-                      isDateFieldsDisabled: true,
-                    }))
-                  } else {
-                    setFormData((prev) => ({
-                      ...prev,
-                      isDateFieldsDisabled: false,
-                    }))
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select subscription tier" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="trial">Trial (30 Days) - 1 admin, 10 creators</SelectItem>
-                  <SelectItem value="tier1">Starter - 2 admins, 50 creators</SelectItem>
-                  <SelectItem value="flexible">Flexible - Custom admins & creators</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {formData.subscriptionTier === "flexible" && (
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="adminCount">Number of Admins</Label>
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex items-center">
+                <Coins className="h-4 w-4 mr-2 text-muted-foreground" />
+                <CardTitle className="text-base">Reward Balance</CardTitle>
+              </div>
+              <CardDescription>Set the initial reward balance for this company</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 mb-3">
+                <div className="flex items-center">
+                  <div className="bg-muted px-3 py-2 border border-r-0 border-input rounded-l-md text-muted-foreground">
+                    IDR
+                  </div>
                   <Input
-                    id="adminCount"
-                    name="adminCount"
-                    type="number"
-                    min="1"
-                    value={formData.adminCount || "1"}
-                    onChange={handleChange}
-                    placeholder="Enter number of admins"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="creatorCount">Number of Creators</Label>
-                  <Input
-                    id="creatorCount"
-                    name="creatorCount"
-                    type="number"
-                    min="10"
-                    value={formData.creatorCount || "10"}
-                    onChange={handleChange}
-                    placeholder="Enter number of creators"
+                    id="rewardBalance"
+                    name="rewardBalance"
+                    type="text"
+                    value={formData.rewardBalance ? new Intl.NumberFormat("id-ID").format(formData.rewardBalance) : ""}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^\d]/g, "")
+                      setFormData((prev) => ({ ...prev, rewardBalance: value }))
+                    }}
+                    placeholder="0"
+                    className="rounded-l-none"
                   />
                 </div>
               </div>
-            )}
+            </CardContent>
+          </Card>
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="subscriptionStartDate"
-                className={cn(formErrors.subscriptionStartDate && "text-destructive")}
-              >
-                Start Date <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="subscriptionStartDate"
-                name="subscriptionStartDate"
-                type="date"
-                value={formData.subscriptionStartDate}
-                onChange={handleChange}
-                className={cn(formErrors.subscriptionStartDate && "border-destructive")}
-                disabled={formData.isDateFieldsDisabled}
-                required
-              />
-              {formErrors.subscriptionStartDate && (
-                <p className="text-xs text-destructive mt-1">{formErrors.subscriptionStartDate}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="subscriptionEndDate" className={cn(formErrors.subscriptionEndDate && "text-destructive")}>
-                End Date <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="subscriptionEndDate"
-                name="subscriptionEndDate"
-                type="date"
-                value={formData.subscriptionEndDate}
-                onChange={handleChange}
-                className={cn(formErrors.subscriptionEndDate && "border-destructive")}
-                disabled={formData.isDateFieldsDisabled}
-                required
-              />
-              {formErrors.subscriptionEndDate && (
-                <p className="text-xs text-destructive mt-1">{formErrors.subscriptionEndDate}</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="col-span-2">
-          <h3 className="text-lg font-medium">Company Branding</h3>
-          <p className="text-sm text-muted-foreground">Upload company logo in both square and horizontal formats</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div className="space-y-4">
-              <Label>Square Logo (1:1)</Label>
-              <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center bg-slate-50">
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <Upload className="h-8 w-8 text-slate-400" />
-                  <p className="text-sm font-medium">Upload square logo</p>
-                  <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
+          <div className="col-span-2">
+            <h3 className="text-lg font-medium">Company Branding</h3>
+            <p className="text-sm text-muted-foreground">Upload company logo in both square and horizontal formats</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              <div className="space-y-4">
+                <Label>Square Logo (1:1)</Label>
+                <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center bg-slate-50">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Upload className="h-8 w-8 text-slate-400" />
+                    <p className="text-sm font-medium">Upload square logo</p>
+                    <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
+                  </div>
+                  <Button variant="outline" size="sm" className="mt-4">
+                    Select File
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" className="mt-4">
-                  Select File
-                </Button>
+                <p className="text-xs text-muted-foreground">
+                  This logo will be used for profile icons and small displays
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                This logo will be used for profile icons and small displays
-              </p>
-            </div>
 
-            <div className="space-y-4">
-              <Label>Horizontal Logo (3:1)</Label>
-              <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center bg-slate-50">
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <Upload className="h-8 w-8 text-slate-400" />
-                  <p className="text-sm font-medium">Upload horizontal logo</p>
-                  <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
+              <div className="space-y-4">
+                <Label>Horizontal Logo (3:1)</Label>
+                <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center bg-slate-50">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Upload className="h-8 w-8 text-slate-400" />
+                    <p className="text-sm font-medium">Upload horizontal logo</p>
+                    <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
+                  </div>
+                  <Button variant="outline" size="sm" className="mt-4">
+                    Select File
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" className="mt-4">
-                  Select File
-                </Button>
+                <p className="text-xs text-muted-foreground">This logo will be used for headers and wider displays</p>
               </div>
-              <p className="text-xs text-muted-foreground">This logo will be used for headers and wider displays</p>
             </div>
           </div>
         </div>
@@ -519,7 +407,7 @@ function AddClientForm({ onSubmit, onCancel, initialData = null, isEditing = fal
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">{isEditing ? "Update Client" : "Save Client"}</Button>
+        <Button type="submit">{isEditing ? "Update Company" : "Save Company"}</Button>
       </div>
     </form>
   )

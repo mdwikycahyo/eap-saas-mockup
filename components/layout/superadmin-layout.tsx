@@ -32,7 +32,7 @@ export function SuperAdminLayout({ children }: { children: React.ReactNode }) {
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
-      label: "Client Management",
+      label: "Manage Company",
       href: "/superadmin/clients",
       icon: <Building className="h-5 w-5" />,
     },
