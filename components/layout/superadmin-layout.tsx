@@ -37,24 +37,14 @@ export function SuperAdminLayout({ children }: { children: React.ReactNode }) {
       icon: <Building className="h-5 w-5" />,
     },
     {
-      label: "User Administration",
+      label: "Manage User",
       href: "/superadmin/users",
       icon: <Users className="h-5 w-5" />,
     },
     {
-      label: "Rewards",
+      label: "Reward Management",
       href: "/superadmin/rewards",
       icon: <Gift className="h-5 w-5" />,
-    },
-    {
-      label: "System Configuration",
-      href: "/superadmin/config",
-      icon: <Settings className="h-5 w-5" />,
-    },
-    {
-      label: "Reporting Hub",
-      href: "/superadmin/reports",
-      icon: <FileBarChart className="h-5 w-5" />,
     },
   ]
 
