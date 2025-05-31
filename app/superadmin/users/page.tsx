@@ -2,25 +2,10 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  Search,
-  UserPlus,
-  Upload,
-  FileDown,
-  CheckCircle,
-  Eye,
-  Edit,
-  AlertTriangle,
-  Mail,
-  Phone,
-  MapPin,
-  Building,
-  Power,
-} from "lucide-react"
+import { Search, UserPlus, Upload, FileDown, CheckCircle, Edit, Mail } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -34,6 +19,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button" // Ensure Button is imported
+import { CustomPagination } from "@/components/ui/custom-pagination" // Import CustomPagination
 
 // Mock data for users
 const mockUsers = [
@@ -43,11 +30,10 @@ const mockUsers = [
     email: "john@acme.com",
     role: "Admin",
     company: "Acme Corporation",
-    status: "Active",
     lastActive: "2023-05-15",
-    phoneNumber: "+1 (555) 123-4567",
-    city: "New York",
-    stateProvince: "NY",
+    phoneNumber: "+62 21 1234 5678",
+    city: "South Jakarta",
+    stateProvince: "DKI Jakarta",
     invitationStatus: "Confirmed",
   },
   {
@@ -56,11 +42,10 @@ const mockUsers = [
     email: "jane@acme.com",
     role: "Creator",
     company: "Acme Corporation",
-    status: "Active",
     lastActive: "2023-05-14",
-    phoneNumber: "+1 (555) 987-6543",
-    city: "Los Angeles",
-    stateProvince: "CA",
+    phoneNumber: "+62 21 9876 5432",
+    city: "Central Jakarta",
+    stateProvince: "DKI Jakarta",
     invitationStatus: "Confirmed",
   },
   {
@@ -69,11 +54,10 @@ const mockUsers = [
     email: "robert@technova.io",
     role: "Admin",
     company: "TechNova Inc.",
-    status: "Active",
     lastActive: "2023-05-15",
-    phoneNumber: "+1 (555) 234-5678",
-    city: "San Francisco",
-    stateProvince: "CA",
+    phoneNumber: "+62 22 2345 6789",
+    city: "Bandung",
+    stateProvince: "West Java",
     invitationStatus: "Confirmed",
   },
   {
@@ -82,11 +66,10 @@ const mockUsers = [
     email: "emily@technova.io",
     role: "Creator",
     company: "TechNova Inc.",
-    status: "Pending",
     lastActive: "2023-04-28",
-    phoneNumber: "+1 (555) 876-5432",
-    city: "Chicago",
-    stateProvince: "IL",
+    phoneNumber: "+62 24 8765 4321",
+    city: "Semarang",
+    stateProvince: "Central Java",
     invitationStatus: "Pending",
   },
   {
@@ -95,11 +78,10 @@ const mockUsers = [
     email: "michael@globalretail.com",
     role: "Admin",
     company: "Global Retail Group",
-    status: "Active",
     lastActive: "2023-05-12",
-    phoneNumber: "+1 (555) 345-6789",
-    city: "Miami",
-    stateProvince: "FL",
+    phoneNumber: "+62 31 3456 7890",
+    city: "Surabaya",
+    stateProvince: "East Java",
     invitationStatus: "Confirmed",
   },
   {
@@ -108,11 +90,10 @@ const mockUsers = [
     email: "sarah@globalretail.com",
     role: "Creator",
     company: "Global Retail Group",
-    status: "Active",
     lastActive: "2023-05-15",
-    phoneNumber: "+1 (555) 765-4321",
-    city: "Dallas",
-    stateProvince: "TX",
+    phoneNumber: "+62 361 7654 3210",
+    city: "Denpasar",
+    stateProvince: "Bali",
     invitationStatus: "Confirmed",
   },
   {
@@ -121,11 +102,10 @@ const mockUsers = [
     email: "david@healthplus.org",
     role: "Admin",
     company: "HealthPlus Medical",
-    status: "Inactive",
     lastActive: "2023-04-10",
-    phoneNumber: "+1 (555) 456-7890",
-    city: "Boston",
-    stateProvince: "MA",
+    phoneNumber: "+62 274 4567 8901",
+    city: "Yogyakarta",
+    stateProvince: "Yogyakarta",
     invitationStatus: "Expired",
   },
   {
@@ -134,11 +114,10 @@ const mockUsers = [
     email: "lisa@healthplus.org",
     role: "Creator",
     company: "HealthPlus Medical",
-    status: "Pending",
     lastActive: "2023-04-15",
-    phoneNumber: "+1 (555) 654-3210",
-    city: "Seattle",
-    stateProvince: "WA",
+    phoneNumber: "+62 411 6543 2109",
+    city: "Makassar",
+    stateProvince: "South Sulawesi",
     invitationStatus: "Pending",
   },
   {
@@ -147,11 +126,10 @@ const mockUsers = [
     email: "james@acme.com",
     role: "Creator",
     company: "Acme Corporation",
-    status: "Active",
     lastActive: "2023-05-13",
-    phoneNumber: "+1 (555) 567-8901",
-    city: "Denver",
-    stateProvince: "CO",
+    phoneNumber: "+62 21 5678 9012",
+    city: "North Jakarta",
+    stateProvince: "Jakarta",
     invitationStatus: "Confirmed",
   },
   {
@@ -160,11 +138,10 @@ const mockUsers = [
     email: "patricia@technova.io",
     role: "Creator",
     company: "TechNova Inc.",
-    status: "Inactive",
     lastActive: "2023-05-14",
-    phoneNumber: "+1 (555) 543-2109",
-    city: "Austin",
-    stateProvince: "TX",
+    phoneNumber: "+62 22 5432 1098",
+    city: "Bogor",
+    stateProvince: "West Java",
     invitationStatus: "Rejected",
   },
 ]
@@ -182,20 +159,22 @@ export default function UsersPage() {
   const [users, setUsers] = useState(mockUsers)
   const [searchQuery, setSearchQuery] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [invitationStatusFilter, setInvitationStatusFilter] = useState("all")
   const [companyFilter, setCompanyFilter] = useState("all")
-  const [selectedUser, setSelectedUser] = useState(null)
   const { toast } = useToast()
   const [isInvitationSent, setIsInvitationSent] = useState(false)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-  const [userToDeactivate, setUserToDeactivate] = useState(null)
-  const [showUserDetailsDialog, setShowUserDetailsDialog] = useState(false)
-  const [userToView, setUserToView] = useState(null)
-  const [showActivateDialog, setShowActivateDialog] = useState(false)
-  const [userToActivate, setUserToActivate] = useState(null)
   const [showResendInvitationDialog, setShowResendInvitationDialog] = useState(false)
   const [userToResendInvitation, setUserToResendInvitation] = useState(null)
   const [showUploadModal, setShowUploadModal] = useState(false)
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(5)
+
+  const getDisplayInvitationStatus = (invitationStatus) => {
+    if (invitationStatus === "Confirmed") return "Accepted"
+    return "Pending Invitation" // Groups "Pending", "Expired", "Rejected"
+  }
   const [uploadForm, setUploadForm] = useState({
     company: "",
     file: null,
@@ -211,15 +190,15 @@ export default function UsersPage() {
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase()
-    const matchesStatus = statusFilter === "all" || user.status.toLowerCase() === statusFilter.toLowerCase()
-    const matchesCompany = companyFilter === "all" || user.company === companyFilter
-    return matchesSearch && matchesRole && matchesStatus && matchesCompany
-  })
+    const displayStatus = getDisplayInvitationStatus(user.invitationStatus)
+    const matchesInvitationStatus =
+      invitationStatusFilter === "all" ||
+      (invitationStatusFilter === "Accepted" && displayStatus === "Accepted") ||
+      (invitationStatusFilter === "Pending Invitation" && displayStatus === "Pending Invitation")
 
-  const handleViewUser = (user) => {
-    setUserToView(user)
-    setShowUserDetailsDialog(true)
-  }
+    const matchesCompany = companyFilter === "all" || user.company === companyFilter
+    return matchesSearch && matchesRole && matchesInvitationStatus && matchesCompany
+  })
 
   const handleAddUser = () => {
     router.push("/superadmin/users/add")
@@ -227,45 +206,6 @@ export default function UsersPage() {
 
   const handleEditUser = (user) => {
     router.push(`/superadmin/users/${user.id}/edit`)
-  }
-
-  const handleToggleUserStatus = (userId) => {
-    const userToUpdate = users.find((user) => user.id === userId)
-    const newStatus = userToUpdate.status === "Active" ? "Inactive" : "Active"
-
-    const updatedUsers = users.map((user) => (user.id === userId ? { ...user, status: newStatus } : user))
-    setUsers(updatedUsers)
-
-    toast({
-      title: `User ${newStatus}`,
-      description: `${userToUpdate.name} has been ${newStatus === "Active" ? "activated" : "deactivated"}.`,
-    })
-  }
-
-  const handleConfirmDeactivate = (user) => {
-    setUserToDeactivate(user)
-    setShowConfirmDialog(true)
-  }
-
-  const handleConfirmActivate = (user) => {
-    setUserToActivate(user)
-    setShowActivateDialog(true)
-  }
-
-  const handleDeactivateConfirmed = () => {
-    if (userToDeactivate) {
-      handleToggleUserStatus(userToDeactivate.id)
-      setShowConfirmDialog(false)
-      setUserToDeactivate(null)
-    }
-  }
-
-  const handleActivateConfirmed = () => {
-    if (userToActivate) {
-      handleToggleUserStatus(userToActivate.id)
-      setShowActivateDialog(false)
-      setUserToActivate(null)
-    }
   }
 
   const handleConfirmResendInvitation = (user) => {
@@ -336,6 +276,17 @@ export default function UsersPage() {
     }
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+  }
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(value)
+    setCurrentPage(1)
+  }
   return (
     <TooltipProvider>
       <div className="p-6 space-y-6">
@@ -377,29 +328,47 @@ export default function UsersPage() {
                 />
               </div>
               <div className="flex flex-wrap gap-2">
-                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <Select
+                  value={roleFilter}
+                  onValueChange={(value) => {
+                    setRoleFilter(value)
+                    setCurrentPage(1)
+                  }}
+                >
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Filter by role" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Roles</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="creator">Creator</SelectItem>
+                    <SelectItem value="Admin">Admin</SelectItem>
+                    <SelectItem value="Creator">Creator</SelectItem>
                   </SelectContent>
                 </Select>
 
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select
+                  value={invitationStatusFilter}
+                  onValueChange={(value) => {
+                    setInvitationStatusFilter(value)
+                    setCurrentPage(1)
+                  }}
+                >
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="all">All Invitations</SelectItem>
+                    <SelectItem value="Accepted">Accepted</SelectItem>
+                    <SelectItem value="Pending Invitation">Pending Invitation</SelectItem>
                   </SelectContent>
                 </Select>
 
-                <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                <Select
+                  value={companyFilter}
+                  onValueChange={(value) => {
+                    setCompanyFilter(value)
+                    setCurrentPage(1)
+                  }}
+                >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Filter by company" />
                   </SelectTrigger>
@@ -435,291 +404,103 @@ export default function UsersPage() {
                     <TableHead>User</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Company</TableHead>
-                    <TableHead>Account Status</TableHead>
-                    <TableHead>Last Active</TableHead>
+                    <TableHead>Invitation Status</TableHead>
+                    <TableHead>Location</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.length === 0 ? (
+                  {paginatedUsers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-4">
                         No users found matching your criteria
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{user.name}</div>
-                            <div className="text-sm text-muted-foreground">{user.email}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={user.role === "Admin" ? "outline" : "secondary"}>{user.role}</Badge>
-                        </TableCell>
-                        <TableCell>{user.company}</TableCell>
-                        <TableCell>
-                          {user.invitationStatus === "Pending" ? (
-                            <div className="flex items-center gap-1.5">
-                              <Badge variant="warning" className="px-2 py-1">
-                                Invitation Pending
-                              </Badge>
-                            </div>
-                          ) : user.status === "Active" ? (
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                              <span className="text-sm font-medium text-green-700">Active</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                              <span className="text-sm font-medium text-red-700">Inactive</span>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>{user.lastActive}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <TooltipProvider>
-                              <Tooltip content="View Details">
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => handleViewUser(user)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                    <span className="sr-only">View Details</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>View Details</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                    paginatedUsers.map((user) => {
+                      const displayInvitationStatus = getDisplayInvitationStatus(user.invitationStatus)
+                      const isAccepted = displayInvitationStatus === "Accepted"
 
-                            <TooltipProvider>
-                              <Tooltip content="Edit User">
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => handleEditUser(user)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                    <span className="sr-only">Edit User</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Edit User</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-
-                            {user.invitationStatus !== "Pending" ? (
-                              user.status === "Active" ? (
-                                <TooltipProvider>
-                                  <Tooltip content="Deactivate User">
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-red-600"
-                                        onClick={() => handleConfirmDeactivate(user)}
-                                      >
-                                        <Power className="h-4 w-4" />
-                                        <span className="sr-only">Deactivate User</span>
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Deactivate User</TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              ) : (
-                                <TooltipProvider>
-                                  <Tooltip content="Activate User">
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-green-600"
-                                        onClick={() => handleConfirmActivate(user)}
-                                      >
-                                        <Power className="h-4 w-4" />
-                                        <span className="sr-only">Activate User</span>
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Activate User</TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              )
-                            ) : (
+                      return (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{user.name}</div>
+                              <div className="text-sm text-muted-foreground">{user.email}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.role === "Admin" ? "outline" : "secondary"}>{user.role}</Badge>
+                          </TableCell>
+                          <TableCell>{user.company}</TableCell>
+                          <TableCell>
+                            <Badge variant={isAccepted ? "success" : "warning"} className="px-2 py-1">
+                              {displayInvitationStatus}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{user.stateProvince || "-"}</div>
+                              <div className="text-sm text-muted-foreground">{user.city || "-"}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-start space-x-2">
+                              <TooltipProvider>
+                                <Tooltip content="Edit User">
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => handleEditUser(user)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                      <span className="sr-only">Edit User</span>
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Edit User</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                               <TooltipProvider>
                                 <Tooltip content="Resend Invitation">
                                   <TooltipTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-blue-600"
-                                      onClick={() => handleConfirmResendInvitation(user)}
+                                      className={`h-8 w-8 ${isAccepted ? "text-muted-foreground cursor-not-allowed" : "text-blue-600"}`}
+                                      onClick={() => !isAccepted && handleConfirmResendInvitation(user)}
+                                      disabled={isAccepted}
                                     >
                                       <Mail className="h-4 w-4" />
                                       <span className="sr-only">Resend Invitation</span>
                                     </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent>Resend Invitation</TooltipContent>
+                                  <TooltipContent>
+                                    {isAccepted ? "Invitation already accepted" : "Resend Invitation"}
+                                  </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   )}
                 </TableBody>
               </Table>
             </div>
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredUsers.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemName="users"
+            />
           </CardContent>
         </Card>
-
-        {/* User Details Dialog */}
-        <Dialog open={showUserDetailsDialog} onOpenChange={setShowUserDetailsDialog}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>User Details</DialogTitle>
-            </DialogHeader>
-            {userToView && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-2xl font-semibold">
-                    {userToView.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">{userToView.name}</h3>
-                    <p className="text-sm text-muted-foreground">{userToView.email}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Role</p>
-                      <p className="text-sm">{userToView.role}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Status</p>
-                      <div className="flex items-center gap-1.5">
-                        {userToView.invitationStatus === "Pending" ? (
-                          <Badge variant="warning" className="mt-1">
-                            Invitation Pending
-                          </Badge>
-                        ) : (
-                          <Badge variant={userToView.status === "Active" ? "success" : "destructive"} className="mt-1">
-                            {userToView.status}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Last Active</p>
-                      <p className="text-sm">{userToView.lastActive}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Company</p>
-                        <p className="text-sm">{userToView.company}</p>
-                      </div>
-                    </div>
-                    {userToView.phoneNumber && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">Phone</p>
-                          <p className="text-sm">{userToView.phoneNumber}</p>
-                        </div>
-                      </div>
-                    )}
-                    {(userToView.city || userToView.stateProvince) && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">Location</p>
-                          <p className="text-sm">
-                            {userToView.city}
-                            {userToView.city && userToView.stateProvince && ", "}
-                            {userToView.stateProvince}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-2 pt-4 border-t mt-4">
-                  <Button variant="outline" onClick={() => handleEditUser(userToView)}>
-                    <Edit className="mr-2 h-4 w-4" /> Edit User
-                  </Button>
-                  {userToView.invitationStatus === "Pending" ? (
-                    <Button onClick={() => handleConfirmResendInvitation(userToView)}>
-                      <Mail className="mr-2 h-4 w-4" /> Resend Invitation
-                    </Button>
-                  ) : userToView.status === "Active" ? (
-                    <Button variant="destructive" onClick={() => handleConfirmDeactivate(userToView)}>
-                      <AlertTriangle className="mr-2 h-4 w-4" /> Deactivate
-                    </Button>
-                  ) : (
-                    <Button onClick={() => handleConfirmActivate(userToView)}>
-                      <CheckCircle className="mr-2 h-4 w-4" /> Activate
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Confirmation Dialog for Deactivating User */}
-        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirm User Deactivation</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to deactivate {userToDeactivate?.name}? They will no longer be able to access the
-                platform.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleDeactivateConfirmed}>
-                Deactivate
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Confirmation Dialog for Activating User */}
-        <Dialog open={showActivateDialog} onOpenChange={setShowActivateDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirm User Activation</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to activate {userToActivate?.name}? They will be able to access the platform
-                again.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowActivateDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleActivateConfirmed}>Activate</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
         {/* Confirmation Dialog for Resending Invitation */}
         <Dialog open={showResendInvitationDialog} onOpenChange={setShowResendInvitationDialog}>
