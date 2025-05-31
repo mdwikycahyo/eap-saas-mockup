@@ -301,44 +301,8 @@ function AddClientForm({ onSubmit, onCancel, initialData = null, isEditing = fal
           </div>
         </div>
 
-        {/* Right Column - Initial Setup & Branding */}
+        {/* Right Column - Branding */}
         <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-medium">Initial Setup</h3>
-            <p className="text-sm text-muted-foreground">Configure initial company settings</p>
-          </div>
-
-          <Card>
-            <CardHeader className="pb-4">
-              <div className="flex items-center">
-                <Coins className="h-4 w-4 mr-2 text-muted-foreground" />
-                <CardTitle className="text-base">Reward Balance</CardTitle>
-              </div>
-              <CardDescription>Set the initial reward balance for this company</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 mb-3">
-                <div className="flex items-center">
-                  <div className="bg-muted px-3 py-2 border border-r-0 border-input rounded-l-md text-muted-foreground">
-                    IDR
-                  </div>
-                  <Input
-                    id="rewardBalance"
-                    name="rewardBalance"
-                    type="text"
-                    value={formData.rewardBalance ? new Intl.NumberFormat("id-ID").format(formData.rewardBalance) : ""}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^\d]/g, "")
-                      setFormData((prev) => ({ ...prev, rewardBalance: value }))
-                    }}
-                    placeholder="0"
-                    className="rounded-l-none"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           <div className="col-span-2">
             <h3 className="text-lg font-medium">Company Branding</h3>
             <p className="text-sm text-muted-foreground">Upload company logo in both square and horizontal formats</p>

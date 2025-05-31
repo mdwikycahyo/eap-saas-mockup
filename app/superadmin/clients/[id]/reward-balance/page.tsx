@@ -46,7 +46,7 @@ const mockTransactions = [
     description: "Monthly reward budget allocation for Q1 campaign activities",
     adminName: "John Admin",
     creatorName: null,
-    status: "Confirmed",
+    status: "Success",
     evidence: {
       fileName: "budget_allocation_receipt.pdf",
       fileType: "pdf",
@@ -228,7 +228,7 @@ const mockTransactions = [
     description: "Initial budget allocation for January marketing campaign",
     adminName: "David Lee",
     creatorName: null,
-    status: "Confirmed",
+    status: "Success",
     evidence: {
       fileName: "january_budget_proof.jpg",
       fileType: "image",
@@ -711,44 +711,62 @@ export default function RewardBalancePage({ params }) {
                         <TableCell className="font-mono text-sm">
                           <div className="flex items-center gap-2">
                             <span>{transaction.id}</span>
-                            {canEditTransaction(transaction) && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleEditTransaction(transaction)}
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    <Edit3 className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Edit pending transaction</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                            {transaction.evidence && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleEvidenceClick(transaction.evidence)}
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    {transaction.evidence.fileType === "image" ? (
-                                      <ImageIcon className="h-3 w-3" />
-                                    ) : (
-                                      <FileText className="h-3 w-3" />
-                                    )}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>View evidence document</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
+
+                            {/* Edit Button - Always visible */}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    canEditTransaction(transaction) ? handleEditTransaction(transaction) : null
+                                  }
+                                  disabled={!canEditTransaction(transaction)}
+                                  className={`h-6 w-6 p-0 ${
+                                    !canEditTransaction(transaction)
+                                      ? "text-gray-400 cursor-not-allowed hover:bg-transparent"
+                                      : ""
+                                  }`}
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  {canEditTransaction(transaction)
+                                    ? "Edit pending transaction"
+                                    : "Only pending manual top-ups can be edited"}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+
+                            {/* Document Button - Always visible */}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    transaction.evidence ? handleEvidenceClick(transaction.evidence) : null
+                                  }
+                                  disabled={!transaction.evidence}
+                                  className={`h-6 w-6 p-0 ${
+                                    !transaction.evidence ? "text-gray-400 cursor-not-allowed hover:bg-transparent" : ""
+                                  }`}
+                                >
+                                  {transaction.evidence?.fileType === "image" ? (
+                                    <ImageIcon className="h-3 w-3" />
+                                  ) : (
+                                    <FileText className="h-3 w-3" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  {transaction.evidence ? "View evidence document" : "No evidence document available"}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -829,7 +847,7 @@ export default function RewardBalancePage({ params }) {
                           size="sm"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`h-8 w-8 p-0 ${
-                            currentPage === pageNum ? "bg-green-500 hover:bg-green-600 text-white" : ""
+                            currentPage === pageNum ? "bg-blue-500 hover:bg-blue-600 text-white" : ""
                           }`}
                         >
                           {pageNum}

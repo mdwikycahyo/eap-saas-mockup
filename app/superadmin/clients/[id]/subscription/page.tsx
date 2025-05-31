@@ -1,5 +1,7 @@
 "use client"
 
+import { DialogDescription } from "@/components/ui/dialog"
+
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -12,85 +14,187 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ArrowLeft, PlusCircle, Search, Edit, Trash2, AlertCircle } from "lucide-react"
+import { ArrowLeft, PlusCircle, Search, Edit, Trash2, AlertCircle, Clock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { CustomPagination } from "@/components/ui/custom-pagination"
 
-// Mock subscription data for each client
+const getSubscriptionStatus = (startDate, endDate) => {
+  const today = new Date()
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+
+  if (today >= start && today <= end) {
+    return "Active"
+  } else if (today < start) {
+    return "Future"
+  } else {
+    return "Inactive"
+  }
+}
+
+const getStatusBadgeVariant = (status) => {
+  switch (status) {
+    case "Active":
+      return "default" // Will be styled green
+    case "Future":
+      return "secondary" // Will be styled blue
+    case "Inactive":
+      return "destructive" // Will be styled red
+    default:
+      return "outline"
+  }
+}
+
+// Helper function to get next day from a date
+const getNextDay = (dateString) => {
+  const date = new Date(dateString)
+  date.setDate(date.getDate() + 1)
+  return date.toISOString().split("T")[0]
+}
+
+// Format date to DD-MM-YYYY
+const formatDateString = (dateString) => {
+  const date = new Date(dateString)
+  const day = date.getDate().toString().padStart(2, "0")
+  const month = (date.getMonth() + 1).toString().padStart(2, "0")
+  const year = date.getFullYear()
+  return `${day}-${month}-${year}`
+}
+
+// Mock subscription data for each client - aligned with client statuses
 const mockSubscriptions = {
   "1": [
-    // Dayatech
+    // Dayatech - Active subscription (current)
     {
       id: "sub-001",
       contractNumber: "SUB-001",
       subscriptionTier: "flexible",
-      status: "Active",
-      startDate: "2024-01-15",
-      endDate: "2025-01-14",
+      startDate: "2025-05-30", // Started in May 2025
+      endDate: "2026-05-30", // Ends May 2026
       adminLimit: 15,
       creatorLimit: 350,
       currentAdmins: 12,
       currentCreators: 280,
       notes: "Upgraded to flexible plan for expansion",
+      history: [
+        {
+          id: "hist-001",
+          date: "2024-08-15T10:30:00Z",
+          user: "John Admin",
+          field: "Admin Limit",
+          oldValue: "10",
+          newValue: "15",
+        },
+        {
+          id: "hist-002",
+          date: "2024-07-20T14:15:00Z",
+          user: "Sarah Manager",
+          field: "Creator Limit",
+          oldValue: "300",
+          newValue: "350",
+        },
+        {
+          id: "hist-003",
+          date: "2024-06-05T09:45:00Z",
+          user: "Sarah Manager",
+          field: "Notes",
+          oldValue: "Standard flexible plan",
+          newValue: "Upgraded to flexible plan for expansion",
+        },
+      ],
     },
     {
       id: "sub-002",
       contractNumber: "SUB-002",
       subscriptionTier: "tier1",
-      status: "Inactive",
       startDate: "2023-01-15",
-      endDate: "2024-01-14",
+      endDate: "2024-01-14", // Ended in January 2024
       adminLimit: 2,
       creatorLimit: 50,
       currentAdmins: 2,
       currentCreators: 45,
-      notes: "Initial starter subscription",
-    },
-    {
-      id: "sub-003",
-      contractNumber: "SUB-003",
-      subscriptionTier: "trial",
-      status: "Inactive",
-      startDate: "2022-12-15",
-      endDate: "2023-01-14",
-      adminLimit: 1,
-      creatorLimit: 10,
-      currentAdmins: 1,
-      currentCreators: 8,
-      notes: "Trial period",
+      notes: "Initial starter subscription - expired",
+      history: [],
     },
   ],
   "2": [
-    // Globex Industries
+    // Globex Industries - Future subscription
     {
-      id: "sub-004",
-      contractNumber: "SUB-004",
+      id: "sub-003",
+      contractNumber: "SUB-003",
       subscriptionTier: "tier1",
-      status: "Active",
-      startDate: "2023-02-22",
-      endDate: "2024-02-21",
+      startDate: "2025-07-01", // Starts July 2025
+      endDate: "2026-02-01", // Ends February 2026
       adminLimit: 2,
       creatorLimit: 50,
-      currentAdmins: 2,
-      currentCreators: 35,
-      notes: "Standard business subscription",
+      currentAdmins: 0,
+      currentCreators: 0,
+      notes: "Future business subscription - scheduled to start",
+      history: [
+        {
+          id: "hist-003",
+          date: "2024-12-01T09:00:00Z",
+          user: "Mike Super",
+          field: "Start Date",
+          oldValue: "2025-02-01",
+          newValue: "2025-03-01",
+        },
+        {
+          id: "hist-004",
+          date: "2024-11-15T11:20:00Z",
+          user: "Mike Super",
+          field: "End Date",
+          oldValue: "2026-01-01",
+          newValue: "2026-02-01",
+        },
+        {
+          id: "hist-005",
+          date: "2024-10-20T14:30:00Z",
+          user: "Jane Admin",
+          field: "Notes",
+          oldValue: "",
+          newValue: "Future business subscription - scheduled to start",
+        },
+      ],
     },
   ],
   "3": [
-    // Stark Enterprises
+    // Stark Enterprises - Inactive subscription (expired)
     {
-      id: "sub-005",
-      contractNumber: "SUB-005",
+      id: "sub-004",
+      contractNumber: "SUB-004",
       subscriptionTier: "flexible",
-      status: "Inactive",
       startDate: "2023-03-10",
-      endDate: "2024-03-09",
+      endDate: "2024-03-09", // Ended March 2024
       adminLimit: 8,
       creatorLimit: 200,
       currentAdmins: 8,
       currentCreators: 180,
-      notes: "Custom enterprise plan",
+      notes: "Custom enterprise plan - expired",
+      history: [
+        {
+          id: "hist-006",
+          date: "2023-06-15T14:20:00Z",
+          user: "Tony Stark",
+          field: "Creator Limit",
+          oldValue: "150",
+          newValue: "200",
+        },
+        {
+          id: "hist-007",
+          date: "2023-05-10T09:15:00Z",
+          user: "Tony Stark",
+          field: "Notes",
+          oldValue: "Custom enterprise plan",
+          newValue: "Custom enterprise plan - expired",
+        },
+      ],
     },
+  ],
+  "7": [
+    // TechFlow Solutions - No subscriptions yet (newly added company)
   ],
 }
 
@@ -99,6 +203,7 @@ const mockClients = {
   "1": { name: "Dayatech", subdomain: "dayatech" },
   "2": { name: "Globex Industries", subdomain: "globex" },
   "3": { name: "Stark Enterprises", subdomain: "stark" },
+  "7": { name: "TechFlow Solutions", subdomain: "techflow" },
 }
 
 export default function ManageSubscriptionPage() {
@@ -109,9 +214,12 @@ export default function ManageSubscriptionPage() {
   const [client, setClient] = useState(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   const [selectedSubscription, setSelectedSubscription] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(5)
 
   useEffect(() => {
     const clientId = params.id
@@ -141,8 +249,8 @@ export default function ManageSubscriptionPage() {
   const handleAddSubscription = (subscriptionData) => {
     const newSubscription = {
       id: `sub-${Date.now()}`,
-      contractNumber: `SUB-${String(subscriptions.length + 1).padStart(3, "0")}`,
       ...subscriptionData,
+      history: [],
     }
 
     setSubscriptions((prev) => [newSubscription, ...prev])
@@ -155,7 +263,78 @@ export default function ManageSubscriptionPage() {
 
   const handleEditSubscription = (subscriptionData) => {
     setSubscriptions((prev) =>
-      prev.map((sub) => (sub.id === selectedSubscription.id ? { ...sub, ...subscriptionData } : sub)),
+      prev.map((sub) => {
+        if (sub.id === selectedSubscription.id) {
+          const updatedSubscription = { ...sub }
+          const history = [...(sub.history || [])]
+          const now = new Date().toISOString()
+          const currentUser = "Current User" // Replace with actual user
+
+          // Track Admin Limit changes
+          if (subscriptionData.adminLimit !== sub.adminLimit) {
+            history.push({
+              id: `hist-admin-${Date.now()}`,
+              date: now,
+              user: currentUser,
+              field: "Admin Limit",
+              oldValue: String(sub.adminLimit),
+              newValue: String(subscriptionData.adminLimit),
+            })
+            updatedSubscription.adminLimit = subscriptionData.adminLimit
+          }
+
+          // Track Creator Limit changes
+          if (subscriptionData.creatorLimit !== sub.creatorLimit) {
+            history.push({
+              id: `hist-creator-${Date.now()}`,
+              date: now,
+              user: currentUser,
+              field: "Creator Limit",
+              oldValue: String(sub.creatorLimit),
+              newValue: String(subscriptionData.creatorLimit),
+            })
+            updatedSubscription.creatorLimit = subscriptionData.creatorLimit
+          }
+
+          // Track End Date changes
+          if (subscriptionData.endDate !== sub.endDate) {
+            history.push({
+              id: `hist-enddate-${Date.now()}`,
+              date: now,
+              user: currentUser,
+              field: "End Date",
+              oldValue: formatDateString(sub.endDate),
+              newValue: formatDateString(subscriptionData.endDate),
+            })
+            updatedSubscription.endDate = subscriptionData.endDate
+          }
+
+          // Track Notes changes
+          if (subscriptionData.notes !== sub.notes) {
+            history.push({
+              id: `hist-notes-${Date.now()}`,
+              date: now,
+              user: currentUser,
+              field: "Notes",
+              oldValue: sub.notes || "",
+              newValue: subscriptionData.notes || "",
+            })
+            updatedSubscription.notes = subscriptionData.notes
+          }
+
+          // Update other fields
+          updatedSubscription.subscriptionTier = subscriptionData.subscriptionTier
+          updatedSubscription.currentAdmins = subscriptionData.currentAdmins
+          updatedSubscription.currentCreators = subscriptionData.currentCreators
+
+          // Sort history from newest to oldest
+          updatedSubscription.history = history.sort((a, b) => new Date(b.date) - new Date(a.date))
+
+          return updatedSubscription
+        } else {
+          return sub
+        }
+      }),
     )
     setIsEditModalOpen(false)
     setSelectedSubscription(null)
@@ -238,8 +417,32 @@ export default function ManageSubscriptionPage() {
       formatSubscriptionTier(subscription.subscriptionTier, subscription.adminLimit, subscription.creatorLimit)
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      subscription.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getSubscriptionStatus(subscription.startDate, subscription.endDate)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       subscription.notes.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredSubscriptions.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentSubscriptions = filteredSubscriptions.slice(startIndex, endIndex)
+
+  // Reset to first page when search changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value)
+    setCurrentPage(1)
+  }
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage)
+    setCurrentPage(1)
+  }
+
+  const hasActiveSubscription = subscriptions.some(
+    (sub) => getSubscriptionStatus(sub.startDate, sub.endDate) === "Active",
   )
 
   return (
@@ -263,10 +466,21 @@ export default function ManageSubscriptionPage() {
               <CardTitle>Subscription History</CardTitle>
               <CardDescription>Manage all subscriptions for this client</CardDescription>
             </div>
-            <Button onClick={() => setIsAddModalOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add New Subscription
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild disabled={hasActiveSubscription}>
+                  <Button disabled={hasActiveSubscription} onClick={() => setIsAddModalOpen(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add New Subscription
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {hasActiveSubscription
+                    ? "Cannot add a new subscription while another is active."
+                    : "Add a new subscription"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </CardHeader>
 
@@ -278,7 +492,7 @@ export default function ManageSubscriptionPage() {
                 placeholder="Search subscriptions..."
                 className="pl-8"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
               />
             </div>
             <div className="flex gap-2"></div>
@@ -298,60 +512,123 @@ export default function ManageSubscriptionPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredSubscriptions.length === 0 ? (
+                {currentSubscriptions.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-4">
                       No subscriptions found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredSubscriptions.map((subscription) => (
-                    <TableRow key={subscription.id}>
-                      <TableCell className="font-medium">{subscription.contractNumber}</TableCell>
-                      <TableCell>
-                        {formatSubscriptionTier(
-                          subscription.subscriptionTier,
-                          subscription.adminLimit,
-                          subscription.creatorLimit,
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={subscription.status === "Active" ? "success" : "destructive"}>
-                          {subscription.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatSubscriptionDuration(subscription.startDate, subscription.endDate)}</TableCell>
-                      <TableCell className="text-sm">{formatUsage(subscription)}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{subscription.notes}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => {
-                              setSelectedSubscription(subscription)
-                              setIsEditModalOpen(true)
-                            }}
+                  currentSubscriptions.map((subscription) => {
+                    const status = getSubscriptionStatus(subscription.startDate, subscription.endDate)
+
+                    return (
+                      <TableRow key={subscription.id}>
+                        <TableCell className="font-medium">{subscription.contractNumber}</TableCell>
+                        <TableCell>
+                          {formatSubscriptionTier(
+                            subscription.subscriptionTier,
+                            subscription.adminLimit,
+                            subscription.creatorLimit,
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={getStatusBadgeVariant(status)}
+                            className={
+                              status === "Active"
+                                ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+                                : status === "Future"
+                                  ? "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200"
+                                  : ""
+                            }
                           >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteSubscription(subscription.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                            {status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {formatSubscriptionDuration(subscription.startDate, subscription.endDate)}
+                        </TableCell>
+                        <TableCell className="text-sm">{formatUsage(subscription)}</TableCell>
+                        <TableCell className="max-w-[200px] truncate">{subscription.notes}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => {
+                                      setSelectedSubscription(subscription)
+                                      setIsEditModalOpen(true)
+                                    }}
+                                    disabled={status === "Inactive"}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {status === "Inactive"
+                                    ? "Cannot edit an inactive subscription."
+                                    : "Edit subscription"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                    onClick={() => handleDeleteSubscription(subscription.id)}
+                                    disabled={status === "Inactive" || status === "Active"}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {status === "Inactive"
+                                    ? "Cannot delete an inactive subscription."
+                                    : status === "Active"
+                                      ? "Cannot delete an active subscription."
+                                      : "Delete subscription"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => {
+                                setSelectedSubscription(subscription)
+                                setIsHistoryModalOpen(true)
+                              }}
+                            >
+                              <Clock className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
                 )}
               </TableBody>
             </Table>
           </div>
+
+          {/* Custom Pagination */}
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredSubscriptions.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            itemName="subscriptions"
+          />
         </CardContent>
       </Card>
 
@@ -377,6 +654,16 @@ export default function ManageSubscriptionPage() {
         existingSubscriptions={subscriptions}
         isEditing={true}
       />
+
+      {/* History Modal */}
+      <HistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => {
+          setIsHistoryModalOpen(false)
+          setSelectedSubscription(null)
+        }}
+        subscription={selectedSubscription}
+      />
     </div>
   )
 }
@@ -391,7 +678,7 @@ function SubscriptionModal({
   isEditing = false,
 }) {
   const [formData, setFormData] = useState({
-    status: "Inactive",
+    contractNumber: "",
     subscriptionTier: "trial",
     adminLimit: 1,
     creatorLimit: 10,
@@ -403,11 +690,13 @@ function SubscriptionModal({
   })
   const [formErrors, setFormErrors] = useState({})
   const { toast } = useToast()
+  const [minEndDate, setMinEndDate] = useState("")
+  const isActive = initialData ? getSubscriptionStatus(initialData.startDate, initialData.endDate) === "Active" : false
 
   useEffect(() => {
     if (initialData) {
       setFormData({
-        status: initialData.status,
+        contractNumber: initialData.contractNumber,
         subscriptionTier: initialData.subscriptionTier,
         adminLimit: initialData.adminLimit,
         creatorLimit: initialData.creatorLimit,
@@ -417,6 +706,7 @@ function SubscriptionModal({
         endDate: initialData.endDate,
         notes: initialData.notes || "",
       })
+      setMinEndDate(getNextDay(initialData.startDate))
     } else {
       // For new subscriptions, auto-populate dates for Trial tier
       const today = new Date()
@@ -426,7 +716,7 @@ function SubscriptionModal({
       const formattedEndDate = endDate.toISOString().split("T")[0]
 
       setFormData({
-        status: "Inactive",
+        contractNumber: "",
         subscriptionTier: "trial",
         adminLimit: 1,
         creatorLimit: 10,
@@ -436,12 +726,30 @@ function SubscriptionModal({
         endDate: formattedEndDate,
         notes: "",
       })
+      setMinEndDate(getNextDay(startDate))
     }
     setFormErrors({})
   }, [initialData, isOpen])
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    if (name === "startDate") {
+      // When start date changes, update min end date
+      const nextDay = getNextDay(value)
+      setMinEndDate(nextDay)
+
+      // If current end date is before new min date, update it
+      if (new Date(formData.endDate) <= new Date(value)) {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          endDate: nextDay,
+        }))
+        return
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }))
 
     if (formErrors[name]) {
@@ -469,6 +777,7 @@ function SubscriptionModal({
           startDate: startDate,
           endDate: formattedEndDate,
         }))
+        setMinEndDate(getNextDay(startDate))
       } else if (value === "tier1") {
         setFormData((prev) => ({
           ...prev,
@@ -492,10 +801,16 @@ function SubscriptionModal({
   const validateForm = () => {
     const errors = {}
 
+    if (!formData.contractNumber) errors.contractNumber = "Contract number is required"
     if (!formData.startDate) errors.startDate = "Start date is required"
     if (!formData.endDate) errors.endDate = "End date is required"
-    if (formData.startDate && formData.endDate && new Date(formData.startDate) >= new Date(formData.endDate)) {
-      errors.endDate = "End date must be after start date"
+
+    if (Number.parseInt(formData.adminLimit) < Number.parseInt(formData.currentAdmins)) {
+      errors.adminLimit = `Cannot reduce limit below current usage (${formData.currentAdmins}/${formData.adminLimit})`
+    }
+
+    if (Number.parseInt(formData.creatorLimit) < Number.parseInt(formData.currentCreators)) {
+      errors.creatorLimit = `Cannot reduce limit below current usage (${formData.currentCreators}/${formData.creatorLimit})`
     }
 
     // Check for overlapping subscriptions
@@ -534,35 +849,37 @@ function SubscriptionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {isEditing && initialData && (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label>Contract Number</Label>
               <Input value={initialData.contractNumber} disabled className="bg-muted" />
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="status" className={cn(formErrors.status && "text-destructive")}>
-              Status <span className="text-destructive">*</span>
-            </Label>
-            <Select value={formData.status} onValueChange={(value) => handleSelectChange("status", value)}>
-              <SelectTrigger className={cn(formErrors.status && "border-destructive")}>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-            {formErrors.status && <p className="text-xs text-destructive">{formErrors.status}</p>}
-          </div>
+          {!isEditing && (
+            <div className="space-y-1">
+              <Label htmlFor="contractNumber" className={cn(formErrors.contractNumber && "text-destructive")}>
+                Contract Number <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="contractNumber"
+                name="contractNumber"
+                type="text"
+                placeholder="Enter contract number (e.g., SUB-001)"
+                value={formData.contractNumber}
+                onChange={handleChange}
+                className={cn(formErrors.contractNumber && "border-destructive")}
+              />
+              {formErrors.contractNumber && <p className="text-xs text-destructive">{formErrors.contractNumber}</p>}
+            </div>
+          )}
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="subscriptionTier" className={cn(formErrors.subscriptionTier && "text-destructive")}>
               Subscription Tier <span className="text-destructive">*</span>
             </Label>
@@ -583,7 +900,7 @@ function SubscriptionModal({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label htmlFor="adminLimit">Number of Admins</Label>
               <Input
                 id="adminLimit"
@@ -593,15 +910,19 @@ function SubscriptionModal({
                 value={formData.adminLimit}
                 onChange={handleChange}
                 readOnly={formData.subscriptionTier !== "flexible"}
-                className={formData.subscriptionTier !== "flexible" ? "bg-muted" : ""}
+                className={cn(
+                  formData.subscriptionTier !== "flexible" ? "bg-muted" : "",
+                  formErrors.adminLimit && "border-destructive",
+                )}
               />
               {isEditing && (
                 <p className="text-xs text-muted-foreground">
                   Current usage: <span className="font-bold">{formData.currentAdmins} admins</span>
                 </p>
               )}
+              {formErrors.adminLimit && <p className="text-xs text-destructive">{formErrors.adminLimit}</p>}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label htmlFor="creatorLimit">Number of Creators</Label>
               <Input
                 id="creatorLimit"
@@ -611,17 +932,21 @@ function SubscriptionModal({
                 value={formData.creatorLimit}
                 onChange={handleChange}
                 readOnly={formData.subscriptionTier !== "flexible"}
-                className={formData.subscriptionTier !== "flexible" ? "bg-muted" : ""}
+                className={cn(
+                  formData.subscriptionTier !== "flexible" ? "bg-muted" : "",
+                  formErrors.creatorLimit && "border-destructive",
+                )}
               />
               {isEditing && (
                 <p className="text-xs text-muted-foreground">
                   Current usage: <span className="font-bold">{formData.currentCreators} creators</span>
                 </p>
               )}
+              {formErrors.creatorLimit && <p className="text-xs text-destructive">{formErrors.creatorLimit}</p>}
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="startDate" className={cn(formErrors.startDate && "text-destructive")}>
               Start Date <span className="text-destructive">*</span>
             </Label>
@@ -632,12 +957,15 @@ function SubscriptionModal({
               value={formData.startDate}
               onChange={handleChange}
               className={cn(formErrors.startDate && "border-destructive")}
-              disabled={formData.subscriptionTier === "trial"}
+              disabled={formData.subscriptionTier === "trial" || (isEditing && isActive)}
             />
+            {isEditing && isActive && (
+              <p className="text-xs text-muted-foreground">Start date cannot be changed for active subscriptions.</p>
+            )}
             {formErrors.startDate && <p className="text-xs text-destructive">{formErrors.startDate}</p>}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="endDate" className={cn(formErrors.endDate && "text-destructive")}>
               End Date <span className="text-destructive">*</span>
             </Label>
@@ -647,13 +975,14 @@ function SubscriptionModal({
               type="date"
               value={formData.endDate}
               onChange={handleChange}
+              min={minEndDate}
               className={cn(formErrors.endDate && "border-destructive")}
               disabled={formData.subscriptionTier === "trial"}
             />
             {formErrors.endDate && <p className="text-xs text-destructive">{formErrors.endDate}</p>}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
@@ -661,7 +990,7 @@ function SubscriptionModal({
               value={formData.notes}
               onChange={handleChange}
               placeholder="Enter subscription notes..."
-              className="min-h-[80px]"
+              className="min-h-[60px]"
             />
           </div>
 
@@ -680,6 +1009,56 @@ function SubscriptionModal({
             <Button type="submit">{isEditing ? "Update Subscription" : "Add Subscription"}</Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function HistoryModal({ isOpen, onClose, subscription }) {
+  if (!subscription || !isOpen) return null
+
+  const formatHistoryDate = (dateString) => {
+    const date = new Date(dateString)
+    const day = date.getDate().toString().padStart(2, "0")
+    const month = (date.getMonth() + 1).toString().padStart(2, "0")
+    const year = date.getFullYear()
+    const hours = date.getHours().toString().padStart(2, "0")
+    const minutes = date.getMinutes().toString().padStart(2, "0")
+    return `${day}-${month}-${year} ${hours}:${minutes}`
+  }
+
+  // Sort history from newest to oldest
+  const sortedHistory = [...(subscription.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date))
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Subscription History - {subscription.contractNumber}</DialogTitle>
+          <DialogDescription>View the modification history for this subscription.</DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[240px] overflow-y-auto divide-y divide-border">
+          {sortedHistory.length > 0 ? (
+            sortedHistory.map((item) => (
+              <div key={item.id} className="py-3">
+                <div className="text-sm text-muted-foreground">{formatHistoryDate(item.date)}</div>
+                <div className="font-medium">{item.user}</div>
+                <div className="text-sm text-muted-foreground">
+                  Changed <span className="font-bold">{item.field}</span> from{" "}
+                  <span className="font-bold">{item.oldValue}</span> to{" "}
+                  <span className="font-bold">{item.newValue}</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-3 text-center text-muted-foreground">No history available for this subscription.</div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Close
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

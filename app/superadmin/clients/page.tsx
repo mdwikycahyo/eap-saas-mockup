@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { CustomPagination } from "@/components/ui/custom-pagination"
 
 // Mock data for clients
 const mockClients = [
@@ -17,24 +18,24 @@ const mockClients = [
     id: 1,
     name: "Dayatech",
     industry: "Technology",
-    status: "Active",
-    subscriptionTier: "tier1",
-    subscriptionStart: "2025-01-15",
-    subscriptionEnd: "2030-01-14",
+    status: "Active", // Active subscription
+    subscriptionTier: "flexible",
+    subscriptionStart: "2024-01-15",
+    subscriptionEnd: "2025-01-14",
     subdomain: "dayatech",
     logo: "/placeholder.svg?height=32&width=32",
-    adminCount: "2",
-    creatorCount: "50",
+    adminCount: "15",
+    creatorCount: "350",
     rewardBalance: "5000000",
   },
   {
     id: 2,
     name: "Globex Industries",
     industry: "Manufacturing",
-    status: "Active",
+    status: "Future", // Future subscription
     subscriptionTier: "tier1",
-    subscriptionStart: "2023-02-22",
-    subscriptionEnd: "2024-02-21",
+    subscriptionStart: "2025-03-01",
+    subscriptionEnd: "2026-02-28",
     subdomain: "globex",
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "2",
@@ -45,7 +46,7 @@ const mockClients = [
     id: 3,
     name: "Stark Enterprises",
     industry: "Energy",
-    status: "Inactive",
+    status: "Inactive", // Past subscription
     subscriptionTier: "flexible",
     subscriptionStart: "2023-03-10",
     subscriptionEnd: "2024-03-09",
@@ -56,13 +57,27 @@ const mockClients = [
     rewardBalance: "7500000",
   },
   {
+    id: 7,
+    name: "TechFlow Solutions",
+    industry: "Software",
+    status: "Inactive", // Newly added company - no subscription yet
+    subscriptionTier: null,
+    subscriptionStart: null,
+    subscriptionEnd: null,
+    subdomain: "techflow",
+    logo: "/placeholder.svg?height=32&width=32",
+    adminCount: "0",
+    creatorCount: "0",
+    rewardBalance: "0",
+  },
+  {
     id: 4,
     name: "Wayne Industries",
     industry: "Defense",
     status: "Active",
     subscriptionTier: "flexible",
     subscriptionStart: "2023-01-05",
-    subscriptionEnd: "2024-01-04",
+    subscriptionEnd: "2025-01-04",
     subdomain: "wayne",
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "15",
@@ -76,7 +91,7 @@ const mockClients = [
     status: "Inactive",
     subscriptionTier: "trial",
     subscriptionStart: "2023-04-18",
-    subscriptionEnd: "2024-04-17",
+    subscriptionEnd: "2023-05-18",
     subdomain: "umbrella",
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "1",
@@ -116,9 +131,11 @@ const initialIndustries = [
   "Agriculture",
   "Construction",
   "Telecommunications",
+  "Software",
 ]
 
 const formatCurrency = (amount) => {
+  if (amount === "0") return "IDR 0"
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
@@ -129,9 +146,24 @@ const formatCurrency = (amount) => {
     .replace("Rp", "IDR")
 }
 
+const getStatusBadgeVariant = (status) => {
+  switch (status) {
+    case "Active":
+      return "default" // Will be styled green
+    case "Future":
+      return "secondary" // Will be styled blue
+    case "Inactive":
+      return "destructive" // Will be styled red
+    default:
+      return "outline"
+  }
+}
+
 export default function ClientsPage() {
   const [clients, setClients] = useState(mockClients)
   const [searchQuery, setSearchQuery] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(5)
   const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState(null)
   const { toast } = useToast()
@@ -141,6 +173,24 @@ export default function ClientsPage() {
   const filteredClients = clients.filter((client) => {
     return client.name.toLowerCase().includes(searchQuery.toLowerCase())
   })
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredClients.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentClients = filteredClients.slice(startIndex, endIndex)
+
+  // Reset to first page when search changes
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value)
+    setCurrentPage(1)
+  }
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage)
+    setCurrentPage(1)
+  }
 
   const handleEditClient = (clientId) => {
     router.push(`/superadmin/clients/${clientId}/edit`)
@@ -196,7 +246,7 @@ export default function ClientsPage() {
                   placeholder="Search companies..."
                   className="pl-8"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchChange}
                 />
               </div>
               <div className="flex gap-2"></div>
@@ -214,14 +264,14 @@ export default function ClientsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredClients.length === 0 ? (
+                  {currentClients.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-4">
+                      <TableCell colSpan={5} className="text-center py-4">
                         No companies found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredClients.map((client) => (
+                    currentClients.map((client) => (
                       <TableRow key={client.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">
@@ -241,12 +291,13 @@ export default function ClientsPage() {
                         <TableCell>{client.industry}</TableCell>
                         <TableCell>
                           <Badge
-                            variant={
+                            variant={getStatusBadgeVariant(client.status)}
+                            className={
                               client.status === "Active"
-                                ? "success"
-                                : client.status === "Inactive"
-                                  ? "destructive"
-                                  : "outline"
+                                ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+                                : client.status === "Future"
+                                  ? "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200"
+                                  : ""
                             }
                           >
                             {client.status}
@@ -307,6 +358,17 @@ export default function ClientsPage() {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Custom Pagination */}
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredClients.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemName="companies"
+            />
           </CardContent>
         </Card>
       </div>
