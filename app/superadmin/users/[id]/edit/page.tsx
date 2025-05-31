@@ -215,7 +215,6 @@ function EditUserForm({ onSubmit, onCancel, companies, initialData }) {
     phoneNumber: initialData?.phoneNumber || "",
     province: initialData?.province || "",
     city: initialData?.city || "",
-    status: initialData?.status || "Active",
   })
 
   const [formErrors, setFormErrors] = useState({})
@@ -388,7 +387,6 @@ function EditUserForm({ onSubmit, onCancel, companies, initialData }) {
             </Select>
             {formErrors.company && <p className="text-xs text-destructive mt-1">{formErrors.company}</p>}
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="province">Province</Label>
             <Popover open={openProvinceCombobox} onOpenChange={setOpenProvinceCombobox}>
@@ -491,19 +489,6 @@ function EditUserForm({ onSubmit, onCancel, companies, initialData }) {
                 </PopoverContent>
               )}
             </Popover>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => handleSelectChange("status", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </div>
