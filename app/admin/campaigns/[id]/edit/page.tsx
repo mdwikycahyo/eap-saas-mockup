@@ -216,21 +216,6 @@ export default function EditCampaignPage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="objective">Campaign Objective</Label>
-                <Select defaultValue={campaignData.objective}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select objective" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="awareness">Brand Awareness</SelectItem>
-                    <SelectItem value="engagement">Engagement</SelectItem>
-                    <SelectItem value="traffic">Website Traffic</SelectItem>
-                    <SelectItem value="leads">Lead Generation</SelectItem>
-                    <SelectItem value="sales">Sales Conversion</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation" // Added
+import { useState, useEffect, Suspense } from "react" // Added Suspense
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -11,10 +11,12 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, CheckCircle, XCircle, Clock, Instagram } from "lucide-react"
 import { TikTokIcon } from "@/components/tik-tok-icon"
-
-export default function Approval() {
+function ApprovalPageContent() {
+  // Renamed component
   const router = useRouter()
-  const [mainTab, setMainTab] = useState("content")
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get("tab") === "social" ? "social" : "content"
+  const [mainTab, setMainTab] = useState(initialTab)
   const [searchTerm, setSearchTerm] = useState("")
   const [socialMediaSearchTerm, setSocialMediaSearchTerm] = useState("")
 
@@ -348,6 +350,15 @@ export default function Approval() {
     filterSocialMedia(socialMediaAccounts, socialMediaSearchTerm)
   }, [searchTerm, socialMediaSearchTerm])
 
+  useEffect(() => {
+    const tabFromQuery = searchParams.get("tab")
+    if (tabFromQuery === "social" && mainTab !== "social") {
+      setMainTab("social")
+    } else if (tabFromQuery === "content" && mainTab !== "content") {
+      setMainTab("content")
+    }
+  }, [searchParams, mainTab])
+
   const filterSubmissions = (submissions: any[], search: string) => {
     let filtered = submissions
 
@@ -424,6 +435,9 @@ export default function Approval() {
 
   const handleMainTabChange = (value: string) => {
     setMainTab(value)
+    // Optionally update URL without full reload if desired
+    // const newPath = value === 'social' ? '/admin/moderation?tab=social' : '/admin/moderation';
+    // router.replace(newPath, { scroll: false });
   }
 
   const pendingCount = allSubmissions.filter((sub) => sub.status === "pending").length
@@ -449,7 +463,7 @@ export default function Approval() {
       </div>
 
       {/* Main Tabs */}
-      <Tabs defaultValue="content" className="w-full" onValueChange={handleMainTabChange}>
+      <Tabs value={mainTab} className="w-full" onValueChange={handleMainTabChange}>
         <TabsList className="w-full md:w-auto mb-6">
           <TabsTrigger value="content" className="flex-1 md:flex-none">
             Content Submissions
@@ -842,5 +856,14 @@ function SocialMediaTable({
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+// New wrapper component for Suspense
+export default function Approval() {
+  return (
+    <Suspense fallback={<div>Loading moderation page...</div>}>
+      <ApprovalPageContent />
+    </Suspense>
   )
 }

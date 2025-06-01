@@ -32,6 +32,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
+      label: "Manage User",
+      href: "/admin/creators",
+      icon: <Users className="h-5 w-5" />,
+    },
+    {
       label: "Campaigns",
       href: "/admin/campaigns",
       icon: <Megaphone className="h-5 w-5" />,
@@ -40,22 +45,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       label: "Approval",
       href: "/admin/moderation",
       icon: <CheckSquare className="h-5 w-5" />,
-    },
-    {
-      label: "Creators",
-      href: "/admin/creators",
-      icon: <Users className="h-5 w-5" />,
-    },
-    {
-      label: "Analytics",
-      href: "/admin/analytics",
-      icon: <BarChart className="h-5 w-5" />,
-    },
-    {
-      label: "Settings",
-      href: "/admin/settings",
-      icon: <Settings className="h-5 w-5" />,
-    },
+    }
   ]
 
   if (!isClient) {
