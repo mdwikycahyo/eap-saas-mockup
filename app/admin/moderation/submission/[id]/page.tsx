@@ -516,7 +516,6 @@ function ContentMaterialReviewView({
                   <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                     {submission.approvalType}
                   </Badge>
-                  <span className="text-xs text-muted-foreground">Step {submission.stage}</span>
                 </div>
               </div>
             </div>
@@ -771,7 +770,6 @@ function PostURLReviewView({
                   <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                     {submission.approvalType}
                   </Badge>
-                  {submission.stage && <span className="text-xs text-muted-foreground">Step {submission.stage}</span>}
                 </div>
               </div>
             </div>
@@ -961,7 +959,6 @@ function ApprovedContentMaterialView({
                 <CheckCircle className="h-5 w-5 text-green-600" />
                 <p className="text-lg font-bold text-green-600">Content Approved</p>
               </div>
-              <p className="text-xs text-slate-500 mt-2">Step 1/2: Content Material Review</p>
             </div>
           </div>
 
@@ -985,7 +982,6 @@ function ApprovedContentMaterialView({
                   <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                     {submission.approvalType}
                   </Badge>
-                  {submission.stage && <span className="text-xs text-muted-foreground">Step {submission.stage}</span>}
                 </div>
               </div>
             </div>
@@ -1163,7 +1159,6 @@ function ApprovedPostURLView({
                   <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                     {submission.approvalType}
                   </Badge>
-                  {submission.stage && <span className="text-xs text-muted-foreground">Step {submission.stage}</span>}
                 </div>
               </div>
             </div>
@@ -1306,7 +1301,6 @@ function RejectedContentMaterialView({
                   <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                     {submission.approvalType}
                   </Badge>
-                  {submission.stage && <span className="text-xs text-muted-foreground">Step {submission.stage}</span>}
                 </div>
               </div>
             </div>
@@ -1469,7 +1463,6 @@ function RejectedPostURLView({
                   <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                     {submission.approvalType}
                   </Badge>
-                  {submission.stage && <span className="text-xs text-muted-foreground">Step {submission.stage}</span>}
                 </div>
               </div>
             </div>

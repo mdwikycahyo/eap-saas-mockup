@@ -64,6 +64,8 @@ interface PendingSocialMediaItem {
   submissionTime: string
   department?: string
   profileUrl?: string
+  followers: number // Added
+  following: number // Added
 }
 
 // Mock data for Campaign Performance
@@ -119,6 +121,8 @@ const initialMockPendingSocialMedia: PendingSocialMediaItem[] = [
     submissionTime: "1h ago",
     department: "Marketing",
     profileUrl: "https://instagram.com/alexgreen_official",
+    followers: 12500,
+    following: 300,
   },
   {
     id: "sm2",
@@ -129,6 +133,8 @@ const initialMockPendingSocialMedia: PendingSocialMediaItem[] = [
     submissionTime: "3h ago",
     department: "Sales",
     profileUrl: "https://tiktok.com/@mariadances",
+    followers: 250000,
+    following: 150,
   },
   {
     id: "sm3",
@@ -138,6 +144,8 @@ const initialMockPendingSocialMedia: PendingSocialMediaItem[] = [
     submissionTime: "5h ago",
     department: "Product",
     profileUrl: "https://instagram.com/johndoesphotos",
+    followers: 5200,
+    following: 850,
   },
 ]
 
@@ -649,6 +657,7 @@ export default function AdminDashboard() {
                                       displayImages[currentImageIndex]?.src ||
                                       "/placeholder.svg?height=400&width=400&query=content+image" ||
                                       "/placeholder.svg" ||
+                                      "/placeholder.svg" ||
                                       "/placeholder.svg"
                                     }
                                     alt={displayImages[currentImageIndex]?.alt || "Content image"}
@@ -728,6 +737,7 @@ export default function AdminDashboard() {
                               src={
                                 selectedApprovalItem.creatorAvatar ||
                                 "/placeholder.svg?width=40&height=40&query=creator+avatar" ||
+                                "/placeholder.svg" ||
                                 "/placeholder.svg" ||
                                 "/placeholder.svg"
                               }
@@ -878,6 +888,17 @@ export default function AdminDashboard() {
                   >
                     {selectedSocialMediaItem.username} <LinkIcon className="h-3.5 w-3.5" />
                   </a>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Followers</p>
+                    <p className="text-sm font-medium">{selectedSocialMediaItem.followers.toLocaleString()}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Following</p>
+                    <p className="text-sm font-medium">{selectedSocialMediaItem.following.toLocaleString()}</p>
+                  </div>
                 </div>
 
                 <div className="space-y-1">

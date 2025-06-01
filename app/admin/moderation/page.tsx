@@ -625,7 +625,7 @@ function SubmissionTable({
                     <tr key={submission.id} className="border-t">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-200"></div>
+                          {/* Removed avatar placeholder div */}
                           <div>
                             <p className="font-medium">{submission.creator.name}</p>
                             <p className="text-xs text-muted-foreground">{submission.creator.department}</p>
@@ -640,12 +640,22 @@ function SubmissionTable({
                       </td>
                       <td className="p-4">
                         <div className="flex flex-col">
-                          <Badge variant="outline" className="text-xs mb-1 w-fit">
-                            {submission.approvalType}
-                          </Badge>
-                          {submission.stage && (
-                            <span className="text-xs text-muted-foreground">Step {submission.stage}</span>
+                          {submission.approvalType === "Post URL Review" ? (
+                            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                              Post URL Review
+                            </span>
+                          ) : submission.approvalType === "Content Review" ||
+                            submission.approvalType === "Content Material Review" ? (
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                              {submission.approvalType}{" "}
+                              {/* Displaying the specific type like "Content Material Review" */}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">{submission.approvalType}</span>
                           )}
+                          {/* Removed stage display: submission.stage && (
+                        <span className="text-xs text-muted-foreground">Step {submission.stage}</span>
+                      )*/}
                         </div>
                       </td>
                       <td className="p-4">
@@ -755,7 +765,7 @@ function SocialMediaTable({
                     <tr key={account.id} className="border-t">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-200"></div>
+                          {/* Removed avatar placeholder div */}
                           <div>
                             <p className="font-medium">{account.creator.name}</p>
                             <p className="text-xs text-muted-foreground">{account.creator.department}</p>
@@ -769,15 +779,17 @@ function SocialMediaTable({
                         </div>
                       </td>
                       <td className="p-4">
-                        <p className="font-medium">{account.username}</p>
                         <a
                           href={account.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-blue-500 hover:underline"
+                          className="font-medium text-blue-600 hover:underline dark:text-blue-400"
                         >
-                          {account.url}
+                          {account.username}
                         </a>
+                        {/* Removed separate URL line: 
+                    <p className="text-xs text-blue-500 hover:underline break-all">{account.url}</p> 
+                    */}
                       </td>
                       <td className="p-4">
                         <p>
