@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Megaphone, CheckSquare, Users, BarChart, Settings, LogOut, Menu } from "lucide-react"
+import { LayoutDashboard, Megaphone, CheckSquare, Users, BarChart, Settings, LogOut, Menu, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -45,7 +45,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       label: "Approval",
       href: "/admin/moderation",
       icon: <CheckSquare className="h-5 w-5" />,
-    }
+    },
+    {
+      label: "Reward Management",
+      href: "/admin/rewards",
+      icon: <Gift className="h-5 w-5" />,
+    },
   ]
 
   if (!isClient) {

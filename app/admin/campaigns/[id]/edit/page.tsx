@@ -6,15 +6,225 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { DatePicker } from "@/components/ui/date-picker"
+// DatePicker import removed
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ChevronLeft, Search } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useParams } from "next/navigation"
+import { CustomPagination } from "@/components/ui/custom-pagination"
+import { cn } from "@/lib/utils"
+
+// Helper to format Date to YYYY-MM-DD string
+const formatDateToYYYYMMDD = (date: Date | undefined | null): string => {
+  if (!date) return ""
+  return date.toISOString().split("T")[0]
+}
+
+// Helper to get today's date as YYYY-MM-DD string
+const getTodayString = () => {
+  return new Date().toISOString().split("T")[0]
+}
+
+// Mock data for creators (updated: department -> email)
+const creators = [
+  {
+    id: 1,
+    name: "Sarah Johnson",
+    email: "sarah.johnson@example.com",
+    province: "Jakarta",
+    city: "Jakarta Selatan",
+    selected: true,
+  },
+  {
+    id: 2,
+    name: "Michael Chen",
+    email: "michael.chen@example.com",
+    province: "Jakarta",
+    city: "Jakarta Pusat",
+    selected: true,
+  },
+  {
+    id: 3,
+    name: "Emily Rodriguez",
+    email: "emily.rodriguez@example.com",
+    province: "Jawa Barat",
+    city: "Bandung",
+    selected: false,
+  },
+  {
+    id: 4,
+    name: "David Wilson",
+    email: "david.wilson@example.com",
+    province: "Jawa Timur",
+    city: "Surabaya",
+    selected: true,
+  },
+  {
+    id: 5,
+    name: "Lisa Thompson",
+    email: "lisa.thompson@example.com",
+    province: "Bali",
+    city: "Denpasar",
+    selected: false,
+  },
+  {
+    id: 6,
+    name: "Ahmad Rizki",
+    email: "ahmad.rizki@example.com",
+    province: "Jawa Barat",
+    city: "Bogor",
+    selected: false,
+  },
+  {
+    id: 7,
+    name: "Siti Nurhayati",
+    email: "siti.nurhayati@example.com",
+    province: "Jawa Tengah",
+    city: "Semarang",
+    selected: false,
+  },
+  {
+    id: 8,
+    name: "Budi Santoso",
+    email: "budi.santoso@example.com",
+    province: "Yogyakarta",
+    city: "Yogyakarta",
+    selected: true,
+  },
+  {
+    id: 9,
+    name: "Dewi Lestari",
+    email: "dewi.lestari@example.com",
+    province: "Sumatera Utara",
+    city: "Medan",
+    selected: false,
+  },
+  {
+    id: 10,
+    name: "Rini Puspita",
+    email: "rini.puspita@example.com",
+    province: "Sulawesi Selatan",
+    city: "Makassar",
+    selected: false,
+  },
+  {
+    id: 11,
+    name: "Andi Pratama",
+    email: "andi.pratama@example.com",
+    province: "Jakarta",
+    city: "Jakarta Barat",
+    selected: false,
+  },
+  {
+    id: 12,
+    name: "Maya Sari",
+    email: "maya.sari@example.com",
+    province: "Jakarta",
+    city: "Jakarta Timur",
+    selected: true,
+  },
+  {
+    id: 13,
+    name: "Rizky Hakim",
+    email: "rizky.hakim@example.com",
+    province: "Jakarta",
+    city: "Jakarta Utara",
+    selected: false,
+  },
+  {
+    id: 14,
+    name: "Indira Putri",
+    email: "indira.putri@example.com",
+    province: "Jawa Barat",
+    city: "Bandung",
+    selected: true,
+  },
+  {
+    id: 15,
+    name: "Fajar Ramadhan",
+    email: "fajar.ramadhan@example.com",
+    province: "Jawa Barat",
+    city: "Bogor",
+    selected: false,
+  },
+  {
+    id: 16,
+    name: "Lestari Wulan",
+    email: "lestari.wulan@example.com",
+    province: "Jawa Tengah",
+    city: "Semarang",
+    selected: false,
+  },
+  {
+    id: 17,
+    name: "Bayu Setiawan",
+    email: "bayu.setiawan@example.com",
+    province: "Jawa Timur",
+    city: "Surabaya",
+    selected: true,
+  },
+  { id: 18, name: "Citra Dewi", email: "citra.dewi@example.com", province: "Bali", city: "Denpasar", selected: false },
+  {
+    id: 19,
+    name: "Doni Kurniawan",
+    email: "doni.kurniawan@example.com",
+    province: "Yogyakarta",
+    city: "Yogyakarta",
+    selected: false,
+  },
+  {
+    id: 20,
+    name: "Eka Fitriani",
+    email: "eka.fitriani@example.com",
+    province: "Sumatera Utara",
+    city: "Medan",
+    selected: true,
+  },
+  {
+    id: 21,
+    name: "Gilang Pratama",
+    email: "gilang.pratama@example.com",
+    province: "Sulawesi Selatan",
+    city: "Makassar",
+    selected: false,
+  },
+  {
+    id: 22,
+    name: "Hana Safitri",
+    email: "hana.safitri@example.com",
+    province: "Jakarta",
+    city: "Jakarta Selatan",
+    selected: false,
+  },
+  {
+    id: 23,
+    name: "Ivan Nugroho",
+    email: "ivan.nugroho@example.com",
+    province: "Jakarta",
+    city: "Jakarta Pusat",
+    selected: true,
+  },
+  {
+    id: 24,
+    name: "Jihan Amelia",
+    email: "jihan.amelia@example.com",
+    province: "Jawa Barat",
+    city: "Bandung",
+    selected: false,
+  },
+  {
+    id: 25,
+    name: "Kevin Wijaya",
+    email: "kevin.wijaya@example.com",
+    province: "Jawa Barat",
+    city: "Bogor",
+    selected: true,
+  },
+]
 
 export default function EditCampaignPage() {
   const params = useParams()
@@ -22,101 +232,77 @@ export default function EditCampaignPage() {
 
   const [campaignType, setCampaignType] = useState<string>("quick-share")
   const [selectedProvince, setSelectedProvince] = useState<string>("all")
+  const [selectedCity, setSelectedCity] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [campaignData, setCampaignData] = useState<any>(null)
 
-  // Mock data for creators
-  const creators = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      department: "Marketing",
-      province: "Jakarta",
-      city: "Jakarta Selatan",
-      selected: true,
-    },
-    { id: 2, name: "Michael Chen", department: "Product", province: "Jakarta", city: "Jakarta Pusat", selected: true },
-    {
-      id: 3,
-      name: "Emily Rodriguez",
-      department: "Customer Success",
-      province: "Jawa Barat",
-      city: "Bandung",
-      selected: false,
-    },
-    { id: 4, name: "David Wilson", department: "Sales", province: "Jawa Timur", city: "Surabaya", selected: true },
-    { id: 5, name: "Lisa Thompson", department: "Engineering", province: "Bali", city: "Denpasar", selected: false },
-    { id: 6, name: "Ahmad Rizki", department: "Marketing", province: "Jawa Barat", city: "Bogor", selected: false },
-    {
-      id: 7,
-      name: "Siti Nurhayati",
-      department: "Finance",
-      province: "Jawa Tengah",
-      city: "Semarang",
-      selected: false,
-    },
-    {
-      id: 8,
-      name: "Budi Santoso",
-      department: "Operations",
-      province: "Yogyakarta",
-      city: "Yogyakarta",
-      selected: true,
-    },
-    { id: 9, name: "Dewi Lestari", department: "HR", province: "Sumatera Utara", city: "Medan", selected: false },
-    {
-      id: 10,
-      name: "Rini Puspita",
-      department: "Marketing",
-      province: "Sulawesi Selatan",
-      city: "Makassar",
-      selected: false,
-    },
-  ]
+  // Date state for editable fields, stores YYYY-MM-DD strings
+  const [editableStartDate, setEditableStartDate] = useState<string>("")
+  const [editableEndDate, setEditableEndDate] = useState<string>("")
+  const [minEditableEndDate, setMinEditableEndDate] = useState<string>("")
 
-  // Mock campaign data - in a real app, you would fetch this from an API
+  // Pagination state for creators
+  const [creatorsCurrentPage, setCreatorsCurrentPage] = useState(1)
+  const [creatorsItemsPerPage, setCreatorsItemsPerPage] = useState(5)
+
   useEffect(() => {
-    // Simulate API call
     setTimeout(() => {
-      setCampaignData({
+      const fetchedCampaignData = {
         id: campaignId,
         name: "Product Launch Campaign",
         type: "quick-share",
         description: "Help us promote our new product launch with engaging social media content.",
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+        startDate: new Date(2025, 5, 15), // Example: June 15, 2025
+        endDate: new Date(2025, 5, 29), // Example: June 29, 2025
         status: "active",
-        objective: "awareness",
-        rewards: {
-          basePoints: 100,
-          bonusPoints: 50,
-          description:
-            "Earn points for sharing content about our new product launch. Bonus points for high engagement.",
-        },
-        assets: {
-          hashtags: "#NewProductLaunch #CompanyName",
-          mentions: "@CompanyHandle",
-          notes: "Please use these product images in your posts. Feel free to be creative with your composition.",
-        },
-        caption:
-          "Excited to share our company's latest innovation! This new product is designed to [customize with specific benefits]. I've been using it for [time period] and love how it [customize with personal experience]. #NewProductLaunch #CompanyName @CompanyHandle",
-      })
+        caption: "Excited to share our company's latest innovation!",
+      }
+      setCampaignData(fetchedCampaignData)
+      setCampaignType(fetchedCampaignData.type)
 
-      setCampaignType("quick-share")
+      // Initialize editable date states with formatted strings from fetched data
+      setEditableStartDate(formatDateToYYYYMMDD(fetchedCampaignData.startDate))
+      setEditableEndDate(formatDateToYYYYMMDD(fetchedCampaignData.endDate))
+
       setIsLoading(false)
     }, 500)
   }, [campaignId])
 
-  // Filter creators based on selected province and search term
-  const filteredCreators = creators.filter((creator) => {
-    const matchesProvince = selectedProvince === "all" || creator.province === selectedProvince
-    const matchesSearch =
-      creator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      creator.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      creator.city.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesProvince && matchesSearch
-  })
+  useEffect(() => {
+    if (editableStartDate) {
+      const start = new Date(editableStartDate)
+      start.setDate(start.getDate() + 1)
+      const newMinEndDate = formatDateToYYYYMMDD(start)
+      setMinEditableEndDate(newMinEndDate)
+      if (editableEndDate && new Date(editableEndDate) <= new Date(editableStartDate)) {
+        setEditableEndDate(newMinEndDate)
+      }
+    } else {
+      setMinEditableEndDate("")
+      // setEditableEndDate("") // Optionally clear end date if start date is cleared
+    }
+  }, [editableStartDate, editableEndDate])
+
+  // Filter creators based on selected province, city, and search term
+  const filteredCreators = useMemo(() => {
+    return creators.filter((creator) => {
+      const matchesProvince = selectedProvince === "all" || creator.province === selectedProvince
+      const matchesCity = selectedCity === "all" || creator.city === selectedCity
+      const matchesSearch =
+        creator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        creator.email.toLowerCase().includes(searchTerm.toLowerCase()) || // Search by email
+        creator.city.toLowerCase().includes(searchTerm.toLowerCase())
+      return matchesProvince && matchesCity && matchesSearch
+    })
+  }, [selectedProvince, selectedCity, searchTerm])
+
+  // Paginate filtered creators
+  const totalCreatorPages = Math.ceil(filteredCreators.length / creatorsItemsPerPage)
+  const paginatedCreators = filteredCreators.slice(
+    (creatorsCurrentPage - 1) * creatorsItemsPerPage,
+    creatorsCurrentPage * creatorsItemsPerPage,
+  )
 
   if (isLoading) {
     return (
@@ -160,28 +346,28 @@ export default function EditCampaignPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Campaign Name</Label>
-                <Input id="name" placeholder="Enter campaign name" defaultValue={campaignData.name} />
+                <Label htmlFor="name-edit">Campaign Name</Label>
+                <Input id="name-edit" placeholder="Enter campaign name" defaultValue={campaignData.name} />
               </div>
 
               <div className="space-y-2">
                 <Label>Campaign Type</Label>
                 <RadioGroup defaultValue={campaignData.type} onValueChange={(value) => setCampaignType(value)}>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="quick-share" id="quick-share" />
-                    <Label htmlFor="quick-share">Quick Share</Label>
+                    <RadioGroupItem value="quick-share" id="quick-share-edit" />
+                    <Label htmlFor="quick-share-edit">Quick Share</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="creative-challenge" id="creative-challenge" />
-                    <Label htmlFor="creative-challenge">Creative Challenge</Label>
+                    <RadioGroupItem value="creative-challenge" id="creative-challenge-edit" />
+                    <Label htmlFor="creative-challenge-edit">Creative Challenge</Label>
                   </div>
                 </RadioGroup>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description-edit">Description</Label>
                 <Textarea
-                  id="description"
+                  id="description-edit"
                   placeholder="Enter campaign description"
                   className="min-h-[100px]"
                   defaultValue={campaignData.description}
@@ -190,23 +376,37 @@ export default function EditCampaignPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <div>
-                    <Label>Start Date</Label>
-                  </div>
-                  <DatePicker defaultDate={campaignData.startDate} />
+                  <Label htmlFor="start-date-edit">Start Date</Label>
+                  <Input
+                    id="start-date-edit"
+                    type="date"
+                    value={editableStartDate}
+                    onChange={(e) => setEditableStartDate(e.target.value)}
+                    min={getTodayString()} // Or remove if past start dates are allowed for editing
+                    className="w-full"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <div>
-                    <Label>End Date</Label>
-                  </div>
-                  <DatePicker defaultDate={campaignData.endDate} />
+                  <Label htmlFor="end-date-edit">End Date</Label>
+                  <Input
+                    id="end-date-edit"
+                    type="date"
+                    value={editableEndDate}
+                    onChange={(e) => setEditableEndDate(e.target.value)}
+                    min={minEditableEndDate || getTodayString()}
+                    disabled={!editableStartDate}
+                    className={cn("w-full", !editableStartDate && "bg-muted cursor-not-allowed")}
+                  />
+                  {!editableStartDate && (
+                    <p className="text-xs text-muted-foreground">Please select a start date first</p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status-edit">Status</Label>
                 <Select defaultValue={campaignData.status}>
-                  <SelectTrigger>
+                  <SelectTrigger id="status-edit">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -215,7 +415,6 @@ export default function EditCampaignPage() {
                   </SelectContent>
                 </Select>
               </div>
-
             </CardContent>
           </Card>
         </TabsContent>
@@ -231,14 +430,23 @@ export default function EditCampaignPage() {
                 <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search creators..."
+                    placeholder="Search creators by name, email, city..."
                     className="pl-8"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value)
+                      setCreatorsCurrentPage(1)
+                    }}
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                  <Select
+                    value={selectedProvince}
+                    onValueChange={(value) => {
+                      setSelectedProvince(value)
+                      setCreatorsCurrentPage(1)
+                    }}
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select province" />
                     </SelectTrigger>
@@ -254,7 +462,13 @@ export default function EditCampaignPage() {
                       <SelectItem value="Sulawesi Selatan">Sulawesi Selatan</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select>
+                  <Select
+                    value={selectedCity}
+                    onValueChange={(value) => {
+                      setSelectedCity(value)
+                      setCreatorsCurrentPage(1)
+                    }}
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select city" />
                     </SelectTrigger>
@@ -286,25 +500,22 @@ export default function EditCampaignPage() {
                         <Checkbox />
                       </TableHead>
                       <TableHead>Name</TableHead>
-                      <TableHead>Department</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Province</TableHead>
                       <TableHead>City</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCreators.length > 0 ? (
-                      filteredCreators.map((creator) => (
+                    {paginatedCreators.length > 0 ? (
+                      paginatedCreators.map((creator) => (
                         <TableRow key={creator.id}>
                           <TableCell>
-                            <Checkbox id={`creator-${creator.id}`} defaultChecked={creator.selected} />
+                            <Checkbox id={`creator-edit-${creator.id}`} defaultChecked={creator.selected} />
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-slate-200"></div>
-                              <span>{creator.name}</span>
-                            </div>
+                            <span>{creator.name}</span>
                           </TableCell>
-                          <TableCell>{creator.department}</TableCell>
+                          <TableCell>{creator.email}</TableCell>
                           <TableCell>{creator.province}</TableCell>
                           <TableCell>{creator.city}</TableCell>
                         </TableRow>
@@ -320,17 +531,20 @@ export default function EditCampaignPage() {
                 </Table>
               </div>
 
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-muted-foreground">{filteredCreators.length} creators shown</p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    Clear Selection
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Select All
-                  </Button>
-                </div>
-              </div>
+              {totalCreatorPages > 1 && (
+                <CustomPagination
+                  currentPage={creatorsCurrentPage}
+                  totalPages={totalCreatorPages}
+                  totalItems={filteredCreators.length}
+                  itemsPerPage={creatorsItemsPerPage}
+                  onPageChange={setCreatorsCurrentPage}
+                  onItemsPerPageChange={(value) => {
+                    setCreatorsItemsPerPage(value)
+                    setCreatorsCurrentPage(1)
+                  }}
+                  itemName="creators"
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -378,7 +592,7 @@ export default function EditCampaignPage() {
                 </h3>
                 <div className="space-y-2">
                   <Textarea
-                    id="caption"
+                    id="caption-edit"
                     placeholder={
                       campaignType === "quick-share"
                         ? "Enter a template caption that creators can use or modify"

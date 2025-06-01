@@ -47,7 +47,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { CheckIcon } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { CustomPagination } from "@/components/ui/custom-pagination" // Import CustomPagination
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -215,7 +214,7 @@ const initialMockCreators: Creator[] = [
     province: "Yogyakarta",
     city: "Yogyakarta",
     department: "HR",
-    points: 1850,
+    points: 0,
   },
   {
     id: "6",
@@ -808,21 +807,6 @@ function ViewProfileDialog({
         <div className="grid gap-6 py-4">
           <Card>
             <CardHeader className="flex flex-row items-center gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage
-                  src={
-                    creator.avatarUrl ||
-                    `/placeholder.svg?height=64&width=64&query=${encodeURIComponent(creator.fullName) || "/placeholder.svg"}`
-                  }
-                  alt={creator.fullName}
-                />
-                <AvatarFallback>
-                  {creator.fullName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
               <div>
                 <h3 className="text-xl font-semibold">{creator.fullName}</h3>
                 <p className="text-sm text-muted-foreground">{creator.email}</p>
@@ -851,9 +835,6 @@ function ViewProfileDialog({
               </div>
               <div>
                 <span className="font-medium">City:</span> {creator.city}
-              </div>
-              <div>
-                <span className="font-medium">Department:</span> {creator.department || "N/A"}
               </div>
               {creator.role === "Creator" && (
                 <>

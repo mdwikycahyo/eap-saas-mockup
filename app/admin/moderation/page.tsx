@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useSearchParams } from "next/navigation" // Added
-import { useState, useEffect, Suspense } from "react" // Added Suspense
+import { useSearchParams } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -11,344 +11,274 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, CheckCircle, XCircle, Clock, Instagram } from "lucide-react"
 import { TikTokIcon } from "@/components/tik-tok-icon"
+import { CustomPagination } from "@/components/ui/custom-pagination"
+
+// Added more mock data for submissions and social media accounts to better test pagination
+const initialSubmissions = [
+  {
+    id: "1",
+    creator: { name: "Sarah Johnson", department: "Marketing" },
+    campaign: "Summer Launch",
+    campaignType: "Quick Share",
+    approvalType: "Post URL Review",
+    submittedAt: "2h ago",
+    status: "pending",
+  },
+  {
+    id: "2",
+    creator: { name: "Michael Chen", department: "Product" },
+    campaign: "Brand Challenge",
+    campaignType: "Creative Challenge",
+    approvalType: "Content Review",
+    submittedAt: "4h ago",
+    status: "pending",
+  },
+  {
+    id: "3",
+    creator: { name: "Emily Rodriguez", department: "Customer Success" },
+    campaign: "Customer Stories",
+    campaignType: "Quick Share",
+    approvalType: "Post URL Review",
+    submittedAt: "5h ago",
+    status: "pending",
+  },
+  {
+    id: "4",
+    creator: { name: "David Wilson", department: "Sales" },
+    campaign: "Product Feature",
+    campaignType: "Quick Share",
+    approvalType: "Post URL Review",
+    submittedAt: "1d ago",
+    status: "rejected",
+  },
+  {
+    id: "5",
+    creator: { name: "Lisa Thompson", department: "HR" },
+    campaign: "Customer Stories",
+    campaignType: "Quick Share",
+    approvalType: "Post URL Review",
+    submittedAt: "2d ago",
+    status: "approved",
+  },
+  {
+    id: "6",
+    creator: { name: "James Brown", department: "Engineering" },
+    campaign: "Behind Scenes",
+    campaignType: "Creative Challenge",
+    approvalType: "Post URL Review",
+    submittedAt: "3d ago",
+    status: "approved",
+  },
+  {
+    id: "7",
+    creator: { name: "Alex Turner", department: "Product" },
+    campaign: "Product Launch V2",
+    campaignType: "Creative Challenge",
+    approvalType: "Content Review",
+    submittedAt: "1d ago",
+    status: "approved",
+  },
+  {
+    id: "8",
+    creator: { name: "Olivia Green", department: "Marketing" },
+    campaign: "New Feature Teaser",
+    campaignType: "Quick Share",
+    approvalType: "Content Review",
+    submittedAt: "3h ago",
+    status: "pending",
+  },
+  {
+    id: "9",
+    creator: { name: "William Davis", department: "Sales" },
+    campaign: "Testimonial Request",
+    campaignType: "Creative Challenge",
+    approvalType: "Post URL Review",
+    submittedAt: "6h ago",
+    status: "pending",
+  },
+  {
+    id: "10",
+    creator: { name: "Sophia Miller", department: "Customer Success" },
+    campaign: "How-to Guide",
+    campaignType: "Quick Share",
+    approvalType: "Content Review",
+    submittedAt: "8h ago",
+    status: "pending",
+  },
+  {
+    id: "11",
+    creator: { name: "Ava Garcia", department: "Marketing" },
+    campaign: "Holiday Special",
+    campaignType: "Quick Share",
+    approvalType: "Post URL Review",
+    submittedAt: "10h ago",
+    status: "pending",
+  },
+  {
+    id: "12",
+    creator: { name: "Noah Martinez", department: "Product" },
+    campaign: "User Feedback",
+    campaignType: "Creative Challenge",
+    approvalType: "Content Review",
+    submittedAt: "12h ago",
+    status: "pending",
+  },
+]
+
+const initialSocialMediaAccounts = [
+  {
+    id: "sm1",
+    creator: { name: "Sarah Johnson", department: "Marketing" },
+    platform: "instagram",
+    username: "@sarahj",
+    followers: 5420,
+    following: 843,
+    submittedAt: "1d ago",
+    status: "pending",
+    url: "https://instagram.com/sarahj",
+  },
+  {
+    id: "sm2",
+    creator: { name: "Emily Rodriguez", department: "Customer Success" },
+    platform: "tiktok",
+    username: "@emilyr",
+    followers: 12500,
+    following: 350,
+    submittedAt: "2d ago",
+    status: "pending",
+    url: "https://tiktok.com/@emilyr",
+  },
+  {
+    id: "sm3",
+    creator: { name: "David Wilson", department: "Sales" },
+    platform: "tiktok",
+    username: "@davidw",
+    followers: 2340,
+    following: 1250,
+    submittedAt: "3d ago",
+    status: "pending",
+    url: "https://tiktok.com/@davidw",
+  },
+  {
+    id: "sm4",
+    creator: { name: "Lisa Thompson", department: "HR" },
+    platform: "instagram",
+    username: "@lisat",
+    followers: 3200,
+    following: 520,
+    submittedAt: "5d ago",
+    status: "approved",
+    url: "https://instagram.com/@lisat",
+  },
+  {
+    id: "sm5",
+    creator: { name: "James Brown", department: "Engineering" },
+    platform: "tiktok",
+    username: "@jamesb",
+    followers: 8700,
+    following: 420,
+    submittedAt: "6d ago",
+    status: "rejected",
+    url: "https://tiktok.com/@jamesb",
+  },
+  {
+    id: "sm6",
+    creator: { name: "Michael Chen", department: "Product" },
+    platform: "tiktok",
+    username: "@mikec",
+    followers: 4500,
+    following: 890,
+    submittedAt: "7d ago",
+    status: "approved",
+    url: "https://tiktok.com/@mikec",
+  },
+  {
+    id: "sm7",
+    creator: { name: "Olivia Green", department: "Marketing" },
+    platform: "instagram",
+    username: "@oliviag",
+    followers: 7800,
+    following: 600,
+    submittedAt: "4d ago",
+    status: "pending",
+    url: "https://instagram.com/@oliviag",
+  },
+  {
+    id: "sm8",
+    creator: { name: "William Davis", department: "Sales" },
+    platform: "instagram",
+    username: "@willd",
+    followers: 4100,
+    following: 750,
+    submittedAt: "8d ago",
+    status: "approved",
+    url: "https://instagram.com/@willd",
+  },
+  {
+    id: "sm9",
+    creator: { name: "Sophia Miller", department: "Customer Success" },
+    platform: "tiktok",
+    username: "@sophiam",
+    followers: 9200,
+    following: 200,
+    submittedAt: "9d ago",
+    status: "rejected",
+    url: "https://tiktok.com/@sophiam",
+  },
+  {
+    id: "sm10",
+    creator: { name: "Ava Garcia", department: "Marketing" },
+    platform: "instagram",
+    username: "@avag",
+    followers: 6300,
+    following: 950,
+    submittedAt: "2d ago",
+    status: "pending",
+    url: "https://instagram.com/@avag",
+  },
+  {
+    id: "sm11",
+    creator: { name: "Noah Martinez", department: "Product" },
+    platform: "tiktok",
+    username: "@noahm",
+    followers: 11000,
+    following: 150,
+    submittedAt: "3d ago",
+    status: "pending",
+    url: "https://tiktok.com/@noahm",
+  },
+]
+
 function ApprovalPageContent() {
-  // Renamed component
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab") === "social" ? "social" : "content"
   const [mainTab, setMainTab] = useState(initialTab)
+  const [contentSubTab, setContentSubTab] = useState("pending")
+  const [socialSubTab, setSocialSubTab] = useState("pending")
+
   const [searchTerm, setSearchTerm] = useState("")
   const [socialMediaSearchTerm, setSocialMediaSearchTerm] = useState("")
 
-  const [allSubmissions, setAllSubmissions] = useState<any[]>([])
+  const [allSubmissions, setAllSubmissions] = useState<any[]>(initialSubmissions)
   const [pendingSubmissions, setPendingSubmissions] = useState<any[]>([])
   const [approvedSubmissions, setApprovedSubmissions] = useState<any[]>([])
   const [rejectedSubmissions, setRejectedSubmissions] = useState<any[]>([])
 
-  const [allSocialMedia, setAllSocialMedia] = useState<any[]>([])
+  const [allSocialMedia, setAllSocialMedia] = useState<any[]>(initialSocialMediaAccounts)
   const [pendingSocialMedia, setPendingSocialMedia] = useState<any[]>([])
   const [approvedSocialMedia, setApprovedSocialMedia] = useState<any[]>([])
   const [rejectedSocialMedia, setRejectedSocialMedia] = useState<any[]>([])
 
-  // This would be fetched from an API in a real application
+  const [contentCurrentPage, setContentCurrentPage] = useState(1)
+  const [contentItemsPerPage, setContentItemsPerPage] = useState(5)
+  const [socialCurrentPage, setSocialCurrentPage] = useState(1)
+  const [socialItemsPerPage, setSocialItemsPerPage] = useState(5)
+
   useEffect(() => {
-    const submissions = [
-      {
-        id: "1",
-        creator: {
-          id: "creator1",
-          name: "Sarah Johnson",
-          department: "Marketing",
-          avatar: "/placeholder.svg",
-        },
-        campaign: "Summer Product Launch",
-        campaignType: "Quick Share",
-        platform: "instagram",
-        approvalType: "Post URL Review",
-        content: {
-          type: "image",
-          images: [
-            "/placeholder.svg?height=600&width=600",
-            "/placeholder.svg?height=600&width=600",
-            "/placeholder.svg?height=600&width=600",
-          ],
-          caption:
-            "Summer is here and so is the new collection from @brandname! 🌞 Check out these amazing new products that are perfect for the season. #SummerCollection #BrandNameSummer #NewArrivals",
-          url: "https://instagram.com/p/example123",
-        },
-        submittedAt: "2 hours ago",
-        status: "pending",
-      },
-      {
-        id: "2",
-        creator: {
-          id: "creator1",
-          name: "Sarah Johnson",
-          department: "Marketing",
-          avatar: "/placeholder.svg",
-        },
-        campaign: "Brand Challenge",
-        campaignType: "Creative Challenge",
-        platform: "tiktok",
-        approvalType: "Content Review",
-        stage: "1/2",
-        content: {
-          type: "video",
-          images: ["/placeholder.svg?height=600&width=600"],
-          caption:
-            "Taking the #BrandChallenge to show you how I use these amazing products every day! @brandname #ProductDemo",
-          url: "",
-        },
-        submittedAt: "4 hours ago",
-        status: "pending",
-      },
-      {
-        id: "3",
-        creator: {
-          id: "creator2",
-          name: "Emily Rodriguez",
-          department: "Customer Success",
-          avatar: "/placeholder.svg",
-        },
-        campaign: "Customer Stories",
-        campaignType: "Quick Share",
-        platform: "instagram",
-        approvalType: "Post URL Review",
-        content: {
-          type: "image",
-          images: ["/placeholder.svg?height=600&width=600", "/placeholder.svg?height=600&width=600"],
-          caption:
-            "Our customers love our products, and here's why! 💯 These testimonials show the real impact our solutions have made. What's your experience been like? #CustomerStories #RealResults #BrandName",
-          url: "https://instagram.com/p/example456",
-        },
-        submittedAt: "5 hours ago",
-        status: "pending",
-      },
-      {
-        id: "4",
-        creator: {
-          id: "creator3",
-          name: "David Wilson",
-          department: "Sales",
-          avatar: "/placeholder.svg",
-        },
-        campaign: "Product Feature",
-        campaignType: "Quick Share",
-        platform: "tiktok",
-        approvalType: "Post URL Review",
-        content: {
-          type: "video",
-          images: ["/placeholder.svg?height=600&width=600"],
-          caption:
-            "Check out this amazing product feature! It's changed how I work every day. #ProductFeature #WorkHacks #BrandName",
-          url: "https://tiktok.com/@user/video/example456",
-        },
-        submittedAt: "1 day ago",
-        status: "rejected",
-        feedback:
-          "The video quality is too low. Please resubmit with better lighting and focus on the product features more clearly.",
-      },
-      {
-        id: "5",
-        creator: {
-          id: "creator4",
-          name: "Lisa Thompson",
-          department: "HR",
-          avatar: "/placeholder.svg",
-        },
-        campaign: "Customer Stories",
-        campaignType: "Quick Share",
-        platform: "instagram",
-        approvalType: "Post URL Review",
-        content: {
-          type: "image",
-          images: ["/placeholder.svg?height=600&width=600"],
-          caption:
-            "Proud to share these amazing customer testimonials! Our products make a real difference. #CustomerStories #BrandName",
-          url: "https://instagram.com/p/example789",
-        },
-        submittedAt: "2 days ago",
-        status: "approved",
-        engagement: {
-          views: 1245,
-          likes: 87,
-          comments: 12,
-        },
-      },
-      {
-        id: "6",
-        creator: {
-          id: "creator5",
-          name: "James Brown",
-          department: "Engineering",
-          avatar: "/placeholder.svg",
-        },
-        campaign: "Behind the Scenes",
-        campaignType: "Creative Challenge",
-        platform: "instagram",
-        approvalType: "Post URL Review",
-        stage: "2/2",
-        content: {
-          type: "image",
-          images: [
-            "/placeholder.svg?height=600&width=600",
-            "/placeholder.svg?height=600&width=600",
-            "/placeholder.svg?height=600&width=600",
-          ],
-          caption: "Here's a look at how we build our amazing products! #BehindTheScenes #Engineering #BrandName",
-          url: "https://instagram.com/p/example101",
-          approvedContent: {
-            images: [
-              "/placeholder.svg?height=600&width=600",
-              "/placeholder.svg?height=600&width=600",
-              "/placeholder.svg?height=600&width=600",
-            ],
-            caption: "Here's a look at how we build our amazing products! #BehindTheScenes #Engineering #BrandName",
-          },
-        },
-        submittedAt: "3 days ago",
-        status: "approved",
-        engagement: {
-          views: 980,
-          likes: 65,
-          comments: 8,
-        },
-      },
-      {
-        id: "7",
-        creator: {
-          id: "creator6",
-          name: "Alex Turner",
-          department: "Product",
-          avatar: "/placeholder.svg",
-        },
-        campaign: "Product Launch",
-        campaignType: "Creative Challenge",
-        platform: "instagram",
-        approvalType: "Content Review",
-        stage: "1/2",
-        content: {
-          type: "image",
-          images: ["/placeholder.svg?height=600&width=600"],
-          caption: "Excited to share our new product features! #ProductLaunch #Innovation",
-          url: "",
-        },
-        submittedAt: "1 day ago",
-        status: "approved",
-      },
-      {
-        id: "8",
-        creator: {
-          id: "creator6",
-          name: "Alex Turner",
-          department: "Product",
-          avatar: "/placeholder.svg",
-        },
-        campaign: "Product Launch",
-        campaignType: "Creative Challenge",
-        platform: "instagram",
-        approvalType: "Post URL Review",
-        stage: "2/2",
-        content: {
-          type: "image",
-          images: ["/placeholder.svg?height=600&width=600"],
-          caption: "Excited to share our new product features! #ProductLaunch #Innovation",
-          url: "https://instagram.com/p/example202",
-          approvedContent: {
-            images: ["/placeholder.svg?height=600&width=600"],
-            caption: "Excited to share our new product features! #ProductLaunch #Innovation",
-          },
-        },
-        submittedAt: "12 hours ago",
-        status: "pending",
-      },
-    ]
-
-    const socialMediaAccounts = [
-      {
-        id: "sm1",
-        creator: {
-          id: "creator1",
-          name: "Sarah Johnson",
-          department: "Marketing",
-          avatar: "/placeholder.svg",
-        },
-        platform: "instagram",
-        username: "@sarahjohnson_official",
-        url: "https://instagram.com/sarahjohnson_official",
-        followers: 5420,
-        following: 843,
-        submittedAt: "1 day ago",
-        status: "pending",
-      },
-      {
-        id: "sm2",
-        creator: {
-          id: "creator2",
-          name: "Emily Rodriguez",
-          department: "Customer Success",
-          avatar: "/placeholder.svg",
-        },
-        platform: "tiktok",
-        username: "@emilyrodriguez",
-        url: "https://tiktok.com/@emilyrodriguez",
-        followers: 12500,
-        following: 350,
-        submittedAt: "2 days ago",
-        status: "pending",
-      },
-      {
-        id: "sm3",
-        creator: {
-          id: "creator3",
-          name: "David Wilson",
-          department: "Sales",
-          avatar: "/placeholder.svg",
-        },
-        platform: "tiktok",
-        username: "@davidwilson_sales",
-        url: "https://tiktok.com/davidwilson_sales",
-        followers: 2340,
-        following: 1250,
-        submittedAt: "3 days ago",
-        status: "pending",
-      },
-      {
-        id: "sm4",
-        creator: {
-          id: "creator4",
-          name: "Lisa Thompson",
-          department: "HR",
-          avatar: "/placeholder.svg",
-        },
-        platform: "instagram",
-        username: "@lisathompson_hr",
-        url: "https://instagram.com/lisathompson_hr",
-        followers: 3200,
-        following: 520,
-        submittedAt: "5 days ago",
-        status: "approved",
-      },
-      {
-        id: "sm5",
-        creator: {
-          id: "creator5",
-          name: "James Brown",
-          department: "Engineering",
-          avatar: "/placeholder.svg",
-        },
-        platform: "tiktok",
-        username: "@jamesbrown_tech",
-        url: "https://tiktok.com/@jamesbrown_tech",
-        followers: 8700,
-        following: 420,
-        submittedAt: "6 days ago",
-        status: "rejected",
-      },
-      {
-        id: "sm6",
-        creator: {
-          id: "creator6",
-          name: "Michael Chen",
-          department: "Product",
-          avatar: "/placeholder.svg",
-        },
-        platform: "tiktok",
-        username: "@michaelchen_product",
-        url: "https://tiktok.com/michaelchen_product",
-        followers: 4500,
-        following: 890,
-        submittedAt: "7 days ago",
-        status: "approved",
-      },
-    ]
-
-    setAllSubmissions(submissions)
-    setAllSocialMedia(socialMediaAccounts)
-
-    filterSubmissions(submissions, searchTerm)
-    filterSocialMedia(socialMediaAccounts, socialMediaSearchTerm)
-  }, [searchTerm, socialMediaSearchTerm])
+    filterSubmissions(allSubmissions, searchTerm)
+    filterSocialMedia(allSocialMedia, socialMediaSearchTerm)
+  }, [searchTerm, socialMediaSearchTerm, allSubmissions, allSocialMedia]) // Added allSubmissions and allSocialMedia to re-filter when they change (e.g. status update)
 
   useEffect(() => {
     const tabFromQuery = searchParams.get("tab")
@@ -361,8 +291,6 @@ function ApprovalPageContent() {
 
   const filterSubmissions = (submissions: any[], search: string) => {
     let filtered = submissions
-
-    // Filter by search term
     if (search) {
       const searchLower = search.toLowerCase()
       filtered = filtered.filter(
@@ -372,8 +300,6 @@ function ApprovalPageContent() {
           submission.campaignType.toLowerCase().includes(searchLower),
       )
     }
-
-    // Separate by status
     setPendingSubmissions(filtered.filter((sub) => sub.status === "pending"))
     setApprovedSubmissions(filtered.filter((sub) => sub.status === "approved"))
     setRejectedSubmissions(filtered.filter((sub) => sub.status === "rejected"))
@@ -381,8 +307,6 @@ function ApprovalPageContent() {
 
   const filterSocialMedia = (accounts: any[], search: string) => {
     let filtered = accounts
-
-    // Filter by search term
     if (search) {
       const searchLower = search.toLowerCase()
       filtered = filtered.filter(
@@ -392,8 +316,6 @@ function ApprovalPageContent() {
           account.platform.toLowerCase().includes(searchLower),
       )
     }
-
-    // Separate by status
     setPendingSocialMedia(filtered.filter((acc) => acc.status === "pending"))
     setApprovedSocialMedia(filtered.filter((acc) => acc.status === "approved"))
     setRejectedSocialMedia(filtered.filter((acc) => acc.status === "rejected"))
@@ -402,13 +324,13 @@ function ApprovalPageContent() {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchTerm(value)
-    filterSubmissions(allSubmissions, value)
+    setContentCurrentPage(1)
   }
 
   const handleSocialMediaSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSocialMediaSearchTerm(value)
-    filterSocialMedia(allSocialMedia, value)
+    setSocialCurrentPage(1)
   }
 
   const handleViewSubmission = (id: string) => {
@@ -416,42 +338,92 @@ function ApprovalPageContent() {
   }
 
   const handleApproveSocialMedia = (id: string) => {
-    // In a real app, this would call an API to update the status
-    const updatedAccounts = allSocialMedia.map((account) =>
-      account.id === id ? { ...account, status: "approved" } : account,
+    setAllSocialMedia((prevAccounts) =>
+      prevAccounts.map((account) => (account.id === id ? { ...account, status: "approved" } : account)),
     )
-    setAllSocialMedia(updatedAccounts)
-    filterSocialMedia(updatedAccounts, socialMediaSearchTerm)
   }
 
   const handleRejectSocialMedia = (id: string) => {
-    // In a real app, this would call an API to update the status
-    const updatedAccounts = allSocialMedia.map((account) =>
-      account.id === id ? { ...account, status: "rejected" } : account,
+    setAllSocialMedia((prevAccounts) =>
+      prevAccounts.map((account) => (account.id === id ? { ...account, status: "rejected" } : account)),
     )
-    setAllSocialMedia(updatedAccounts)
-    filterSocialMedia(updatedAccounts, socialMediaSearchTerm)
   }
 
   const handleMainTabChange = (value: string) => {
     setMainTab(value)
-    // Optionally update URL without full reload if desired
-    // const newPath = value === 'social' ? '/admin/moderation?tab=social' : '/admin/moderation';
-    // router.replace(newPath, { scroll: false });
+    if (value === "content") {
+      setContentCurrentPage(1)
+      setContentSubTab("pending")
+    } else if (value === "social") {
+      setSocialCurrentPage(1)
+      setSocialSubTab("pending")
+    }
+    router.push(`/admin/moderation?tab=${value}`, { scroll: false })
   }
 
-  const pendingCount = allSubmissions.filter((sub) => sub.status === "pending").length
-  const approvedCount = allSubmissions.filter((sub) => sub.status === "approved").length
-  const rejectedCount = allSubmissions.filter((sub) => sub.status === "rejected").length
+  const handleContentSubTabChange = (value: string) => {
+    setContentSubTab(value)
+    setContentCurrentPage(1)
+  }
 
-  const pendingSocialMediaCount = allSocialMedia.filter((acc) => acc.status === "pending").length
-  const approvedSocialMediaCount = allSocialMedia.filter((acc) => acc.status === "approved").length
-  const rejectedSocialMediaCount = allSocialMedia.filter((acc) => acc.status === "rejected").length
+  const handleSocialSubTabChange = (value: string) => {
+    setSocialSubTab(value)
+    setSocialCurrentPage(1)
+  }
 
-  // Dynamic page titles and descriptions based on selected tab
+  const pendingCount = pendingSubmissions.length
+  const approvedCount = approvedSubmissions.length
+  const rejectedCount = rejectedSubmissions.length
+
+  const pendingSocialMediaCount = pendingSocialMedia.length
+  const approvedSocialMediaCount = approvedSocialMedia.length
+  const rejectedSocialMediaCount = rejectedSocialMedia.length
+
   const pageTitle = mainTab === "content" ? "Content Approval" : "Social Media Verification"
   const pageDescription =
     mainTab === "content" ? "Review and manage creator content submissions" : "Verify creator social media accounts"
+
+  const renderPaginatedTable = (
+    items: any[],
+    TableComponent: React.FC<any>,
+    currentPage: number,
+    itemsPerPage: number,
+    onPageChange: (page: number) => void,
+    onItemsPerPageChange: (items: number) => void,
+    itemName: string,
+    tableProps: any,
+  ) => {
+    const totalItems = items.length
+    const totalPages = Math.ceil(totalItems / itemsPerPage)
+    const paginatedItems = items.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+    if (totalItems === 0 && (itemName === "submissions" ? searchTerm : socialMediaSearchTerm)) {
+      return <p className="text-center text-muted-foreground py-4">No {itemName} found for your search.</p>
+    }
+    if (totalItems === 0) {
+      return <p className="text-center text-muted-foreground py-4">No {itemName} in this category.</p>
+    }
+
+    return (
+      <>
+        <TableComponent {...tableProps} submissions={paginatedItems} accounts={paginatedItems} />
+        {totalPages > 1 && (
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={onPageChange}
+            onItemsPerPageChange={(newItemsPerPage) => {
+              onItemsPerPageChange(newItemsPerPage)
+              onPageChange(1)
+            }}
+            itemName={itemName}
+          />
+        )}
+      </>
+    )
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -462,7 +434,6 @@ function ApprovalPageContent() {
         </div>
       </div>
 
-      {/* Main Tabs */}
       <Tabs value={mainTab} className="w-full" onValueChange={handleMainTabChange}>
         <TabsList className="w-full md:w-auto mb-6">
           <TabsTrigger value="content" className="flex-1 md:flex-none">
@@ -473,9 +444,8 @@ function ApprovalPageContent() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Content Submissions Tab */}
         <TabsContent value="content">
-          <Tabs defaultValue="pending" className="w-full">
+          <Tabs value={contentSubTab} className="w-full" onValueChange={handleContentSubTabChange}>
             <div className="flex flex-col gap-4 mb-6">
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -497,40 +467,61 @@ function ApprovalPageContent() {
             </div>
 
             <TabsContent value="pending">
-              <SubmissionTable
-                title="Pending Review"
-                description="Content waiting for your review"
-                submissions={pendingSubmissions}
-                status="pending"
-                onViewSubmission={handleViewSubmission}
-              />
+              {renderPaginatedTable(
+                pendingSubmissions,
+                SubmissionTable,
+                contentCurrentPage,
+                contentItemsPerPage,
+                setContentCurrentPage,
+                setContentItemsPerPage,
+                "submissions",
+                {
+                  title: "Pending Review",
+                  description: "Content waiting for your review",
+                  status: "pending",
+                  onViewSubmission: handleViewSubmission,
+                },
+              )}
             </TabsContent>
-
             <TabsContent value="approved">
-              <SubmissionTable
-                title="Approved Content"
-                description="Content that has been approved"
-                submissions={approvedSubmissions}
-                status="approved"
-                onViewSubmission={handleViewSubmission}
-              />
+              {renderPaginatedTable(
+                approvedSubmissions,
+                SubmissionTable,
+                contentCurrentPage,
+                contentItemsPerPage,
+                setContentCurrentPage,
+                setContentItemsPerPage,
+                "submissions",
+                {
+                  title: "Approved Content",
+                  description: "Content that has been approved",
+                  status: "approved",
+                  onViewSubmission: handleViewSubmission,
+                },
+              )}
             </TabsContent>
-
             <TabsContent value="rejected">
-              <SubmissionTable
-                title="Rejected Content"
-                description="Content that has been rejected"
-                submissions={rejectedSubmissions}
-                status="rejected"
-                onViewSubmission={handleViewSubmission}
-              />
+              {renderPaginatedTable(
+                rejectedSubmissions,
+                SubmissionTable,
+                contentCurrentPage,
+                contentItemsPerPage,
+                setContentCurrentPage,
+                setContentItemsPerPage,
+                "submissions",
+                {
+                  title: "Rejected Content",
+                  description: "Content that has been rejected",
+                  status: "rejected",
+                  onViewSubmission: handleViewSubmission,
+                },
+              )}
             </TabsContent>
           </Tabs>
         </TabsContent>
 
-        {/* Social Media Verification Tab */}
         <TabsContent value="social">
-          <Tabs defaultValue="pending" className="w-full">
+          <Tabs value={socialSubTab} className="w-full" onValueChange={handleSocialSubTabChange}>
             <div className="flex flex-col gap-4 mb-6">
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -550,34 +541,55 @@ function ApprovalPageContent() {
                 </TabsList>
               </div>
             </div>
-
             <TabsContent value="pending">
-              <SocialMediaTable
-                title="Pending Verification"
-                description="Social media accounts waiting for verification"
-                accounts={pendingSocialMedia}
-                status="pending"
-                onApprove={handleApproveSocialMedia}
-                onReject={handleRejectSocialMedia}
-              />
+              {renderPaginatedTable(
+                pendingSocialMedia,
+                SocialMediaTable,
+                socialCurrentPage,
+                socialItemsPerPage,
+                setSocialCurrentPage,
+                setSocialItemsPerPage,
+                "accounts",
+                {
+                  title: "Pending Verification",
+                  description: "Social media accounts waiting for verification",
+                  status: "pending",
+                  onApprove: handleApproveSocialMedia,
+                  onReject: handleRejectSocialMedia,
+                },
+              )}
             </TabsContent>
-
             <TabsContent value="approved">
-              <SocialMediaTable
-                title="Verified Accounts"
-                description="Social media accounts that have been verified"
-                accounts={approvedSocialMedia}
-                status="approved"
-              />
+              {renderPaginatedTable(
+                approvedSocialMedia,
+                SocialMediaTable,
+                socialCurrentPage,
+                socialItemsPerPage,
+                setSocialCurrentPage,
+                setSocialItemsPerPage,
+                "accounts",
+                {
+                  title: "Verified Accounts",
+                  description: "Social media accounts that have been verified",
+                  status: "approved",
+                },
+              )}
             </TabsContent>
-
             <TabsContent value="rejected">
-              <SocialMediaTable
-                title="Rejected Accounts"
-                description="Social media accounts that have been rejected"
-                accounts={rejectedSocialMedia}
-                status="rejected"
-              />
+              {renderPaginatedTable(
+                rejectedSocialMedia,
+                SocialMediaTable,
+                socialCurrentPage,
+                socialItemsPerPage,
+                setSocialCurrentPage,
+                setSocialItemsPerPage,
+                "accounts",
+                {
+                  title: "Rejected Accounts",
+                  description: "Social media accounts that have been rejected",
+                  status: "rejected",
+                },
+              )}
             </TabsContent>
           </Tabs>
         </TabsContent>
@@ -625,7 +637,6 @@ function SubmissionTable({
                     <tr key={submission.id} className="border-t">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          {/* Removed avatar placeholder div */}
                           <div>
                             <p className="font-medium">{submission.creator.name}</p>
                             <p className="text-xs text-muted-foreground">{submission.creator.department}</p>
@@ -647,15 +658,11 @@ function SubmissionTable({
                           ) : submission.approvalType === "Content Review" ||
                             submission.approvalType === "Content Material Review" ? (
                             <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                              {submission.approvalType}{" "}
-                              {/* Displaying the specific type like "Content Material Review" */}
+                              {submission.approvalType}
                             </span>
                           ) : (
                             <span className="text-xs text-muted-foreground">{submission.approvalType}</span>
                           )}
-                          {/* Removed stage display: submission.stage && (
-                        <span className="text-xs text-muted-foreground">Step {submission.stage}</span>
-                      )*/}
                         </div>
                       </td>
                       <td className="p-4">
@@ -765,7 +772,6 @@ function SocialMediaTable({
                     <tr key={account.id} className="border-t">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          {/* Removed avatar placeholder div */}
                           <div>
                             <p className="font-medium">{account.creator.name}</p>
                             <p className="text-xs text-muted-foreground">{account.creator.department}</p>
@@ -787,9 +793,6 @@ function SocialMediaTable({
                         >
                           {account.username}
                         </a>
-                        {/* Removed separate URL line: 
-                    <p className="text-xs text-blue-500 hover:underline break-all">{account.url}</p> 
-                    */}
                       </td>
                       <td className="p-4">
                         <p>
@@ -848,6 +851,8 @@ function SocialMediaTable({
                           )}
                           {status !== "pending" && (
                             <Button variant="ghost" size="sm">
+                              {" "}
+                              {/* Consider making this a link to view details if applicable */}
                               View
                             </Button>
                           )}
@@ -871,10 +876,9 @@ function SocialMediaTable({
   )
 }
 
-// New wrapper component for Suspense
 export default function Approval() {
   return (
-    <Suspense fallback={<div>Loading moderation page...</div>}>
+    <Suspense fallback={<div className="p-6 text-center">Loading moderation page...</div>}>
       <ApprovalPageContent />
     </Suspense>
   )

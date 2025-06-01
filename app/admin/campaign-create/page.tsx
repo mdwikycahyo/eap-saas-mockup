@@ -6,56 +6,111 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { DatePicker } from "@/components/ui/date-picker"
+// DatePicker import removed as we are switching to Input type="date"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ChevronLeft, Search } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { CustomPagination } from "@/components/ui/custom-pagination"
+import { cn } from "@/lib/utils" // For conditional class names
+
+// Helper to format Date to YYYY-MM-DD string
+const formatDateToYYYYMMDD = (date: Date | undefined | null): string => {
+  if (!date) return ""
+  return date.toISOString().split("T")[0]
+}
+
+// Helper to get today's date as YYYY-MM-DD string
+const getTodayString = () => {
+  return new Date().toISOString().split("T")[0]
+}
+
+// Mock data for creators (updated: department -> email)
+const creators = [
+  { id: 1, name: "Sarah Johnson", email: "sarah.johnson@example.com", province: "Jakarta", city: "Jakarta Selatan" },
+  { id: 2, name: "Michael Chen", email: "michael.chen@example.com", province: "Jakarta", city: "Jakarta Pusat" },
+  { id: 3, name: "Emily Rodriguez", email: "emily.rodriguez@example.com", province: "Jawa Barat", city: "Bandung" },
+  { id: 4, name: "David Wilson", email: "david.wilson@example.com", province: "Jawa Timur", city: "Surabaya" },
+  { id: 5, name: "Lisa Thompson", email: "lisa.thompson@example.com", province: "Bali", city: "Denpasar" },
+  { id: 6, name: "Ahmad Rizki", email: "ahmad.rizki@example.com", province: "Jawa Barat", city: "Bogor" },
+  { id: 7, name: "Siti Nurhayati", email: "siti.nurhayati@example.com", province: "Jawa Tengah", city: "Semarang" },
+  { id: 8, name: "Budi Santoso", email: "budi.santoso@example.com", province: "Yogyakarta", city: "Yogyakarta" },
+  { id: 9, name: "Dewi Lestari", email: "dewi.lestari@example.com", province: "Sumatera Utara", city: "Medan" },
+  { id: 10, name: "Rini Puspita", email: "rini.puspita@example.com", province: "Sulawesi Selatan", city: "Makassar" },
+  { id: 11, name: "Andi Pratama", email: "andi.pratama@example.com", province: "Jakarta", city: "Jakarta Barat" },
+  { id: 12, name: "Maya Sari", email: "maya.sari@example.com", province: "Jakarta", city: "Jakarta Timur" },
+  { id: 13, name: "Rizky Hakim", email: "rizky.hakim@example.com", province: "Jakarta", city: "Jakarta Utara" },
+  { id: 14, name: "Indira Putri", email: "indira.putri@example.com", province: "Jawa Barat", city: "Bandung" },
+  { id: 15, name: "Fajar Ramadhan", email: "fajar.ramadhan@example.com", province: "Jawa Barat", city: "Bogor" },
+  { id: 16, name: "Lestari Wulan", email: "lestari.wulan@example.com", province: "Jawa Tengah", city: "Semarang" },
+  { id: 17, name: "Bayu Setiawan", email: "bayu.setiawan@example.com", province: "Jawa Timur", city: "Surabaya" },
+  { id: 18, name: "Citra Dewi", email: "citra.dewi@example.com", province: "Bali", city: "Denpasar" },
+  { id: 19, name: "Doni Kurniawan", email: "doni.kurniawan@example.com", province: "Yogyakarta", city: "Yogyakarta" },
+  { id: 20, name: "Eka Fitriani", email: "eka.fitriani@example.com", province: "Sumatera Utara", city: "Medan" },
+  {
+    id: 21,
+    name: "Gilang Pratama",
+    email: "gilang.pratama@example.com",
+    province: "Sulawesi Selatan",
+    city: "Makassar",
+  },
+  { id: 22, name: "Hana Safitri", email: "hana.safitri@example.com", province: "Jakarta", city: "Jakarta Selatan" },
+  { id: 23, name: "Ivan Nugroho", email: "ivan.nugroho@example.com", province: "Jakarta", city: "Jakarta Pusat" },
+  { id: 24, name: "Jihan Amelia", email: "jihan.amelia@example.com", province: "Jawa Barat", city: "Bandung" },
+  { id: 25, name: "Kevin Wijaya", email: "kevin.wijaya@example.com", province: "Jawa Barat", city: "Bogor" },
+]
 
 export default function CreateCampaignPage() {
   const [campaignType, setCampaignType] = useState<string>("quick-share")
   const [selectedProvince, setSelectedProvince] = useState<string>("all")
+  const [selectedCity, setSelectedCity] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
-  const [startDate, setStartDate] = useState<Date>()
-  const [endDate, setEndDate] = useState<Date>()
 
-  // Mock data for creators
-  const creators = [
-    { id: 1, name: "Sarah Johnson", department: "Marketing", province: "Jakarta", city: "Jakarta Selatan" },
-    { id: 2, name: "Michael Chen", department: "Product", province: "Jakarta", city: "Jakarta Pusat" },
-    { id: 3, name: "Emily Rodriguez", department: "Customer Success", province: "Jawa Barat", city: "Bandung" },
-    { id: 4, name: "David Wilson", department: "Sales", province: "Jawa Timur", city: "Surabaya" },
-    { id: 5, name: "Lisa Thompson", department: "Engineering", province: "Bali", city: "Denpasar" },
-    { id: 6, name: "Ahmad Rizki", department: "Marketing", province: "Jawa Barat", city: "Bogor" },
-    { id: 7, name: "Siti Nurhayati", department: "Finance", province: "Jawa Tengah", city: "Semarang" },
-    { id: 8, name: "Budi Santoso", department: "Operations", province: "Yogyakarta", city: "Yogyakarta" },
-    { id: 9, name: "Dewi Lestari", department: "HR", province: "Sumatera Utara", city: "Medan" },
-    { id: 10, name: "Rini Puspita", department: "Marketing", province: "Sulawesi Selatan", city: "Makassar" },
-  ]
+  // Date state now stores YYYY-MM-DD strings
+  const [startDate, setStartDate] = useState<string>("")
+  const [endDate, setEndDate] = useState<string>("")
+  const [minEndDate, setMinEndDate] = useState<string>("")
 
-  // Filter creators based on selected province and search term
-  const filteredCreators = creators.filter((creator) => {
-    const matchesProvince = selectedProvince === "all" || creator.province === selectedProvince
-    const matchesSearch =
-      creator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      creator.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      creator.city.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesProvince && matchesSearch
-  })
+  // Pagination state for creators
+  const [creatorsCurrentPage, setCreatorsCurrentPage] = useState(1)
+  const [creatorsItemsPerPage, setCreatorsItemsPerPage] = useState(5)
 
-  // Calculate minimum end date (day after start date)
-  const minEndDate = startDate ? new Date(startDate.getTime() + 24 * 60 * 60 * 1000) : undefined
-
-  const handleStartDateChange = (date: Date | undefined) => {
-    setStartDate(date)
-    // If end date is before or same as new start date, clear it
-    if (date && endDate && endDate <= date) {
-      setEndDate(undefined)
+  useEffect(() => {
+    if (startDate) {
+      const start = new Date(startDate)
+      start.setDate(start.getDate() + 1) // Minimum end date is the day after start date
+      setMinEndDate(formatDateToYYYYMMDD(start))
+      if (endDate && new Date(endDate) <= new Date(startDate)) {
+        setEndDate(formatDateToYYYYMMDD(start)) // Auto-adjust end date if it's no longer valid
+      }
+    } else {
+      setMinEndDate("")
+      setEndDate("") // Clear end date if start date is cleared
     }
-  }
+  }, [startDate, endDate])
+
+  // Filter creators based on selected province, city, and search term
+  const filteredCreators = useMemo(() => {
+    return creators.filter((creator) => {
+      const matchesProvince = selectedProvince === "all" || creator.province === selectedProvince
+      const matchesCity = selectedCity === "all" || creator.city === selectedCity
+      const matchesSearch =
+        creator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        creator.email.toLowerCase().includes(searchTerm.toLowerCase()) || // Search by email
+        creator.city.toLowerCase().includes(searchTerm.toLowerCase())
+      return matchesProvince && matchesCity && matchesSearch
+    })
+  }, [selectedProvince, selectedCity, searchTerm])
+
+  // Paginate filtered creators
+  const totalCreatorPages = Math.ceil(filteredCreators.length / creatorsItemsPerPage)
+  const paginatedCreators = filteredCreators.slice(
+    (creatorsCurrentPage - 1) * creatorsItemsPerPage,
+    creatorsCurrentPage * creatorsItemsPerPage,
+  )
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -113,22 +168,26 @@ export default function CreateCampaignPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Start Date</Label>
-                  <DatePicker
+                  <Label htmlFor="start-date">Start Date</Label>
+                  <Input
+                    id="start-date"
+                    type="date"
                     value={startDate}
-                    onChange={handleStartDateChange}
-                    placeholder="Select start date"
-                    minDate={new Date()}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    min={getTodayString()}
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>End Date</Label>
-                  <DatePicker
+                  <Label htmlFor="end-date">End Date</Label>
+                  <Input
+                    id="end-date"
+                    type="date"
                     value={endDate}
-                    onChange={setEndDate}
-                    placeholder="Select end date"
-                    minDate={minEndDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={minEndDate || getTodayString()}
                     disabled={!startDate}
+                    className={cn("w-full", !startDate && "bg-muted cursor-not-allowed")}
                   />
                   {!startDate && <p className="text-xs text-muted-foreground">Please select a start date first</p>}
                 </div>
@@ -146,7 +205,6 @@ export default function CreateCampaignPage() {
                   </SelectContent>
                 </Select>
               </div>
-
             </CardContent>
           </Card>
         </TabsContent>
@@ -162,14 +220,23 @@ export default function CreateCampaignPage() {
                 <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search creators..."
+                    placeholder="Search creators by name, email, city..."
                     className="pl-8"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value)
+                      setCreatorsCurrentPage(1)
+                    }}
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                  <Select
+                    value={selectedProvince}
+                    onValueChange={(value) => {
+                      setSelectedProvince(value)
+                      setCreatorsCurrentPage(1)
+                    }}
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select province" />
                     </SelectTrigger>
@@ -185,7 +252,13 @@ export default function CreateCampaignPage() {
                       <SelectItem value="Sulawesi Selatan">Sulawesi Selatan</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select>
+                  <Select
+                    value={selectedCity}
+                    onValueChange={(value) => {
+                      setSelectedCity(value)
+                      setCreatorsCurrentPage(1)
+                    }}
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select city" />
                     </SelectTrigger>
@@ -217,25 +290,22 @@ export default function CreateCampaignPage() {
                         <Checkbox />
                       </TableHead>
                       <TableHead>Name</TableHead>
-                      <TableHead>Department</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Province</TableHead>
                       <TableHead>City</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCreators.length > 0 ? (
-                      filteredCreators.map((creator) => (
+                    {paginatedCreators.length > 0 ? (
+                      paginatedCreators.map((creator) => (
                         <TableRow key={creator.id}>
                           <TableCell>
                             <Checkbox id={`creator-${creator.id}`} />
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-slate-200"></div>
-                              <span>{creator.name}</span>
-                            </div>
+                            <span>{creator.name}</span>
                           </TableCell>
-                          <TableCell>{creator.department}</TableCell>
+                          <TableCell>{creator.email}</TableCell>
                           <TableCell>{creator.province}</TableCell>
                           <TableCell>{creator.city}</TableCell>
                         </TableRow>
@@ -251,9 +321,20 @@ export default function CreateCampaignPage() {
                 </Table>
               </div>
 
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-muted-foreground">{filteredCreators.length} creators shown</p>
-              </div>
+              {totalCreatorPages > 1 && (
+                <CustomPagination
+                  currentPage={creatorsCurrentPage}
+                  totalPages={totalCreatorPages}
+                  totalItems={filteredCreators.length}
+                  itemsPerPage={creatorsItemsPerPage}
+                  onPageChange={setCreatorsCurrentPage}
+                  onItemsPerPageChange={(value) => {
+                    setCreatorsItemsPerPage(value)
+                    setCreatorsCurrentPage(1)
+                  }}
+                  itemName="creators"
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
