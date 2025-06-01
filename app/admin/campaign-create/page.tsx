@@ -19,6 +19,8 @@ export default function CreateCampaignPage() {
   const [campaignType, setCampaignType] = useState<string>("quick-share")
   const [selectedProvince, setSelectedProvince] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
+  const [startDate, setStartDate] = useState<Date>()
+  const [endDate, setEndDate] = useState<Date>()
 
   // Mock data for creators
   const creators = [
@@ -43,6 +45,17 @@ export default function CreateCampaignPage() {
       creator.city.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesProvince && matchesSearch
   })
+
+  // Calculate minimum end date (day after start date)
+  const minEndDate = startDate ? new Date(startDate.getTime() + 24 * 60 * 60 * 1000) : undefined
+
+  const handleStartDateChange = (date: Date | undefined) => {
+    setStartDate(date)
+    // If end date is before or same as new start date, clear it
+    if (date && endDate && endDate <= date) {
+      setEndDate(undefined)
+    }
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -100,16 +113,24 @@ export default function CreateCampaignPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <div>
-                    <Label>Start Date</Label>
-                  </div>
-                  <DatePicker />
+                  <Label>Start Date</Label>
+                  <DatePicker
+                    value={startDate}
+                    onChange={handleStartDateChange}
+                    placeholder="Select start date"
+                    minDate={new Date()}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <div>
-                    <Label>End Date</Label>
-                  </div>
-                  <DatePicker />
+                  <Label>End Date</Label>
+                  <DatePicker
+                    value={endDate}
+                    onChange={setEndDate}
+                    placeholder="Select end date"
+                    minDate={minEndDate}
+                    disabled={!startDate}
+                  />
+                  {!startDate && <p className="text-xs text-muted-foreground">Please select a start date first</p>}
                 </div>
               </div>
 
@@ -126,28 +147,6 @@ export default function CreateCampaignPage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="objective">Campaign Objective</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select objective" />
-                  </SelectTrigger>
-                  <SelectContent position="popper" className="w-[400px] max-h-[300px] overflow-y-auto">
-                    <SelectItem value="awareness-general">General Awareness</SelectItem>
-                    <SelectItem value="awareness-reach">Reach</SelectItem>
-                    <SelectItem value="awareness-recognition">Brand Recognition</SelectItem>
-                    <SelectItem value="engagement-general">General Engagement</SelectItem>
-                    <SelectItem value="engagement-likes">Likes & Comments</SelectItem>
-                    <SelectItem value="engagement-shares">Shares & Saves</SelectItem>
-                    <SelectItem value="conversion-traffic">Website Traffic</SelectItem>
-                    <SelectItem value="conversion-leads">Lead Generation</SelectItem>
-                    <SelectItem value="conversion-sales">Sales</SelectItem>
-                    <SelectItem value="other-recruitment">Recruitment</SelectItem>
-                    <SelectItem value="other-education">Education</SelectItem>
-                    <SelectItem value="other-csr">CSR</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

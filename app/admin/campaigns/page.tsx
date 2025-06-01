@@ -187,19 +187,18 @@ function CampaignList({ status }: { status: string }) {
       <CardContent className="px-6">
         <div className="rounded-md border overflow-x-auto">
           <div className="min-w-max">
-            <div className="grid grid-cols-12 p-4 bg-slate-50 text-sm font-medium text-slate-500">
+            <div className="grid grid-cols-11 p-4 bg-slate-50 text-sm font-medium text-slate-500">
               <div className="col-span-3">Campaign</div>
               <div className="col-span-1">Status</div>
               <div className="col-span-2">Due Date</div>
               <div className="col-span-2">Participants</div>
-              <div className="col-span-1">Views</div>
-              <div className="col-span-2">Engagement</div>
+              <div className="col-span-2">Performance</div>
               <div className="col-span-1">Actions</div>
             </div>
 
             {filteredCampaigns.length > 0 ? (
               filteredCampaigns.map((campaign) => (
-                <div key={campaign.id} className="grid grid-cols-12 p-4 border-t items-center">
+                <div key={campaign.id} className="grid grid-cols-11 p-4 border-t items-center">
                   <div className="col-span-3">
                     <p className="font-medium truncate">{campaign.title}</p>
                     <Badge variant="outline" className="text-xs mt-1">
@@ -226,23 +225,20 @@ function CampaignList({ status }: { status: string }) {
                       <span className="text-xs text-muted-foreground">{campaign.submissions} Submissions</span>
                     </div>
                   </div>
-                  <div className="col-span-1">
-                    <span>{campaign.views}</span>
-                  </div>
                   <div className="col-span-2">
-                    <div className="flex items-center gap-3">
-                      {campaign.likes > 0 && (
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <div className="flex items-center">
-                            <ThumbsUp className="h-3 w-3 mr-1" />
-                            {campaign.likes}
-                          </div>
-                          <div className="flex items-center">
-                            <MessageCircle className="h-3 w-3 mr-1" />
-                            {campaign.comments}
-                          </div>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        <span>{campaign.status === "draft" ? "0" : campaign.views}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <ThumbsUp className="h-3 w-3" />
+                        <span>{campaign.status === "draft" ? "0" : campaign.likes}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="h-3 w-3" />
+                        <span>{campaign.status === "draft" ? "0" : campaign.comments}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="col-span-1 flex items-center">

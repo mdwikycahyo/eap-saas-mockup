@@ -1,10 +1,22 @@
 "use client"
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+
+import * as React from "react"
+import { useState, useEffect, useMemo } from "react"
+import { CaretSortIcon } from "@radix-ui/react-icons"
+import {
+  type ColumnDef,
+  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -13,258 +25,1651 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
 import {
-  Search,
-  Award,
-  Plus,
-  User,
-  History,
-  Clock,
-  Pencil,
-  Mail,
-  MoreHorizontal,
-  Upload,
-  Download,
-  FileSpreadsheet,
-} from "lucide-react"
-import { toast } from "@/hooks/use-toast"
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { toast } from "@/hooks/use-toast"
+import { Search, Plus, Upload, Download, Pencil, Mail, Coins, UserIcon, Instagram } from "lucide-react"
+import { TikTokIcon } from "@/components/tik-tok-icon" // Ensure TikTokIcon is correctly imported or defined if not already
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
+import { CheckIcon } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { CustomPagination } from "@/components/ui/custom-pagination" // Import CustomPagination
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-export default function CreatorManagement() {
-  const [isAddCreatorOpen, setIsAddCreatorOpen] = useState(false)
-  const [isImportCreatorsOpen, setIsImportCreatorsOpen] = useState(false)
+// --- Mock Indonesian Regions Data ---
+interface IndonesianRegion {
+  id: string
+  name: string
+}
+interface IndonesianCity extends IndonesianRegion {
+  province_id: string
+}
+interface IndonesianRegionsData {
+  provinces: IndonesianRegion[]
+  cities: IndonesianCity[]
+}
 
-  const handleDownloadTemplate = () => {
-    toast({
-      title: "Template Downloaded",
-      description: "The creator import template has been downloaded.",
-    })
-    // In a real app, this would trigger a file download
+const mockProvinces: IndonesianRegion[] = [
+  { id: "1", name: "DKI Jakarta" },
+  { id: "2", name: "West Java" },
+  { id: "3", name: "East Java" },
+  { id: "4", name: "Central Java" },
+  { id: "5", name: "Yogyakarta" },
+  { id: "6", name: "Banten" },
+  { id: "7", name: "Bali" },
+  { id: "8", name: "North Sumatra" },
+  { id: "9", name: "South Sulawesi" },
+  { id: "10", name: "Other" },
+]
+
+const mockCities: IndonesianCity[] = [
+  { id: "101", province_id: "1", name: "Jakarta" },
+  { id: "201", province_id: "2", name: "Bandung" },
+  { id: "202", province_id: "2", name: "Bogor" },
+  { id: "203", province_id: "2", name: "Bekasi" },
+  { id: "301", province_id: "3", name: "Surabaya" },
+  { id: "302", province_id: "3", name: "Malang" },
+  { id: "401", province_id: "4", name: "Semarang" },
+  { id: "402", province_id: "4", name: "Solo" },
+  { id: "501", province_id: "5", name: "Yogyakarta" },
+  { id: "601", province_id: "6", name: "Tangerang" },
+  { id: "701", province_id: "7", name: "Denpasar" },
+  { id: "801", province_id: "8", name: "Medan" },
+  { id: "901", province_id: "9", name: "Makassar" },
+  { id: "1001", province_id: "10", name: "Other City" },
+]
+
+const regionsData: IndonesianRegionsData = {
+  provinces: mockProvinces,
+  cities: mockCities,
+}
+// --- End Mock Indonesian Regions Data ---
+
+export type Creator = {
+  id: string
+  fullName: string
+  email: string
+  avatarUrl?: string
+  phoneNumber?: string
+  role: "Creator" | "Admin"
+  invitationStatus: "Accepted" | "Pending Invitation"
+  province?: string
+  city?: string
+  department?: string
+  points: number
+  campaignsParticipated?: CampaignParticipation[]
+  pointHistory?: PointHistoryEntry[]
+  instagramUsername?: string // New field
+  tiktokUsername?: string // New field
+}
+
+export interface CampaignParticipation {
+  id: string
+  campaignName: string
+  status: "Active" | "Completed" | "Pending Review"
+  pointsEarned: number
+  submissionDate: string
+}
+
+export interface PointHistoryEntry {
+  id: string
+  date: string
+  description: string
+  points: number
+  balance: number
+}
+
+const initialMockCreators: Creator[] = [
+  {
+    id: "1",
+    fullName: "Sarah Johnson",
+    email: "sarah.johnson@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    phoneNumber: "081234567890",
+    role: "Creator",
+    invitationStatus: "Accepted",
+    province: "DKI Jakarta",
+    city: "Jakarta",
+    department: "Marketing",
+    points: 4250,
+    instagramUsername: "sarah_creative",
+    tiktokUsername: "sarahj_official",
+    campaignsParticipated: [
+      {
+        id: "cp1",
+        campaignName: "Summer Product Launch",
+        status: "Completed",
+        pointsEarned: 300,
+        submissionDate: "2025-05-10",
+      },
+    ],
+    pointHistory: [
+      { id: "ph1", date: "2025-05-12", description: "Points for Summer Launch", points: 300, balance: 4250 },
+      { id: "ph2", date: "2025-04-20", description: "Redeemed Gift Card", points: -500, balance: 3950 },
+    ],
+  },
+  {
+    id: "2",
+    fullName: "Michael Chen",
+    email: "michael.chen@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    phoneNumber: "082345678901",
+    role: "Creator",
+    invitationStatus: "Accepted",
+    province: "West Java",
+    city: "Bandung",
+    department: "Product",
+    points: 3820,
+    instagramUsername: "michael_chen_art",
+  },
+  // ... (ensure other creators also have avatarUrls with queries if they were just placeholder.svg)
+  // ... (ensure Emily Rodriguez (Admin) does NOT have social media usernames)
+  {
+    id: "3",
+    fullName: "Emily Rodriguez",
+    email: "emily.rodriguez@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    phoneNumber: "083456789012",
+    role: "Admin",
+    invitationStatus: "Accepted",
+    province: "East Java",
+    city: "Surabaya",
+    department: "Customer Success",
+    points: 1500, // Admins can have points, but it won't be displayed in their table column
+  },
+  {
+    id: "4",
+    fullName: "David Wilson",
+    email: "david.wilson@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    role: "Creator",
+    invitationStatus: "Pending Invitation",
+    province: "Bali",
+    city: "Denpasar",
+    department: "Sales",
+    points: 0,
+  },
+  {
+    id: "5",
+    fullName: "Lisa Thompson",
+    email: "lisa.thompson@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    phoneNumber: "085678901234",
+    role: "Creator",
+    invitationStatus: "Accepted",
+    province: "Yogyakarta",
+    city: "Yogyakarta",
+    department: "HR",
+    points: 1850,
+  },
+  {
+    id: "6",
+    fullName: "James Brown",
+    email: "james.brown@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    role: "Creator",
+    invitationStatus: "Pending Invitation",
+    province: "Central Java",
+    city: "Semarang",
+    department: "Engineering",
+    points: 0,
+  },
+  {
+    id: "7",
+    fullName: "Olivia Davis",
+    email: "olivia.davis@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    role: "Creator",
+    invitationStatus: "Accepted",
+    province: "DKI Jakarta",
+    city: "Jakarta",
+    department: "Marketing",
+    points: 2200,
+  },
+  {
+    id: "8",
+    fullName: "William Garcia",
+    email: "william.garcia@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    role: "Admin",
+    invitationStatus: "Pending Invitation",
+    province: "West Java",
+    city: "Bogor",
+    department: "Operations",
+    points: 0,
+  },
+  {
+    id: "9",
+    fullName: "Sophia Martinez",
+    email: "sophia.martinez@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    phoneNumber: "081122334455",
+    role: "Creator",
+    invitationStatus: "Accepted",
+    province: "East Java",
+    city: "Malang",
+    department: "Sales",
+    points: 3100,
+  },
+  {
+    id: "10",
+    fullName: "Daniel Miller",
+    email: "daniel.miller@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    role: "Creator",
+    invitationStatus: "Accepted",
+    province: "Bali",
+    city: "Denpasar",
+    department: "Product",
+    points: 1950,
+  },
+  {
+    id: "11",
+    fullName: "Isabella Anderson",
+    email: "isabella.anderson@company.com",
+    avatarUrl: "/placeholder.svg?height=40&width=40",
+    role: "Creator",
+    invitationStatus: "Pending Invitation",
+    province: "Yogyakarta",
+    city: "Yogyakarta",
+    department: "Customer Success",
+    points: 0,
+  },
+]
+
+function AddCreatorDialog({
+  isOpen,
+  onOpenChange,
+  onCreatorAdded,
+}: {
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
+  onCreatorAdded: (newCreator: Creator) => void
+}) {
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [selectedProvince, setSelectedProvince] = useState<IndonesianRegion | null>(null)
+  const [selectedCity, setSelectedCity] = useState<IndonesianCity | null>(null)
+  const [role, setRole] = useState<"Creator" | "Admin">("Creator")
+
+  const [openProvincePopover, setOpenProvincePopover] = useState(false)
+  const [openCityPopover, setOpenCityPopover] = useState(false)
+
+  const availableCities = useMemo(() => {
+    if (!selectedProvince) return []
+    return regionsData.cities.filter((city) => city.province_id === selectedProvince.id)
+  }, [selectedProvince])
+
+  useEffect(() => {
+    if (isOpen) {
+      setFullName("")
+      setEmail("")
+      setPhoneNumber("")
+      setSelectedProvince(null)
+      setSelectedCity(null)
+      setRole("Creator")
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    setSelectedCity(null)
+  }, [selectedProvince])
+
+  const handleSubmit = () => {
+    if (!fullName || !email || !selectedProvince || !selectedCity || !role) {
+      toast({
+        title: "Missing Information",
+        description: "Full Name, Email, Province, City, and Role are mandatory.",
+        variant: "destructive",
+      })
+      return
+    }
+    const newCreator: Creator = {
+      id: Date.now().toString(),
+      fullName,
+      email,
+      phoneNumber: phoneNumber || undefined,
+      role,
+      invitationStatus: "Pending Invitation",
+      province: selectedProvince.name,
+      city: selectedCity.name,
+      avatarUrl: `/placeholder.svg?height=40&width=40&query=${encodeURIComponent(fullName)}`,
+      points: 0,
+      department: "N/A",
+    }
+    onCreatorAdded(newCreator)
+    toast({ title: "User Added", description: `${fullName} has been invited.` })
+    onOpenChange(false)
+  }
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add New User</DialogTitle>
+          <DialogDescription>Enter the details for the new creator. Phone number is optional.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="fullName">
+              Full Name <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="fullName"
+              placeholder="Enter full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">
+              Email Address <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="employee@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phoneNumber">Phone Number</Label>
+            <Input
+              id="phoneNumber"
+              placeholder="Enter phone number"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="province">
+                Province <span className="text-red-500">*</span>
+              </Label>
+              <Popover open={openProvincePopover} onOpenChange={setOpenProvincePopover}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openProvincePopover}
+                    className="w-full justify-between"
+                  >
+                    {selectedProvince ? selectedProvince.name : "Select province..."}{" "}
+                    <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search province..." />
+                    <CommandList>
+                      <CommandEmpty>No province found.</CommandEmpty>
+                      <CommandGroup>
+                        {regionsData.provinces.map((province) => (
+                          <CommandItem
+                            key={province.id}
+                            value={province.name}
+                            onSelect={() => {
+                              setSelectedProvince(province)
+                              setOpenProvincePopover(false)
+                            }}
+                          >
+                            <CheckIcon
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedProvince?.id === province.id ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            {province.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">
+                City <span className="text-red-500">*</span>
+              </Label>
+              <Popover open={openCityPopover} onOpenChange={setOpenCityPopover}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openCityPopover}
+                    className="w-full justify-between"
+                    disabled={!selectedProvince || availableCities.length === 0}
+                  >
+                    {selectedCity ? selectedCity.name : "Select city..."}{" "}
+                    <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search city..." />
+                    <CommandList>
+                      <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandGroup>
+                        {availableCities.map((city) => (
+                          <CommandItem
+                            key={city.id}
+                            value={city.name}
+                            onSelect={() => {
+                              setSelectedCity(city)
+                              setOpenCityPopover(false)
+                            }}
+                          >
+                            <CheckIcon
+                              className={cn("mr-2 h-4 w-4", selectedCity?.id === city.id ? "opacity-100" : "opacity-0")}
+                            />
+                            {city.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="role-select">
+              Role <span className="text-red-500">*</span>
+            </Label>
+            <Select value={role} onValueChange={(value: "Creator" | "Admin") => setRole(value)}>
+              <SelectTrigger id="role-select">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Creator">Creator</SelectItem>
+                <SelectItem value="Admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit}>Add User</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function EditCreatorDialog({
+  isOpen,
+  onOpenChange,
+  creator,
+  onCreatorUpdated,
+}: {
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
+  creator: Creator | null
+  onCreatorUpdated: (updatedCreator: Creator) => void
+}) {
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [selectedProvince, setSelectedProvince] = useState<IndonesianRegion | null>(null)
+  const [selectedCity, setSelectedCity] = useState<IndonesianCity | null>(null)
+  const [role, setRole] = useState<"Creator" | "Admin">("Creator")
+  const [invitationStatus, setInvitationStatus] = useState<"Accepted" | "Pending Invitation">("Pending Invitation")
+
+  const [openProvincePopover, setOpenProvincePopover] = useState(false)
+  const [openCityPopover, setOpenCityPopover] = useState(false)
+
+  const availableCities = useMemo(() => {
+    if (!selectedProvince) return []
+    return regionsData.cities.filter((city) => city.province_id === selectedProvince.id)
+  }, [selectedProvince])
+
+  useEffect(() => {
+    if (creator) {
+      setFullName(creator.fullName)
+      setEmail(creator.email)
+      setPhoneNumber(creator.phoneNumber || "")
+      setRole(creator.role)
+      setInvitationStatus(creator.invitationStatus)
+      const province = regionsData.provinces.find((p) => p.name === creator.province) || null
+      setSelectedProvince(province)
+      if (province) {
+        const city = regionsData.cities.find((c) => c.name === creator.city && c.province_id === province.id) || null
+        setSelectedCity(city)
+      } else {
+        setSelectedCity(null)
+      }
+    }
+  }, [creator])
+
+  useEffect(() => {
+    if (creator && selectedProvince && creator.province !== selectedProvince.name) {
+      setSelectedCity(null)
+    }
+  }, [selectedProvince, creator])
+
+  const handleSubmit = () => {
+    if (!creator || !fullName || !email || !selectedProvince || !selectedCity || !role) {
+      toast({
+        title: "Missing Information",
+        description: "Full Name, Email, Province, City, and Role are mandatory.",
+        variant: "destructive",
+      })
+      return
+    }
+    const updatedCreator: Creator = {
+      ...creator,
+      fullName,
+      email,
+      phoneNumber: phoneNumber || undefined,
+      role,
+      invitationStatus,
+      province: selectedProvince.name,
+      city: selectedCity.name,
+    }
+    onCreatorUpdated(updatedCreator)
+    toast({ title: "User Updated", description: `${fullName}'s details have been updated.` })
+    onOpenChange(false)
   }
 
+  if (!creator) return null
   return (
-    <div className="p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Creator Management</h1>
-          <p className="text-muted-foreground">Manage and monitor your employee advocates</p>
-        </div>
-        <div className="mt-4 md:mt-0 flex gap-2">
-          <Button variant="outline" className="gap-1" onClick={handleDownloadTemplate}>
-            <Download className="h-4 w-4" />
-            Download Template
-          </Button>
-          <Button variant="outline" className="gap-1" onClick={() => setIsImportCreatorsOpen(true)}>
-            <FileSpreadsheet className="h-4 w-4" />
-            Import Creators
-          </Button>
-          <Button className="gap-1" onClick={() => setIsAddCreatorOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Add Creator
-          </Button>
-        </div>
-      </div>
-
-      <Tabs defaultValue="all" className="w-full mb-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Search creators..." className="pl-8" />
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit User</DialogTitle>
+          <DialogDescription>Update details for {creator.fullName}.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="edit-fullName">
+              Full Name <span className="text-red-500">*</span>
+            </Label>
+            <Input id="edit-fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
           </div>
-          <TabsList>
-            <TabsTrigger value="all">All Creators</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="inactive">Inactive</TabsTrigger>
-            <TabsTrigger value="pending">Invitation Pending</TabsTrigger>
-            <TabsTrigger value="top">Top Performers</TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="all">
-          <CreatorList filter="all" />
-        </TabsContent>
-
-        <TabsContent value="active">
-          <CreatorList filter="active" />
-        </TabsContent>
-
-        <TabsContent value="inactive">
-          <CreatorList filter="inactive" />
-        </TabsContent>
-
-        <TabsContent value="pending">
-          <CreatorList filter="pending" />
-        </TabsContent>
-
-        <TabsContent value="top">
-          <CreatorList filter="top" />
-        </TabsContent>
-      </Tabs>
-
-      {/* Add Creator Dialog */}
-      <Dialog open={isAddCreatorOpen} onOpenChange={setIsAddCreatorOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[70vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Creator</DialogTitle>
-            <DialogDescription>Add a new employee advocate to your program.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" placeholder="Enter first name" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" placeholder="Enter last name" />
-              </div>
-            </div>
-
+          <div className="space-y-2">
+            <Label htmlFor="edit-email">
+              Email Address <span className="text-red-500">*</span>
+            </Label>
+            <Input id="edit-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-phoneNumber">Phone Number</Label>
+            <Input id="edit-phoneNumber" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" placeholder="employee@company.com" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="department">Department</Label>
-                <Select>
-                  <SelectTrigger id="department">
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="sales">Sales</SelectItem>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                    <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
-                    <SelectItem value="customer_success">Customer Success</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="operations">Operations</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <Input id="role" placeholder="Job title" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="province">Province</Label>
-                <Select>
-                  <SelectTrigger id="province">
-                    <SelectValue placeholder="Select province" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="jakarta">DKI Jakarta</SelectItem>
-                    <SelectItem value="west_java">West Java</SelectItem>
-                    <SelectItem value="east_java">East Java</SelectItem>
-                    <SelectItem value="central_java">Central Java</SelectItem>
-                    <SelectItem value="yogyakarta">Yogyakarta</SelectItem>
-                    <SelectItem value="banten">Banten</SelectItem>
-                    <SelectItem value="bali">Bali</SelectItem>
-                    <SelectItem value="north_sumatra">North Sumatra</SelectItem>
-                    <SelectItem value="south_sulawesi">South Sulawesi</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Select>
-                  <SelectTrigger id="city">
-                    <SelectValue placeholder="Select city" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="jakarta">Jakarta</SelectItem>
-                    <SelectItem value="bandung">Bandung</SelectItem>
-                    <SelectItem value="surabaya">Surabaya</SelectItem>
-                    <SelectItem value="semarang">Semarang</SelectItem>
-                    <SelectItem value="yogyakarta">Yogyakarta</SelectItem>
-                    <SelectItem value="medan">Medan</SelectItem>
-                    <SelectItem value="makassar">Makassar</SelectItem>
-                    <SelectItem value="denpasar">Denpasar</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="initialPoints">Initial Points</Label>
-              <Input id="initialPoints" type="number" defaultValue="0" />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <input type="checkbox" className="rounded border-gray-300" />
-                <span>Send invitation email</span>
+              <Label htmlFor="edit-province">
+                Province <span className="text-red-500">*</span>
               </Label>
+              <Popover open={openProvincePopover} onOpenChange={setOpenProvincePopover}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" className="w-full justify-between">
+                    {selectedProvince ? selectedProvince.name : "Select province..."}{" "}
+                    <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search province..." />
+                    <CommandList>
+                      <CommandEmpty>No province found.</CommandEmpty>
+                      <CommandGroup>
+                        {regionsData.provinces.map((province) => (
+                          <CommandItem
+                            key={province.id}
+                            value={province.name}
+                            onSelect={() => {
+                              setSelectedProvince(province)
+                              setOpenProvincePopover(false)
+                            }}
+                          >
+                            <CheckIcon
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedProvince?.id === province.id ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            {province.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-city">
+                City <span className="text-red-500">*</span>
+              </Label>
+              <Popover open={openCityPopover} onOpenChange={setOpenCityPopover}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between"
+                    disabled={!selectedProvince || availableCities.length === 0}
+                  >
+                    {selectedCity ? selectedCity.name : "Select city..."}{" "}
+                    <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search city..." />
+                    <CommandList>
+                      <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandGroup>
+                        {availableCities.map((city) => (
+                          <CommandItem
+                            key={city.id}
+                            value={city.name}
+                            onSelect={() => {
+                              setSelectedCity(city)
+                              setOpenCityPopover(false)
+                            }}
+                          >
+                            <CheckIcon
+                              className={cn("mr-2 h-4 w-4", selectedCity?.id === city.id ? "opacity-100" : "opacity-0")}
+                            />
+                            {city.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddCreatorOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                toast({
-                  title: "Creator added",
-                  description: "The new creator has been added successfully.",
-                })
-                setIsAddCreatorOpen(false)
-              }}
-            >
-              Add Creator
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-role-select">
+                Role <span className="text-red-500">*</span>
+              </Label>
+              <Select value={role} onValueChange={(value: "Creator" | "Admin") => setRole(value)}>
+                <SelectTrigger id="edit-role-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Creator">Creator</SelectItem>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-invitationStatus">
+                Invitation Status <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={invitationStatus}
+                onValueChange={(value: "Accepted" | "Pending Invitation") => setInvitationStatus(value)}
+              >
+                <SelectTrigger id="edit-invitationStatus">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Accepted">Accepted</SelectItem>
+                  <SelectItem value="Pending Invitation">Pending Invitation</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit}>Save Changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
-      {/* Import Creators Dialog */}
+function ViewProfileDialog({
+  isOpen,
+  onOpenChange,
+  creator,
+}: {
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
+  creator: Creator | null
+}) {
+  if (!creator) return null
+
+  // Only show campaign participation and point history for accepted creators
+  const mockCampaigns: CampaignParticipation[] =
+    creator.invitationStatus === "Accepted"
+      ? creator.campaignsParticipated || [
+          {
+            id: "1",
+            campaignName: "Summer Sale UGC",
+            status: "Completed",
+            pointsEarned: 250,
+            submissionDate: "2025-05-15",
+          },
+          {
+            id: "2",
+            campaignName: "New Feature TikTok Challenge",
+            status: "Active",
+            pointsEarned: 0,
+            submissionDate: "2025-06-01",
+          },
+        ]
+      : []
+
+  const mockPointHistory: PointHistoryEntry[] =
+    creator.invitationStatus === "Accepted"
+      ? creator.pointHistory || [
+          {
+            id: "h1",
+            date: "2025-05-16",
+            description: "Points for Summer Sale UGC",
+            points: 250,
+            balance: creator.points || 250,
+          },
+          {
+            id: "h2",
+            date: "2025-04-10",
+            description: "Welcome Bonus",
+            points: 100,
+            balance: (creator.points || 250) - 150,
+          },
+        ]
+      : []
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Creator Profile</DialogTitle>
+          <DialogDescription>Details for {creator.fullName}</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-6 py-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage
+                  src={
+                    creator.avatarUrl ||
+                    `/placeholder.svg?height=64&width=64&query=${encodeURIComponent(creator.fullName) || "/placeholder.svg"}`
+                  }
+                  alt={creator.fullName}
+                />
+                <AvatarFallback>
+                  {creator.fullName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="text-xl font-semibold">{creator.fullName}</h3>
+                <p className="text-sm text-muted-foreground">{creator.email}</p>
+                <p className="text-sm text-muted-foreground">{creator.phoneNumber}</p>
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div>
+                <span className="font-medium">Role:</span> {creator.role}
+              </div>
+              <div>
+                <span className="font-medium">Invitation:</span>{" "}
+                <Badge
+                  variant={creator.invitationStatus === "Accepted" ? "default" : "outline"}
+                  className={
+                    creator.invitationStatus === "Pending Invitation"
+                      ? "border-amber-500 text-amber-600 bg-amber-50"
+                      : "bg-green-100 text-green-700"
+                  }
+                >
+                  {creator.invitationStatus}
+                </Badge>
+              </div>
+              <div>
+                <span className="font-medium">Province:</span> {creator.province}
+              </div>
+              <div>
+                <span className="font-medium">City:</span> {creator.city}
+              </div>
+              <div>
+                <span className="font-medium">Department:</span> {creator.department || "N/A"}
+              </div>
+              {creator.role === "Creator" && (
+                <>
+                  <div>
+                    <span className="font-medium">Points:</span> {creator.points?.toLocaleString() || 0}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {creator.role === "Creator" && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Campaign Participation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {creator.invitationStatus === "Pending Invitation" ? (
+                    <p className="text-sm text-muted-foreground">
+                      No campaign participation data available. User has not accepted invitation yet.
+                    </p>
+                  ) : mockCampaigns.length > 0 ? (
+                    <div className="space-y-3 max-h-60 overflow-y-auto">
+                      {mockCampaigns.map((campaign) => (
+                        <div key={campaign.id} className="p-3 border rounded-md">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h5 className="font-medium">{campaign.campaignName}</h5>
+                              <p className="text-xs text-muted-foreground">
+                                Submitted on {new Date(campaign.submissionDate).toLocaleDateString("en-GB")}
+                              </p>
+                            </div>
+                            <Badge
+                              variant={
+                                campaign.status === "Active"
+                                  ? "default"
+                                  : campaign.status === "Completed"
+                                    ? "secondary"
+                                    : "outline"
+                              }
+                            >
+                              {campaign.status}
+                            </Badge>
+                          </div>
+                          <div className="mt-1 text-sm">
+                            <p>
+                              {campaign.pointsEarned > 0
+                                ? `${campaign.pointsEarned} points earned`
+                                : "Awaiting review/points"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No campaign participation data.</p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Point History</CardTitle>
+                </CardHeader>
+                <CardContent className="max-h-60 overflow-y-auto">
+                  {creator.invitationStatus === "Pending Invitation" ? (
+                    <p className="text-sm text-muted-foreground">
+                      No point history available. User has not accepted invitation yet.
+                    </p>
+                  ) : mockPointHistory.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className="text-right">Points</TableHead>
+                          <TableHead className="text-right">Balance</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {mockPointHistory.map((entry) => (
+                          <TableRow key={entry.id}>
+                            <TableCell className="text-xs">
+                              {new Date(entry.date).toLocaleDateString("en-GB")}
+                            </TableCell>
+                            <TableCell>{entry.description}</TableCell>
+                            <TableCell
+                              className={`text-right font-medium ${entry.points >= 0 ? "text-green-600" : "text-red-600"}`}
+                            >
+                              {entry.points >= 0 ? `+${entry.points}` : entry.points}
+                            </TableCell>
+                            <TableCell className="text-right">{entry.balance.toLocaleString()}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No point history data.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function AdjustPointsDialog({
+  isOpen,
+  onOpenChange,
+  creator,
+  onPointsAdjusted,
+}: {
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
+  creator: Creator | null
+  onPointsAdjusted: (creatorId: string, newPoints: number) => void
+}) {
+  const [pointsToAdjust, setPointsToAdjust] = useState(100)
+  const [action, setAction] = useState<"add" | "remove">("add")
+  const [reason, setReason] = useState("")
+
+  useEffect(() => {
+    if (isOpen) {
+      setPointsToAdjust(100)
+      setAction("add")
+      setReason("")
+    }
+  }, [isOpen])
+
+  const handleSubmit = () => {
+    if (!creator) return
+    const currentPoints = creator.points || 0
+    let newPoints = action === "add" ? currentPoints + pointsToAdjust : currentPoints - pointsToAdjust
+    if (newPoints < 0) newPoints = 0
+
+    onPointsAdjusted(creator.id, newPoints)
+    toast({
+      title: "Points Adjusted",
+      description: `${pointsToAdjust} points ${action === "add" ? "added to" : "removed from"} ${creator.fullName}. New balance: ${newPoints}. Reason: ${reason || "N/A"}`,
+    })
+    onOpenChange(false)
+  }
+
+  if (!creator) return null
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Adjust Points</DialogTitle>
+          <DialogDescription>
+            For {creator.fullName} (Current: {creator.points.toLocaleString()} points)
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="points-adjust">Points</Label>
+              <Input
+                id="points-adjust"
+                type="number"
+                value={pointsToAdjust}
+                onChange={(e) => setPointsToAdjust(Math.max(0, Number.parseInt(e.target.value) || 0))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="action-adjust">Action</Label>
+              <Select value={action} onValueChange={(value: "add" | "remove") => setAction(value)}>
+                <SelectTrigger id="action-adjust">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="add">Add Points</SelectItem>
+                  <SelectItem value="remove">Remove Points</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="reason-adjust">Reason (Optional)</Label>
+            <Input
+              id="reason-adjust"
+              placeholder="Reason for adjustment"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit}>Save Changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export default function ManageCreatorsPage() {
+  const [creators, setCreators] = useState<Creator[]>(initialMockCreators)
+  const [isAddCreatorOpen, setIsAddCreatorOpen] = useState(false)
+  const [isEditCreatorOpen, setIsEditCreatorOpen] = useState(false)
+  const [editingCreator, setEditingCreator] = useState<Creator | null>(null)
+  const [isImportCreatorsOpen, setIsImportCreatorsOpen] = useState(false)
+  const [isViewProfileOpen, setIsViewProfileOpen] = useState(false)
+  const [viewingCreatorProfile, setViewingCreatorProfile] = useState<Creator | null>(null)
+  const [isAdjustPointsOpen, setIsAdjustPointsOpen] = useState(false)
+  const [adjustingPointsForCreator, setAdjustingPointsForCreator] = useState<Creator | null>(null)
+  const [isResendDialogOpen, setIsResendDialogOpen] = useState(false)
+  const [creatorToResend, setCreatorToResend] = useState<Creator | null>(null)
+
+  const [creatorSorting, setCreatorSorting] = React.useState<SortingState>([])
+  const [creatorGlobalFilter, setCreatorGlobalFilter] = useState("")
+  const [creatorInvitationStatusFilter, setCreatorInvitationStatusFilter] = useState<string>("all")
+
+  const [adminSorting, setAdminSorting] = React.useState<SortingState>([])
+  const [adminGlobalFilter, setAdminGlobalFilter] = useState("")
+  const [adminInvitationStatusFilter, setAdminInvitationStatusFilter] = useState<string>("all")
+
+  // Split creators into two lists
+  const creatorUsers = useMemo(() => creators.filter((c) => c.role === "Creator"), [creators])
+  const adminUsers = useMemo(() => creators.filter((c) => c.role === "Admin"), [creators])
+
+  const filteredCreatorUsers = useMemo(() => {
+    let data = [...creatorUsers]
+    if (creatorInvitationStatusFilter !== "all")
+      data = data.filter((c) => c.invitationStatus === creatorInvitationStatusFilter)
+    if (creatorGlobalFilter) {
+      data = data.filter(
+        (creator) =>
+          creator.fullName.toLowerCase().includes(creatorGlobalFilter.toLowerCase()) ||
+          creator.email.toLowerCase().includes(creatorGlobalFilter.toLowerCase()),
+      )
+    }
+    return data
+  }, [creatorUsers, creatorInvitationStatusFilter, creatorGlobalFilter])
+
+  const filteredAdminUsers = useMemo(() => {
+    let data = [...adminUsers]
+    if (adminInvitationStatusFilter !== "all")
+      data = data.filter((c) => c.invitationStatus === adminInvitationStatusFilter)
+    if (adminGlobalFilter) {
+      data = data.filter(
+        (admin) =>
+          admin.fullName.toLowerCase().includes(adminGlobalFilter.toLowerCase()) ||
+          admin.email.toLowerCase().includes(adminGlobalFilter.toLowerCase()),
+      )
+    }
+    return data
+  }, [adminUsers, adminInvitationStatusFilter, adminGlobalFilter])
+
+  const handleAddCreator = (newCreator: Creator) => setCreators((prev) => [newCreator, ...prev])
+  const handleUpdateCreator = (updatedCreator: Creator) => {
+    setCreators((prev) => prev.map((c) => (c.id === updatedCreator.id ? updatedCreator : c)))
+    setIsEditCreatorOpen(false)
+  }
+  const handleEditCreator = (creator: Creator) => {
+    setEditingCreator(creator)
+    setIsEditCreatorOpen(true)
+  }
+  const handleViewProfile = (creator: Creator) => {
+    setViewingCreatorProfile(creator)
+    setIsViewProfileOpen(true)
+  }
+
+  const confirmResendInvitation = (creator: Creator) => {
+    setCreatorToResend(creator)
+    setIsResendDialogOpen(true)
+  }
+
+  const executeResendInvitation = () => {
+    if (creatorToResend) {
+      toast({ title: "Invitation Resent", description: `Invitation has been resent to ${creatorToResend.fullName}.` })
+    }
+    setIsResendDialogOpen(false)
+    setCreatorToResend(null)
+  }
+
+  const handleOpenAdjustPointsDialog = (creator: Creator) => {
+    setAdjustingPointsForCreator(creator)
+    setIsAdjustPointsOpen(true)
+  }
+  const handlePointsAdjusted = (creatorId: string, newPoints: number) => {
+    setCreators((prev) => prev.map((c) => (c.id === creatorId ? { ...c, points: newPoints } : c)))
+  }
+
+  const creatorColumns: ColumnDef<Creator>[] = [
+    {
+      accessorKey: "fullName",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Creator <CaretSortIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.getValue("fullName")}</div>
+          <div className="text-xs text-muted-foreground">{row.original.email}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "invitationStatus",
+      header: "Invitation Status",
+      cell: ({ row }) => {
+        const status: "Accepted" | "Pending Invitation" = row.getValue("invitationStatus")
+        return (
+          <Badge
+            variant={status === "Accepted" ? "default" : "outline"}
+            className={
+              status === "Pending Invitation"
+                ? "border-amber-500 text-amber-600 bg-amber-50"
+                : "bg-green-100 text-green-700"
+            }
+          >
+            {status}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: "location",
+      header: "Location",
+      cell: ({ row }) => (
+        <div>
+          <div>{row.original.province || "-"}</div>
+          <div className="text-xs text-muted-foreground">{row.original.city || "-"}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "points",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Total Points <CaretSortIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const points = row.original.points
+        return <div className="font-medium">{points.toLocaleString()}</div>
+      },
+    },
+    {
+      accessorKey: "socialMedia",
+      header: "Social Media",
+      cell: ({ row }) => {
+        const creator = row.original
+        const igUsername = creator.instagramUsername
+        const ttUsername = creator.tiktokUsername
+        return (
+          <div className="flex flex-col space-y-1 text-xs">
+            {igUsername && (
+              <a
+                href={`https://instagram.com/${igUsername}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline flex items-center gap-1"
+              >
+                <Instagram className="h-3.5 w-3.5" />
+                {igUsername}
+              </a>
+            )}
+            {ttUsername && (
+              <a
+                href={`https://tiktok.com/@${ttUsername}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline flex items-center gap-1"
+              >
+                <TikTokIcon className="h-3.5 w-3.5" />
+                {ttUsername}
+              </a>
+            )}
+            {!igUsername && !ttUsername && <span className="text-muted-foreground">N/A</span>}
+          </div>
+        )
+      },
+    },
+    {
+      id: "actions",
+      header: () => <div className="">Actions</div>,
+      cell: ({ row }) => {
+        const creator = row.original
+        return (
+          <div className="flex items-center justify-start gap-0.5">
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => handleViewProfile(creator)}>
+                    <UserIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View Profile</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => handleEditCreator(creator)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Creator</p>
+                </TooltipContent>
+              </Tooltip>
+              {creator.invitationStatus === "Pending Invitation" && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => confirmResendInvitation(creator)}>
+                      <Mail className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Resend Invitation</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              {creator.invitationStatus === "Accepted" && ( // Adjust points only for accepted creators
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenAdjustPointsDialog(creator)}>
+                      <Coins className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Adjust Points</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </TooltipProvider>
+          </div>
+        )
+      },
+    },
+  ]
+
+  // Define columns for Admins
+  const adminColumns: ColumnDef<Creator>[] = [
+    {
+      accessorKey: "fullName",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Admin <CaretSortIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.getValue("fullName")}</div>
+          <div className="text-xs text-muted-foreground">{row.original.email}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "invitationStatus",
+      header: "Invitation Status",
+      cell: ({ row }) => {
+        const status: "Accepted" | "Pending Invitation" = row.getValue("invitationStatus")
+        return (
+          <Badge
+            variant={status === "Accepted" ? "default" : "outline"}
+            className={
+              status === "Pending Invitation"
+                ? "border-amber-500 text-amber-600 bg-amber-50"
+                : "bg-green-100 text-green-700"
+            }
+          >
+            {status}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: "location",
+      header: "Location",
+      cell: ({ row }) => (
+        <div>
+          <div>{row.original.province || "-"}</div>
+          <div className="text-xs text-muted-foreground">{row.original.city || "-"}</div>
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <div className="">Actions</div>,
+      cell: ({ row }) => {
+        const admin = row.original
+        return (
+          <div className="flex items-center justify-start gap-0.5">
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => handleViewProfile(admin)}>
+                    <UserIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View Profile</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => handleEditCreator(admin)}>
+                    {" "}
+                    {/* Still uses handleEditCreator */}
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Admin</p>
+                </TooltipContent>
+              </Tooltip>
+              {/* Always show resend invitation for admins, but disable if accepted */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => confirmResendInvitation(admin)}
+                    disabled={admin.invitationStatus === "Accepted"} // Disable if accepted
+                  >
+                    <Mail className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{admin.invitationStatus === "Accepted" ? "Invitation Accepted" : "Resend Invitation"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )
+      },
+    },
+  ]
+
+  const creatorTable = useReactTable({
+    data: filteredCreatorUsers,
+    columns: creatorColumns,
+    onSortingChange: setCreatorSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: { sorting: creatorSorting, globalFilter: creatorGlobalFilter },
+    onGlobalFilterChange: setCreatorGlobalFilter,
+    initialState: { pagination: { pageSize: 5 } },
+  })
+
+  const adminTable = useReactTable({
+    data: filteredAdminUsers,
+    columns: adminColumns,
+    onSortingChange: setAdminSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: { sorting: adminSorting, globalFilter: adminGlobalFilter },
+    onGlobalFilterChange: setAdminGlobalFilter,
+    initialState: { pagination: { pageSize: 5 } },
+  })
+
+  const handleDownloadTemplate = () =>
+    toast({ title: "Template Downloaded", description: "The creator import template has been downloaded." })
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Manage User</h1>
+        <Button onClick={() => setIsAddCreatorOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Add New User
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={() => setIsImportCreatorsOpen(true)}>
+          <Upload className="mr-2 h-4 w-4" /> Upload Users
+        </Button>
+        <Button variant="outline" onClick={handleDownloadTemplate}>
+          <Download className="mr-2 h-4 w-4" /> Download Template
+        </Button>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+          <CardDescription>Manage creators and administrators in your organization.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="creators" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="creators">Creators ({filteredCreatorUsers.length})</TabsTrigger>
+              <TabsTrigger value="administrators">Administrators ({filteredAdminUsers.length})</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="creators" className="space-y-4">
+              <div className="flex flex-col md:flex-row items-center gap-4">
+                <div className="relative flex-grow w-full md:w-auto">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search creators..."
+                    value={creatorGlobalFilter}
+                    onChange={(e) => setCreatorGlobalFilter(e.target.value)}
+                    className="pl-8 w-full"
+                  />
+                </div>
+                <div className="flex gap-2 w-full md:w-auto">
+                  <Select value={creatorInvitationStatusFilter} onValueChange={setCreatorInvitationStatusFilter}>
+                    <SelectTrigger className="w-full md:w-[180px]">
+                      <SelectValue placeholder="All Invitations" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Invitations</SelectItem>
+                      <SelectItem value="Accepted">Accepted</SelectItem>
+                      <SelectItem value="Pending Invitation">Pending Invitation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    {creatorTable.getHeaderGroups().map((hg) => (
+                      <TableRow key={hg.id}>
+                        {hg.headers.map((h) => (
+                          <TableHead key={h.id}>
+                            {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {creatorTable.getRowModel().rows?.length ? (
+                      creatorTable.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={creatorColumns.length} className="h-24 text-center">
+                          No creators found.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              <CustomPagination
+                currentPage={creatorTable.getState().pagination.pageIndex + 1}
+                totalPages={creatorTable.getPageCount()}
+                totalItems={creatorTable.getFilteredRowModel().rows.length}
+                itemsPerPage={creatorTable.getState().pagination.pageSize}
+                onPageChange={(page) => creatorTable.setPageIndex(page - 1)}
+                onItemsPerPageChange={(size) => creatorTable.setPageSize(size)}
+                itemName="creators"
+              />
+            </TabsContent>
+
+            <TabsContent value="administrators" className="space-y-4">
+              <div className="flex flex-col md:flex-row items-center gap-4">
+                <div className="relative flex-grow w-full md:w-auto">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search administrators..."
+                    value={adminGlobalFilter}
+                    onChange={(e) => setAdminGlobalFilter(e.target.value)}
+                    className="pl-8 w-full"
+                  />
+                </div>
+                <div className="flex gap-2 w-full md:w-auto">
+                  <Select value={adminInvitationStatusFilter} onValueChange={setAdminInvitationStatusFilter}>
+                    <SelectTrigger className="w-full md:w-[180px]">
+                      <SelectValue placeholder="All Invitations" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Invitations</SelectItem>
+                      <SelectItem value="Accepted">Accepted</SelectItem>
+                      <SelectItem value="Pending Invitation">Pending Invitation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    {adminTable.getHeaderGroups().map((hg) => (
+                      <TableRow key={hg.id}>
+                        {hg.headers.map((h) => (
+                          <TableHead key={h.id}>
+                            {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {adminTable.getRowModel().rows?.length ? (
+                      adminTable.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={adminColumns.length} className="h-24 text-center">
+                          No administrators found.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              <CustomPagination
+                currentPage={adminTable.getState().pagination.pageIndex + 1}
+                totalPages={adminTable.getPageCount()}
+                totalItems={adminTable.getFilteredRowModel().rows.length}
+                itemsPerPage={adminTable.getState().pagination.pageSize}
+                onPageChange={(page) => adminTable.setPageIndex(page - 1)}
+                onItemsPerPageChange={(size) => adminTable.setPageSize(size)}
+                itemName="administrators"
+              />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      <AddCreatorDialog
+        isOpen={isAddCreatorOpen}
+        onOpenChange={setIsAddCreatorOpen}
+        onCreatorAdded={handleAddCreator}
+      />
+      {editingCreator && (
+        <EditCreatorDialog
+          isOpen={isEditCreatorOpen}
+          onOpenChange={setIsEditCreatorOpen}
+          creator={editingCreator}
+          onCreatorUpdated={handleUpdateCreator}
+        />
+      )}
+      {viewingCreatorProfile && (
+        <ViewProfileDialog
+          isOpen={isViewProfileOpen}
+          onOpenChange={setIsViewProfileOpen}
+          creator={viewingCreatorProfile}
+        />
+      )}
+      {adjustingPointsForCreator && (
+        <AdjustPointsDialog
+          isOpen={isAdjustPointsOpen}
+          onOpenChange={setIsAdjustPointsOpen}
+          creator={adjustingPointsForCreator}
+          onPointsAdjusted={handlePointsAdjusted}
+        />
+      )}
+
+      {creatorToResend && (
+        <AlertDialog open={isResendDialogOpen} onOpenChange={setIsResendDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Resend Invitation</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to resend the invitation to {creatorToResend.fullName}?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setCreatorToResend(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={executeResendInvitation}>Resend</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
       <Dialog open={isImportCreatorsOpen} onOpenChange={setIsImportCreatorsOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Import Creators</DialogTitle>
+            <DialogTitle>Upload Creators</DialogTitle>
             <DialogDescription>
               Upload an Excel file with creator information. Make sure to use the correct template format.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4">
             <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50">
-              <FileSpreadsheet className="h-10 w-10 text-gray-400 mb-2" />
+              <Upload className="h-10 w-10 text-gray-400 mb-2" />
               <p className="text-sm text-center text-gray-600 mb-4">
                 Drag and drop your Excel file here, or click to browse
               </p>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={handleDownloadTemplate}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Template
-                </Button>
                 <Button>
                   <Upload className="h-4 w-4 mr-2" />
                   Browse Files
                 </Button>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <input type="checkbox" className="rounded border-gray-300" defaultChecked />
-                <span>Send invitation emails to all imported creators</span>
-              </Label>
-            </div>
-
             <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-amber-800">
               <p className="font-medium mb-1">Important Notes:</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Make sure all required fields are filled in the template</li>
                 <li>Email addresses must be unique and valid</li>
-                <li>Maximum 100 creators per import</li>
                 <li>Supported file formats: .xlsx, .xls</li>
               </ul>
             </div>
@@ -275,857 +1680,15 @@ export default function CreatorManagement() {
             </Button>
             <Button
               onClick={() => {
-                toast({
-                  title: "Creators imported",
-                  description: "6 creators have been successfully imported.",
-                })
+                toast({ title: "Upload Initiated", description: "Creator upload process has started." })
                 setIsImportCreatorsOpen(false)
               }}
             >
-              Import Creators
+              Upload File
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
-}
-
-function CreatorList({ filter }: { filter: string }) {
-  // This would be fetched from an API in a real application
-  const creators = [
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      email: "sarah.johnson@company.com",
-      department: "Marketing",
-      role: "Marketing Specialist",
-      province: "DKI Jakarta",
-      city: "Jakarta",
-      status: "active",
-      points: 4250,
-      posts: 15,
-      tier: "Silver",
-      engagement: "High",
-      lastActive: "Today",
-    },
-    {
-      id: "2",
-      name: "Michael Chen",
-      email: "michael.chen@company.com",
-      department: "Product",
-      role: "Product Manager",
-      province: "West Java",
-      city: "Bandung",
-      status: "active",
-      points: 3820,
-      posts: 12,
-      tier: "Silver",
-      engagement: "High",
-      lastActive: "Yesterday",
-    },
-    {
-      id: "3",
-      name: "Emily Rodriguez",
-      email: "emily.rodriguez@company.com",
-      department: "Customer Success",
-      role: "Customer Success Manager",
-      province: "East Java",
-      city: "Surabaya",
-      status: "active",
-      points: 3540,
-      posts: 11,
-      tier: "Silver",
-      engagement: "Medium",
-      lastActive: "2 days ago",
-    },
-    {
-      id: "4",
-      name: "David Wilson",
-      email: "david.wilson@company.com",
-      department: "Sales",
-      role: "Sales Representative",
-      province: "Bali",
-      city: "Denpasar",
-      status: "pending",
-      points: 0,
-      posts: 0,
-      tier: "",
-      engagement: "",
-      lastActive: "Never",
-    },
-    {
-      id: "5",
-      name: "Lisa Thompson",
-      email: "lisa.thompson@company.com",
-      department: "HR",
-      role: "HR Manager",
-      province: "Yogyakarta",
-      city: "Yogyakarta",
-      status: "inactive",
-      points: 1850,
-      posts: 5,
-      tier: "Bronze",
-      engagement: "Low",
-      lastActive: "2 weeks ago",
-    },
-    {
-      id: "6",
-      name: "James Brown",
-      email: "james.brown@company.com",
-      department: "Engineering",
-      role: "Software Engineer",
-      province: "Central Java",
-      city: "Semarang",
-      status: "pending",
-      points: 0,
-      posts: 0,
-      tier: "",
-      engagement: "",
-      lastActive: "Never",
-    },
-  ]
-
-  let filteredCreators = creators
-
-  if (filter === "active") {
-    filteredCreators = creators.filter((creator) => creator.status === "active")
-  } else if (filter === "inactive") {
-    filteredCreators = creators.filter((creator) => creator.status === "inactive")
-  } else if (filter === "pending") {
-    filteredCreators = creators.filter((creator) => creator.status === "pending")
-  } else if (filter === "top") {
-    filteredCreators = creators.sort((a, b) => b.points - a.points).slice(0, 3)
-  }
-
-  return (
-    <Card>
-      <CardHeader className="px-6">
-        <CardTitle>
-          {filter === "all" && "All Creators"}
-          {filter === "active" && "Active Creators"}
-          {filter === "inactive" && "Inactive Creators"}
-          {filter === "pending" && "Invitation Pending"}
-          {filter === "top" && "Top Performing Creators"}
-        </CardTitle>
-        <CardDescription>
-          {filter === "all" && "Manage all employee advocates"}
-          {filter === "active" && "Creators who are actively participating"}
-          {filter === "inactive" && "Creators who haven't been active recently"}
-          {filter === "pending" && "Creators who have been invited but haven't accepted yet"}
-          {filter === "top" && "Your highest performing advocates"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-6">
-        <div className="overflow-x-auto">
-          <div className="rounded-md border min-w-[900px]">
-            <div className="grid grid-cols-12 p-4 bg-slate-50 text-sm font-medium text-slate-500">
-              <div className="col-span-3">Name</div>
-              <div className="col-span-2">Department</div>
-              <div className="col-span-2">Points</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-2">Last Active</div>
-              <div className="col-span-1 text-center">Actions</div>
-            </div>
-
-            {filteredCreators.map((creator) => (
-              <div key={creator.id} className="grid grid-cols-12 p-4 border-t items-center">
-                <div className="col-span-3 flex items-center gap-3">
-                  <div>
-                    <p className="font-medium">{creator.name}</p>
-                    <p className="text-xs text-muted-foreground">{creator.email}</p>
-                  </div>
-                </div>
-                <div className="col-span-2">
-                  <p>{creator.department}</p>
-                </div>
-                <div className="col-span-2">
-                  {creator.status !== "pending" ? (
-                    <div className="flex items-center gap-2">
-                      <Award className="h-4 w-4 text-slate-400" />
-                      <span className="font-medium">{creator.points.toLocaleString()}</span>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </div>
-                <div className="col-span-2">
-                  <Badge
-                    variant={
-                      creator.status === "active" ? "default" : creator.status === "pending" ? "outline" : "secondary"
-                    }
-                    className={`capitalize ${creator.status === "pending" ? "border-amber-500 text-amber-500" : ""}`}
-                  >
-                    {creator.status === "pending" ? "Invitation Pending" : creator.status}
-                  </Badge>
-                  {creator.status !== "pending" && (
-                    <p className="text-xs text-muted-foreground mt-1">{creator.posts} posts</p>
-                  )}
-                </div>
-                <div className="col-span-2">
-                  <p className="text-sm">{creator.lastActive}</p>
-                </div>
-                <div className="col-span-1 flex justify-center">
-                  {creator.status === "pending" ? (
-                    <PendingCreatorActions creator={creator} />
-                  ) : (
-                    <RegularCreatorActions creator={creator} />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function PendingCreatorActions({ creator }: { creator: any }) {
-  const [isViewProfileOpen, setIsViewProfileOpen] = useState(false)
-  const [isEditCreatorOpen, setIsEditCreatorOpen] = useState(false)
-
-  return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setIsViewProfileOpen(true)}>
-            <User className="h-4 w-4 mr-2" />
-            View Profile
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsEditCreatorOpen(true)}>
-            <Pencil className="h-4 w-4 mr-2" />
-            Edit Creator
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              toast({
-                title: "Invitation resent",
-                description: `Invitation has been resent to ${creator.name}.`,
-              })
-            }}
-          >
-            <Mail className="h-4 w-4 mr-2" />
-            Resend Invitation
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* View Profile Dialog */}
-      <Dialog open={isViewProfileOpen} onOpenChange={setIsViewProfileOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[70vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Creator Profile</DialogTitle>
-            <DialogDescription>View detailed information about {creator.name}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-6 py-4">
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-slate-200"></div>
-              <div>
-                <h3 className="text-xl font-semibold">{creator.name}</h3>
-                <p className="text-sm text-muted-foreground">{creator.email}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className="border-amber-500 text-amber-500">
-                    Invitation Pending
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-medium mb-2">Department</h4>
-                <p>{creator.department}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Role</h4>
-                <p>{creator.role}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Province</h4>
-                <p>{creator.province}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">City</h4>
-                <p>{creator.city}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Invitation Status</h4>
-                <p>Pending</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Invitation Sent</h4>
-                <p>May 10, 2025</p>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewProfileOpen(false)}>
-              Close
-            </Button>
-            <Button onClick={() => setIsEditCreatorOpen(true)}>Edit Profile</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Creator Dialog */}
-      <Dialog open={isEditCreatorOpen} onOpenChange={setIsEditCreatorOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[70vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Creator</DialogTitle>
-            <DialogDescription>Update information for {creator.name}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-firstName">First Name</Label>
-                <Input id="edit-firstName" defaultValue={creator.name.split(" ")[0]} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-lastName">Last Name</Label>
-                <Input id="edit-lastName" defaultValue={creator.name.split(" ")[1] || ""} />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email Address</Label>
-              <Input id="edit-email" type="email" defaultValue={creator.email} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-department">Department</Label>
-                <Select defaultValue={creator.department.toLowerCase()}>
-                  <SelectTrigger id="edit-department">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="sales">Sales</SelectItem>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                    <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
-                    <SelectItem value="customer_success">Customer Success</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="operations">Operations</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-role">Role</Label>
-                <Input id="edit-role" defaultValue={creator.role} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-province">Province</Label>
-                <Select defaultValue={creator.province.toLowerCase().replace(" ", "_")}>
-                  <SelectTrigger id="edit-province">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dki_jakarta">DKI Jakarta</SelectItem>
-                    <SelectItem value="west_java">West Java</SelectItem>
-                    <SelectItem value="east_java">East Java</SelectItem>
-                    <SelectItem value="central_java">Central Java</SelectItem>
-                    <SelectItem value="yogyakarta">Yogyakarta</SelectItem>
-                    <SelectItem value="banten">Banten</SelectItem>
-                    <SelectItem value="bali">Bali</SelectItem>
-                    <SelectItem value="north_sumatra">North Sumatra</SelectItem>
-                    <SelectItem value="south_sulawesi">South Sulawesi</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-city">City</Label>
-                <Select defaultValue={creator.city.toLowerCase()}>
-                  <SelectTrigger id="edit-city">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="jakarta">Jakarta</SelectItem>
-                    <SelectItem value="bandung">Bandung</SelectItem>
-                    <SelectItem value="surabaya">Surabaya</SelectItem>
-                    <SelectItem value="semarang">Semarang</SelectItem>
-                    <SelectItem value="yogyakarta">Yogyakarta</SelectItem>
-                    <SelectItem value="medan">Medan</SelectItem>
-                    <SelectItem value="makassar">Makassar</SelectItem>
-                    <SelectItem value="denpasar">Denpasar</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditCreatorOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                toast({
-                  title: "Creator updated",
-                  description: "The creator has been updated successfully.",
-                })
-                setIsEditCreatorOpen(false)
-              }}
-            >
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  )
-}
-
-function RegularCreatorActions({ creator }: { creator: any }) {
-  const [isViewProfileOpen, setIsViewProfileOpen] = useState(false)
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
-  const [isEditCreatorOpen, setIsEditCreatorOpen] = useState(false)
-  const [isAdjustPointsOpen, setIsAdjustPointsOpen] = useState(false)
-  const [points, setPoints] = useState(100)
-  const [action, setAction] = useState("add")
-  const [reason, setReason] = useState("")
-
-  return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setIsViewProfileOpen(true)}>
-            <User className="h-4 w-4 mr-2" />
-            View Profile
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsEditCreatorOpen(true)}>
-            <Pencil className="h-4 w-4 mr-2" />
-            Edit Creator
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsHistoryOpen(true)}>
-            <History className="h-4 w-4 mr-2" />
-            History Point
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsAdjustPointsOpen(true)}>
-            <Award className="h-4 w-4 mr-2" />
-            Adjust Points
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* View Profile Dialog */}
-      <Dialog open={isViewProfileOpen} onOpenChange={setIsViewProfileOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[70vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Creator Profile</DialogTitle>
-            <DialogDescription>View detailed information about {creator.name}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-6 py-4">
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-slate-200"></div>
-              <div>
-                <h3 className="text-xl font-semibold">{creator.name}</h3>
-                <p className="text-sm text-muted-foreground">{creator.email}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant={creator.status === "active" ? "default" : "secondary"} className="capitalize">
-                    {creator.status}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-medium mb-2">Department</h4>
-                <p>{creator.department}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Role</h4>
-                <p>{creator.role}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Province</h4>
-                <p>{creator.province}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">City</h4>
-                <p>{creator.city}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Points</h4>
-                <p className="font-semibold">{creator.points.toLocaleString()}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Posts</h4>
-                <p>{creator.posts}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Last Active</h4>
-                <p>{creator.lastActive}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Engagement</h4>
-                <p>{creator.engagement}</p>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-medium mb-2">Recent Activity</h4>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>Submitted content for Campaign X - 2 days ago</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>Earned 250 points from Campaign Y - 4 days ago</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>Joined Campaign Z - 1 week ago</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-medium mb-2">Campaign Participation</h4>
-              <div className="space-y-3">
-                <div className="p-3 border rounded-md">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h5 className="font-medium">Summer Product Launch</h5>
-                      <p className="text-xs text-muted-foreground">Participated on Apr 15, 2025</p>
-                    </div>
-                    <Badge>Active</Badge>
-                  </div>
-                  <div className="mt-2 text-sm">
-                    <p>2 submissions • 450 points earned</p>
-                  </div>
-                </div>
-                <div className="p-3 border rounded-md">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h5 className="font-medium">Company Anniversary</h5>
-                      <p className="text-xs text-muted-foreground">Participated on Mar 10, 2025</p>
-                    </div>
-                    <Badge variant="secondary">Completed</Badge>
-                  </div>
-                  <div className="mt-2 text-sm">
-                    <p>1 submission • 200 points earned</p>
-                  </div>
-                </div>
-                <div className="p-3 border rounded-md">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h5 className="font-medium">Winter Sale</h5>
-                      <p className="text-xs text-muted-foreground">Participated on Jan 5, 2025</p>
-                    </div>
-                    <Badge variant="secondary">Completed</Badge>
-                  </div>
-                  <div className="mt-2 text-sm">
-                    <p>3 submissions • 600 points earned</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewProfileOpen(false)}>
-              Close
-            </Button>
-            <Button onClick={() => setIsEditCreatorOpen(true)}>Edit Profile</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Creator Dialog */}
-      <Dialog open={isEditCreatorOpen} onOpenChange={setIsEditCreatorOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[70vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Creator</DialogTitle>
-            <DialogDescription>Update information for {creator.name}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-firstName">First Name</Label>
-                <Input id="edit-firstName" defaultValue={creator.name.split(" ")[0]} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-lastName">Last Name</Label>
-                <Input id="edit-lastName" defaultValue={creator.name.split(" ")[1] || ""} />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email Address</Label>
-              <Input id="edit-email" type="email" defaultValue={creator.email} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-department">Department</Label>
-                <Select defaultValue={creator.department.toLowerCase()}>
-                  <SelectTrigger id="edit-department">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="sales">Sales</SelectItem>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                    <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
-                    <SelectItem value="customer_success">Customer Success</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="operations">Operations</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-role">Role</Label>
-                <Input id="edit-role" defaultValue={creator.role} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-province">Province</Label>
-                <Select defaultValue={creator.province.toLowerCase().replace(" ", "_")}>
-                  <SelectTrigger id="edit-province">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dki_jakarta">DKI Jakarta</SelectItem>
-                    <SelectItem value="west_java">West Java</SelectItem>
-                    <SelectItem value="east_java">East Java</SelectItem>
-                    <SelectItem value="central_java">Central Java</SelectItem>
-                    <SelectItem value="yogyakarta">Yogyakarta</SelectItem>
-                    <SelectItem value="banten">Banten</SelectItem>
-                    <SelectItem value="bali">Bali</SelectItem>
-                    <SelectItem value="north_sumatra">North Sumatra</SelectItem>
-                    <SelectItem value="south_sulawesi">South Sulawesi</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-city">City</Label>
-                <Select defaultValue={creator.city.toLowerCase()}>
-                  <SelectTrigger id="edit-city">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="jakarta">Jakarta</SelectItem>
-                    <SelectItem value="bandung">Bandung</SelectItem>
-                    <SelectItem value="surabaya">Surabaya</SelectItem>
-                    <SelectItem value="semarang">Semarang</SelectItem>
-                    <SelectItem value="yogyakarta">Yogyakarta</SelectItem>
-                    <SelectItem value="medan">Medan</SelectItem>
-                    <SelectItem value="makassar">Makassar</SelectItem>
-                    <SelectItem value="denpasar">Denpasar</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-status">Status</Label>
-              <Select defaultValue={creator.status}>
-                <SelectTrigger id="edit-status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditCreatorOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                toast({
-                  title: "Creator updated",
-                  description: "The creator has been updated successfully.",
-                })
-                setIsEditCreatorOpen(false)
-              }}
-            >
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* History Point Dialog */}
-      <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[70vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>History Point</DialogTitle>
-            <DialogDescription>Point transaction history for {creator.name}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-slate-200"></div>
-              <div>
-                <p className="font-medium">{creator.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  Current Balance: {creator.points.toLocaleString()} points
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-md border">
-              <div className="grid grid-cols-12 p-3 bg-slate-50 text-sm font-medium text-slate-500">
-                <div className="col-span-2">Date</div>
-                <div className="col-span-3">Campaign</div>
-                <div className="col-span-4">Description</div>
-                <div className="col-span-2">Points</div>
-                <div className="col-span-1">Balance</div>
-              </div>
-
-              <div className="grid grid-cols-12 p-3 border-t items-center">
-                <div className="col-span-2 text-sm">May 4, 2025</div>
-                <div className="col-span-3">Summer Launch</div>
-                <div className="col-span-4">Content submission approved</div>
-                <div className="col-span-2 text-green-600">+250</div>
-                <div className="col-span-1">{creator.points.toLocaleString()}</div>
-              </div>
-
-              <div className="grid grid-cols-12 p-3 border-t items-center">
-                <div className="col-span-2 text-sm">Apr 28, 2025</div>
-                <div className="col-span-3">Company Anniversary</div>
-                <div className="col-span-4">Content submission approved</div>
-                <div className="col-span-2 text-green-600">+200</div>
-                <div className="col-span-1">{(creator.points - 250).toLocaleString()}</div>
-              </div>
-
-              <div className="grid grid-cols-12 p-3 border-t items-center">
-                <div className="col-span-2 text-sm">Apr 15, 2025</div>
-                <div className="col-span-3">Quarterly Bonus</div>
-                <div className="col-span-4">Quarterly engagement bonus</div>
-                <div className="col-span-2 text-green-600">+500</div>
-                <div className="col-span-1">{(creator.points - 450).toLocaleString()}</div>
-              </div>
-
-              <div className="grid grid-cols-12 p-3 border-t items-center">
-                <div className="col-span-2 text-sm">Apr 10, 2025</div>
-                <div className="col-span-3">Rewards Store</div>
-                <div className="col-span-4">Redeemed Company Swag</div>
-                <div className="col-span-2 text-red-600">-300</div>
-                <div className="col-span-1">{(creator.points - 950).toLocaleString()}</div>
-              </div>
-
-              <div className="grid grid-cols-12 p-3 border-t items-center">
-                <div className="col-span-2 text-sm">Mar 22, 2025</div>
-                <div className="col-span-3">Product Launch</div>
-                <div className="col-span-4">Content submission approved</div>
-                <div className="col-span-2 text-green-600">+250</div>
-                <div className="col-span-1">{(creator.points - 650).toLocaleString()}</div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsHistoryOpen(false)}>
-              Close
-            </Button>
-            <Button
-              onClick={() => {
-                toast({
-                  title: "Report downloaded",
-                  description: "Point history report has been downloaded",
-                })
-              }}
-            >
-              Download Report
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Adjust Points Dialog */}
-      <Dialog open={isAdjustPointsOpen} onOpenChange={setIsAdjustPointsOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Adjust Points</DialogTitle>
-            <DialogDescription>Add or remove points for {creator.name}.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-slate-200"></div>
-              <div>
-                <p className="font-medium">{creator.name}</p>
-                <p className="text-sm text-muted-foreground">Current Points: {creator.points}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="points">Points</Label>
-                <Input
-                  id="points"
-                  type="number"
-                  value={points}
-                  onChange={(e) => setPoints(Number.parseInt(e.target.value))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="action">Action</Label>
-                <select
-                  id="action"
-                  value={action}
-                  onChange={(e) => setAction(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="add">Add Points</option>
-                  <option value="remove">Remove Points</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="reason">Reason</Label>
-              <Input
-                id="reason"
-                placeholder="Reason for adjusting points"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAdjustPointsOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                const actionText = action === "add" ? "added to" : "removed from"
-                toast({
-                  title: "Points adjusted",
-                  description: `${points} points have been ${actionText} ${creator.name}'s account.`,
-                })
-                setIsAdjustPointsOpen(false)
-              }}
-            >
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
   )
 }
