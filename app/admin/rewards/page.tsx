@@ -23,7 +23,6 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import { format } from "date-fns"
-import * as XLSX from "xlsx" // For Excel export
 
 type AdminReward = {
   id: string
@@ -74,26 +73,6 @@ const formatDateDDMMYYYY = (dateString: string | null | undefined): string => {
   } catch (error) {
     return "Invalid Date"
   }
-}
-
-const downloadExcel = (data: Redemption[], filename = "redemptions-report.xlsx") => {
-  const worksheetData = data.map((row) => ({
-    "Transaction ID": row.transactionId,
-    "Creator Name": row.creator.name,
-    "Creator Email": row.creator.email,
-    "Reward Name": row.reward,
-    Points: row.points,
-    "Rupiah Value": row.rupiah_value,
-    "Destination Number": row.destinationNumber,
-    "Requested Date (DD/MM/YYYY)": formatDateDDMMYYYY(row.requestedAt),
-    Status: row.status,
-    "Rejection Reason": row.rejectionReason || "",
-  }))
-
-  const worksheet = XLSX.utils.json_to_sheet(worksheetData)
-  const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Redemptions")
-  XLSX.writeFile(workbook, filename)
 }
 
 export default function RewardsManagement() {
@@ -332,7 +311,6 @@ export default function RewardsManagement() {
       return
     }
 
-    downloadExcel(dataToDownload)
     toast({
       title: "Report Downloaded",
       description: "Redemptions report has been successfully downloaded as Excel.",
