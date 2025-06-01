@@ -8,9 +8,13 @@ import { Badge } from "@/components/ui/badge"
 import { Search, Plus, Edit, Eye, ThumbsUp, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useState } from "react"
+import { CustomPagination } from "@/components/ui/custom-pagination"
 
 export default function AdminCampaigns() {
   const router = useRouter()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(5) // Or your preferred default
 
   return (
     <div className="p-6">
@@ -24,7 +28,7 @@ export default function AdminCampaigns() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full mb-6">
+      <Tabs defaultValue="all" className="w-full mb-6" onValueChange={() => setCurrentPage(1)}>
         <div className="flex flex-col gap-4 mb-6">
           <div className="relative w-full">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -41,29 +45,68 @@ export default function AdminCampaigns() {
         </div>
 
         <TabsContent value="all">
-          <CampaignList status="all" />
+          <CampaignListWrapper
+            status="all"
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
         </TabsContent>
 
         <TabsContent value="active">
-          <CampaignList status="active" />
+          <CampaignListWrapper
+            status="active"
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
         </TabsContent>
 
         <TabsContent value="completed">
-          <CampaignList status="completed" />
+          <CampaignListWrapper
+            status="completed"
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
         </TabsContent>
 
         <TabsContent value="drafts">
-          <CampaignList status="draft" />
+          <CampaignListWrapper
+            status="draft"
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
         </TabsContent>
       </Tabs>
     </div>
   )
 }
 
-function CampaignList({ status }: { status: string }) {
-  const router = useRouter()
+interface CampaignListWrapperProps {
+  status: string
+  currentPage: number
+  itemsPerPage: number
+  onPageChange: (page: number) => void
+  onItemsPerPageChange: (itemsPerPage: number) => void
+}
 
-  // This would be fetched from an API in a real application
+function CampaignListWrapper({
+  status,
+  currentPage,
+  itemsPerPage,
+  onPageChange,
+  onItemsPerPageChange,
+}: CampaignListWrapperProps) {
+  const router = useRouter() // Keep router if CampaignList uses it directly
+
+  // This mock data should ideally be fetched or managed at a higher level if it's dynamic
+  // For now, we'll keep it here as in the original structure
   const campaigns = [
     {
       id: 1,
@@ -72,7 +115,7 @@ function CampaignList({ status }: { status: string }) {
       platforms: ["instagram"],
       dueDate: "Jul 31, 2023",
       status: "active",
-      participants: 42,
+      participants: 60,
       submissions: 28,
       engagement: "24.5K",
       views: "45.2K",
@@ -85,13 +128,13 @@ function CampaignList({ status }: { status: string }) {
       type: "Creative Challenge",
       platforms: ["tiktok"],
       dueDate: "Aug 15, 2023",
-      status: "draft",
-      participants: 0,
-      submissions: 0,
+      status: "active",
+      participants: 50,
+      submissions: 25,
       engagement: "0",
-      views: "0",
-      likes: 0,
-      comments: 0,
+      views: "32K",
+      likes: 2500,
+      comments: 450,
     },
     {
       id: 3,
@@ -99,7 +142,7 @@ function CampaignList({ status }: { status: string }) {
       type: "Quick Share",
       platforms: ["instagram", "tiktok"],
       dueDate: "Aug 10, 2023",
-      status: "scheduled",
+      status: "completed",
       participants: 28,
       submissions: 22,
       engagement: "9.8K",
@@ -113,7 +156,7 @@ function CampaignList({ status }: { status: string }) {
       type: "Quick Share",
       platforms: ["instagram"],
       dueDate: "Aug 20, 2023",
-      status: "paused",
+      status: "draft",
       participants: 36,
       submissions: 15,
       engagement: "18.3K",
@@ -163,12 +206,113 @@ function CampaignList({ status }: { status: string }) {
       likes: 0,
       comments: 0,
     },
+    // Add more mock campaigns to test pagination if needed
+    {
+      id: 8,
+      title: "New Feature Teaser",
+      type: "Quick Share",
+      platforms: ["instagram"],
+      dueDate: "Sep 1, 2023",
+      status: "active",
+      participants: 50,
+      submissions: 30,
+      engagement: "30K",
+      views: "60K",
+      likes: 2000,
+      comments: 400,
+    },
+    {
+      id: 9,
+      title: "Community Contest",
+      type: "Creative Challenge",
+      platforms: ["tiktok"],
+      dueDate: "Sep 15, 2023",
+      status: "active",
+      participants: 25,
+      submissions: 10,
+      engagement: "10K",
+      views: "25K",
+      likes: 800,
+      comments: 150,
+    },
+    {
+      id: 10,
+      title: "Archived Campaign 1",
+      type: "Quick Share",
+      platforms: ["instagram"],
+      dueDate: "Jan 1, 2023",
+      status: "completed",
+      participants: 100,
+      submissions: 90,
+      engagement: "50K",
+      views: "100K",
+      likes: 5000,
+      comments: 600,
+    },
+    {
+      id: 11,
+      title: "Archived Campaign 2",
+      type: "Creative Challenge",
+      platforms: ["tiktok"],
+      dueDate: "Feb 1, 2023",
+      status: "completed",
+      participants: 60,
+      submissions: 50,
+      engagement: "40K",
+      views: "80K",
+      likes: 3000,
+      comments: 450,
+    },
+    {
+      id: 12,
+      title: "Future Draft Idea",
+      type: "Quick Share",
+      platforms: ["instagram"],
+      dueDate: "Dec 31, 2024",
+      status: "draft",
+      participants: 0,
+      submissions: 0,
+      engagement: "0",
+      views: "0",
+      likes: 0,
+      comments: 0,
+    },
   ]
 
   const filteredCampaigns =
     status === "all"
-      ? campaigns.filter((campaign) => ["draft", "active", "completed"].includes(campaign.status))
+      ? campaigns.filter((campaign) =>
+          ["draft", "active", "completed"].includes(campaign.status),
+        ) // Ensure all relevant statuses for "all"
       : campaigns.filter((campaign) => campaign.status === status)
+
+  const totalItems = filteredCampaigns.length
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
+  const paginatedCampaigns = filteredCampaigns.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  return (
+    <>
+      <CampaignList status={status} campaignsData={paginatedCampaigns} /> {/* Pass paginated data */}
+      {totalItems > 0 && totalPages > 1 && (
+        <CustomPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={onPageChange}
+          onItemsPerPageChange={(newItemsPerPage) => {
+            onItemsPerPageChange(newItemsPerPage)
+            onPageChange(1) // Reset to page 1 when items per page changes
+          }}
+          itemName="campaigns"
+        />
+      )}
+    </>
+  )
+}
+
+function CampaignList({ status, campaignsData }: { status: string; campaignsData: any[] }) {
+  const router = useRouter()
 
   return (
     <Card>
@@ -179,7 +323,6 @@ function CampaignList({ status }: { status: string }) {
         <CardDescription>
           {status === "all" && "All campaigns across all statuses"}
           {status === "active" && "Currently running campaigns"}
-          {status === "scheduled" && "Upcoming campaigns"}
           {status === "completed" && "Past campaigns"}
           {status === "draft" && "Campaigns in preparation"}
         </CardDescription>
@@ -196,8 +339,8 @@ function CampaignList({ status }: { status: string }) {
               <div className="col-span-1">Actions</div>
             </div>
 
-            {filteredCampaigns.length > 0 ? (
-              filteredCampaigns.map((campaign) => (
+            {campaignsData.length > 0 ? (
+              campaignsData.map((campaign) => (
                 <div key={campaign.id} className="grid grid-cols-11 p-4 border-t items-center">
                   <div className="col-span-3">
                     <p className="font-medium truncate">{campaign.title}</p>
@@ -208,10 +351,10 @@ function CampaignList({ status }: { status: string }) {
                   <div className="col-span-1">
                     <Badge
                       className={`
-                        ${campaign.status === "active" ? "bg-green-50 text-green-600 border-green-200" : ""}
-                        ${campaign.status === "completed" ? "bg-gray-50 text-gray-600 border-gray-200" : ""}
-                        ${campaign.status === "draft" ? "bg-amber-50 text-amber-600 border-amber-200" : ""}
-                      `}
+                      ${campaign.status === "active" ? "bg-green-50 text-green-600 border-green-200" : ""}
+                      ${campaign.status === "completed" ? "bg-gray-50 text-gray-600 border-gray-200" : ""}
+                      ${campaign.status === "draft" ? "bg-amber-50 text-amber-600 border-amber-200" : ""}
+                    `}
                     >
                       {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
                     </Badge>

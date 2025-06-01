@@ -1,12 +1,14 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar, Download, ArrowLeft } from "lucide-react"
+import { Calendar, Download, ArrowLeft, FileText, ImageIcon, VideoIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { CustomPagination } from "@/components/ui/custom-pagination"
 
 interface CampaignDetailProps {
   params: {
@@ -14,49 +16,297 @@ interface CampaignDetailProps {
   }
 }
 
-export default function CampaignDetail({ params }: CampaignDetailProps) {
-  const router = useRouter()
+interface CampaignCreator {
+  id: string
+  name: string
+  email: string
+  status: string // "URL Required", "URL Under Review", "Live", "Content Required", "Content Under Review", "Rejected URL Post", "Rejected Content Material"
+  province: string
+  city: string
+  statusColor: string // Tailwind color name e.g. "green", "amber", "blue", "purple", "indigo", "red"
+}
 
-  // This would be fetched from an API in a real application
-  const campaign = {
-    id: params.id,
+interface CampaignAsset {
+  id: string
+  type: "image" | "video" | "document"
+  name: string
+  url?: string // for download
+  previewUrl?: string // for display
+}
+
+interface Campaign {
+  id: string
+  title: string
+  description: string
+  type: "Quick Share" | "Creative Challenge"
+  platforms: string[]
+  startDate: string
+  endDate: string
+  statusLabel: string // e.g. "Active", "Draft"
+  statusColor: string // e.g. "green"
+  invited: number
+  participants: number
+  posted: number // For Quick Share: number of live posts. For Creative Challenge: number of approved content that went live.
+  submissions: {
+    total: number // Total content pieces submitted for Creative Challenge, or total URLs for Quick Share
+    approved: number
+    pending: number
+    rejected: number
+  }
+  engagement: {
+    views: number
+    likes: number
+    comments: number
+    shares: number
+  }
+  assets: CampaignAsset[]
+  requirements?: string[] // For Quick Share
+  briefText?: string // For Creative Challenge
+  creators: CampaignCreator[]
+}
+
+const allCampaignsData: Campaign[] = [
+  {
+    id: "1",
     title: "Summer Product Launch",
     description:
       "Share our new summer collection with your followers and highlight your favorite products. This campaign aims to increase awareness of our latest seasonal offerings.",
     type: "Quick Share",
-    platforms: ["instagram"],
+    platforms: ["instagram", "tiktok"], // Added tiktok here
     startDate: "July 1, 2023",
     endDate: "July 31, 2023",
-    status: "active",
+    statusLabel: "Active",
+    statusColor: "green",
     invited: 60,
-    participants: 42,
+    participants: 50,
     posted: 28,
     submissions: {
-      total: 28,
+      total: 30,
       approved: 22,
       pending: 4,
-      rejected: 2,
+      rejected: 4,
     },
-    engagement: {
-      views: 24500,
-      likes: 1850,
-      comments: 320,
-      shares: 175,
-    },
-    assets: {
-      images: 4,
-      videos: 1,
-      captions: 3,
-    },
+    engagement: { views: 24500, likes: 1850, comments: 320, shares: 175 },
+    assets: [
+      { id: "asset1", type: "image", name: "product_image_1.jpg", previewUrl: "/placeholder.svg?height=100&width=100" },
+      { id: "asset2", type: "image", name: "product_image_2.jpg", previewUrl: "/placeholder.svg?height=100&width=100" },
+      { id: "asset3", type: "video", name: "promo_video.mp4", previewUrl: "/placeholder.svg?height=100&width=180" },
+      {
+        id: "asset4",
+        type: "document",
+        name: "caption_suggestions.txt",
+        previewUrl:
+          "Summer is here and so is the new collection from @brandname! 🌞 Check out these amazing new products that are perfect for the season. #SummerCollection #BrandNameSummer #NewArrivals",
+      },
+    ],
     requirements: [
       "Post must include product images provided",
       "Caption must include #SummerCollection hashtag",
       "Tag @brandname in your post",
     ],
-  }
+    creators: [
+      {
+        id: "c1",
+        name: "Sarah Johnson",
+        email: "sarah.j@example.com",
+        status: "Live",
+        province: "DKI Jakarta",
+        city: "Jakarta Selatan",
+        statusColor: "green",
+      },
+      {
+        id: "c2",
+        name: "Michael Chen",
+        email: "michael.c@example.com",
+        status: "URL Required",
+        province: "West Java",
+        city: "Bandung",
+        statusColor: "amber",
+      },
+      {
+        id: "c3",
+        name: "Emily Rodriguez",
+        email: "emily.r@example.com",
+        status: "URL Under Review",
+        province: "East Java",
+        city: "Surabaya",
+        statusColor: "blue",
+      },
+      {
+        id: "c4",
+        name: "David Wilson",
+        email: "david.w@example.com",
+        status: "Live",
+        province: "Bali",
+        city: "Denpasar",
+        statusColor: "green",
+      },
+      {
+        id: "c5_rejected_qs",
+        name: "Kevin Rejected",
+        email: "kevin.rejected@example.com",
+        status: "Rejected URL Post",
+        province: "Banten",
+        city: "Tangerang",
+        statusColor: "red",
+      },
+    ],
+  },
+  {
+    id: "2",
+    title: "Brand Challenge",
+    description:
+      "Unleash your creativity and showcase how our brand inspires you! This campaign is all about authentic storytelling and unique content.",
+    type: "Creative Challenge",
+    platforms: ["tiktok", "instagram"],
+    startDate: "August 5, 2023",
+    endDate: "September 5, 2023",
+    statusLabel: "Active",
+    statusColor: "green",
+    invited: 50,
+    participants: 45,
+    posted: 25,
+    submissions: {
+      total: 30,
+      approved: 15,
+      pending: 8,
+      rejected: 7,
+    },
+    engagement: { views: 32000, likes: 2500, comments: 450, shares: 200 },
+    assets: [{ id: "asset_brief", type: "document", name: "Campaign_Brief_BrandChallenge.pdf", url: "#" }],
+    briefText: `This campaign aims to showcase our brand through authentic employee advocacy. Creators should highlight how the brand inspires them or how they use our products/services in their daily lives.
+
+Key Messaging Points:
+- Authenticity and personal connection.
+- Creative and unique interpretations.
+- Adherence to brand guidelines (provided in brief).
+- Submission deadline: August 25, 2023.`,
+    creators: [
+      {
+        id: "cc1",
+        name: "Alex Green",
+        email: "alex.g@example.com",
+        status: "Content Required",
+        province: "DKI Jakarta",
+        city: "Jakarta Pusat",
+        statusColor: "purple",
+      },
+      {
+        id: "cc2",
+        name: "Brenda Blue",
+        email: "brenda.b@example.com",
+        status: "Content Under Review",
+        province: "West Java",
+        city: "Bekasi",
+        statusColor: "indigo",
+      },
+      {
+        id: "cc3",
+        name: "Charles Crimson",
+        email: "charles.c@example.com",
+        status: "URL Required",
+        province: "Central Java",
+        city: "Semarang",
+        statusColor: "amber",
+      },
+      {
+        id: "cc4",
+        name: "Diana Yellow",
+        email: "diana.y@example.com",
+        status: "URL Under Review",
+        province: "Yogyakarta",
+        city: "Yogyakarta",
+        statusColor: "blue",
+      },
+      {
+        id: "cc5",
+        name: "Edward Fuchsia",
+        email: "edward.f@example.com",
+        status: "Live",
+        province: "East Java",
+        city: "Malang",
+        statusColor: "green",
+      },
+      {
+        id: "cc6_rejected_content",
+        name: "Gina RejectedContent",
+        email: "gina.rc@example.com",
+        status: "Rejected Content Material",
+        province: "North Sumatra",
+        city: "Medan",
+        statusColor: "red",
+      },
+      {
+        id: "cc7_rejected_url",
+        name: "Harry RejectedURL",
+        email: "harry.ru@example.com",
+        status: "Rejected URL Post",
+        province: "South Sulawesi",
+        city: "Makassar",
+        statusColor: "red",
+      },
+    ],
+  },
+]
+
+export default function CampaignDetail({ params }: CampaignDetailProps) {
+  const router = useRouter()
+  const [campaign, setCampaign] = useState<Campaign | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const [creatorsCurrentPage, setCreatorsCurrentPage] = useState(1)
+  const [creatorsItemsPerPage, setCreatorsItemsPerPage] = useState(5) // Default items per page, can be changed by pagination component
+
+  useEffect(() => {
+    const foundCampaign = allCampaignsData.find((c) => c.id === params.id)
+    if (foundCampaign) {
+      setCampaign(foundCampaign)
+    } else {
+      setCampaign(null)
+    }
+    setLoading(false)
+    setCreatorsCurrentPage(1) // Reset page on campaign change
+  }, [params.id])
 
   const handleBack = () => {
     router.back()
+  }
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading campaign details...</div>
+  }
+
+  if (!campaign) {
+    return (
+      <div className="p-6 text-center">
+        <h1 className="text-2xl font-bold mb-4">Campaign Not Found</h1>
+        <p className="text-muted-foreground mb-6">
+          The campaign you are looking for does not exist or could not be loaded.
+        </p>
+        <Button onClick={handleBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+        </Button>
+      </div>
+    )
+  }
+
+  const totalCreatorItems = campaign.creators.length
+  const totalCreatorPages = Math.ceil(totalCreatorItems / creatorsItemsPerPage)
+  const paginatedCreators = campaign.creators.slice(
+    (creatorsCurrentPage - 1) * creatorsItemsPerPage,
+    creatorsCurrentPage * creatorsItemsPerPage,
+  )
+
+  const getStatusBadgeClasses = (color: string) => {
+    // Mapping for Tailwind JIT compiler
+    // bg-green-50 text-green-600 border-green-200
+    // bg-amber-50 text-amber-600 border-amber-200
+    // bg-blue-50 text-blue-600 border-blue-200
+    // bg-purple-50 text-purple-600 border-purple-200
+    // bg-indigo-50 text-indigo-600 border-indigo-200
+    // bg-red-50 text-red-600 border-red-200
+    // bg-slate-50 text-slate-600 border-slate-200
+    return `bg-${color}-50 text-${color}-600 border-${color}-200`
   }
 
   return (
@@ -68,13 +318,13 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-2xl font-bold tracking-tight">{campaign.title}</h1>
-            <Badge className={`bg-green-50 text-green-600 border-green-200`}>Active</Badge>
+            <Badge className={getStatusBadgeClasses(campaign.statusColor)}>{campaign.statusLabel}</Badge>
           </div>
           <p className="text-muted-foreground ml-11">Campaign management and performance tracking</p>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs defaultValue="overview" className="w-full" onValueChange={() => setCreatorsCurrentPage(1)}>
         <TabsList className="w-full justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="content">Assets</TabsTrigger>
@@ -134,42 +384,52 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                           <p className="text-xs text-muted-foreground mb-1">Joined</p>
                           <p className="text-lg font-bold text-amber-600">{campaign.participants}</p>
                           <p className="text-xs text-muted-foreground">
-                            {Math.round((campaign.participants / campaign.invited) * 100)}% of Invited
+                            {campaign.invited > 0 ? Math.round((campaign.participants / campaign.invited) * 100) : 0}%
+                            of Invited
                           </p>
                         </div>
                         <div className="p-3 bg-green-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Posted</p>
+                          <p className="text-xs text-muted-foreground mb-1">Posted / Submit Content</p>
                           <p className="text-lg font-bold text-green-600">{campaign.posted}</p>
                           <p className="text-xs text-muted-foreground">
-                            {Math.round((campaign.posted / campaign.participants) * 100)}% of Joined
+                            {campaign.participants > 0
+                              ? Math.round((campaign.posted / campaign.participants) * 100)
+                              : 0}
+                            % of Joined
                           </p>
                         </div>
                       </div>
 
-                      <h3 className="text-sm font-medium">Content Status</h3>
+                      <h3 className="text-sm font-medium">Content/Submissions Status</h3>
                       <div className="grid grid-cols-3 gap-3 text-center">
                         <div className="p-3 bg-green-50 rounded-md">
-                          <p className="text-xs text-muted-foreground mb-1">Approved</p>
+                          <p className="text-xs text-muted-foreground mb-1">Approved / Live</p>
                           <p className="text-lg font-bold text-green-600">{campaign.submissions.approved}</p>
                           <p className="text-xs text-muted-foreground">
-                            {Math.round((campaign.submissions.approved / campaign.submissions.total) * 100)}% of
-                            submissions
+                            {campaign.submissions.total > 0
+                              ? Math.round((campaign.submissions.approved / campaign.submissions.total) * 100)
+                              : 0}
+                            % of submissions
                           </p>
                         </div>
                         <div className="p-3 bg-amber-50 rounded-md">
                           <p className="text-xs text-muted-foreground mb-1">Pending</p>
                           <p className="text-lg font-bold text-amber-600">{campaign.submissions.pending}</p>
                           <p className="text-xs text-muted-foreground">
-                            {Math.round((campaign.submissions.pending / campaign.submissions.total) * 100)}% of
-                            submissions
+                            {campaign.submissions.total > 0
+                              ? Math.round((campaign.submissions.pending / campaign.submissions.total) * 100)
+                              : 0}
+                            % of submissions
                           </p>
                         </div>
                         <div className="p-3 bg-red-50 rounded-md">
                           <p className="text-xs text-muted-foreground mb-1">Rejected</p>
                           <p className="text-lg font-bold text-red-600">{campaign.submissions.rejected}</p>
                           <p className="text-xs text-muted-foreground">
-                            {Math.round((campaign.submissions.rejected / campaign.submissions.total) * 100)}% of
-                            submissions
+                            {campaign.submissions.total > 0
+                              ? Math.round((campaign.submissions.rejected / campaign.submissions.total) * 100)
+                              : 0}
+                            % of submissions
                           </p>
                         </div>
                       </div>
@@ -183,51 +443,54 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-sm font-medium">Instagram</span>
-                          <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200">
-                            22 Posts
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="p-3 bg-slate-50 rounded-md text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Views</p>
-                            <p className="text-lg font-bold">24.5K</p>
+                      {campaign.platforms.includes("instagram") && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-sm font-medium">Instagram</span>
+                            <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200">
+                              {campaign.type === "Quick Share" ? campaign.submissions.approved : campaign.posted} Posts
+                            </Badge>
                           </div>
-                          <div className="p-3 bg-slate-50 rounded-md text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Likes</p>
-                            <p className="text-lg font-bold">1.85K</p>
-                          </div>
-                          <div className="p-3 bg-slate-50 rounded-md text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Comments</p>
-                            <p className="text-lg font-bold">320</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-sm font-medium">TikTok</span>
-                          <Badge variant="outline" className="bg-cyan-50 text-cyan-600 border-cyan-200">
-                            0 Posts
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="p-3 bg-slate-50 rounded-md text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Views</p>
-                            <p className="text-lg font-bold">0</p>
-                          </div>
-                          <div className="p-3 bg-slate-50 rounded-md text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Likes</p>
-                            <p className="text-lg font-bold">0</p>
-                          </div>
-                          <div className="p-3 bg-slate-50 rounded-md text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Comments</p>
-                            <p className="text-lg font-bold">0</p>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="p-3 bg-slate-50 rounded-md text-center">
+                              <p className="text-xs text-muted-foreground mb-1">Views</p>
+                              <p className="text-lg font-bold">{campaign.engagement.views.toLocaleString()}</p>
+                            </div>
+                            <div className="p-3 bg-slate-50 rounded-md text-center">
+                              <p className="text-xs text-muted-foreground mb-1">Likes</p>
+                              <p className="text-lg font-bold">{campaign.engagement.likes.toLocaleString()}</p>
+                            </div>
+                            <div className="p-3 bg-slate-50 rounded-md text-center">
+                              <p className="text-xs text-muted-foreground mb-1">Comments</p>
+                              <p className="text-lg font-bold">{campaign.engagement.comments.toLocaleString()}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+                      {campaign.platforms.includes("tiktok") && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-sm font-medium">TikTok</span>
+                            <Badge variant="outline" className="bg-cyan-50 text-cyan-600 border-cyan-200">
+                              0 Posts {/* Placeholder, adjust if TikTok data is available */}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="p-3 bg-slate-50 rounded-md text-center">
+                              <p className="text-xs text-muted-foreground mb-1">Views</p>
+                              <p className="text-lg font-bold">0</p>
+                            </div>
+                            <div className="p-3 bg-slate-50 rounded-md text-center">
+                              <p className="text-xs text-muted-foreground mb-1">Likes</p>
+                              <p className="text-lg font-bold">0</p>
+                            </div>
+                            <div className="p-3 bg-slate-50 rounded-md text-center">
+                              <p className="text-xs text-muted-foreground mb-1">Comments</p>
+                              <p className="text-lg font-bold">0</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -243,15 +506,10 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                   <div className="space-y-4">
                     <div className="p-4 border rounded-md">
                       <div className="flex items-center gap-2 mb-4">
-                        <Badge className="bg-green-50 text-green-600 border-green-200">Active</Badge>
+                        <Badge className={getStatusBadgeClasses(campaign.statusColor)}>{campaign.statusLabel}</Badge>
                         <span className="text-sm text-muted-foreground">
                           {campaign.startDate} - {campaign.endDate}
                         </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>Campaign is active for 31 days</span>
                       </div>
                     </div>
 
@@ -260,7 +518,10 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                       <div className="p-2 bg-slate-50 rounded-md text-center">
                         <p className="text-xs text-muted-foreground">Approval Rate</p>
                         <p className="text-lg font-bold">
-                          {Math.round((campaign.submissions.approved / campaign.submissions.total) * 100)}%
+                          {campaign.submissions.total > 0
+                            ? Math.round((campaign.submissions.approved / campaign.submissions.total) * 100)
+                            : 0}
+                          %
                         </p>
                       </div>
                     </div>
@@ -278,86 +539,90 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
               <CardDescription>Manage the content assets for this campaign</CardDescription>
             </CardHeader>
             <CardContent>
-              {campaign.type === "Quick Share" ? (
+              {campaign.type === "Quick Share" && (
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-sm font-medium mb-3">Images & Videos</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {Array.from({ length: campaign.assets.images }).map((_, index) => (
-                        <div key={index} className="border rounded-md p-2">
-                          <div className="aspect-square bg-slate-100 rounded-md mb-2"></div>
-                          <div className="flex justify-between">
-                            <span className="text-xs text-muted-foreground">image-{index + 1}.jpg</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                              <Download className="h-3 w-3" />
-                            </Button>
+                      {campaign.assets
+                        .filter((asset) => asset.type === "image" || asset.type === "video")
+                        .map((asset) => (
+                          <div key={asset.id} className="border rounded-md p-2">
+                            {asset.previewUrl && asset.previewUrl.startsWith("/placeholder.svg") ? (
+                              <img
+                                src={asset.previewUrl || "/placeholder.svg"}
+                                alt={asset.name}
+                                className={`w-full ${asset.type === "image" ? "h-24 aspect-square" : "h-24 aspect-video"} object-cover rounded-md mb-2`}
+                              />
+                            ) : asset.type === "image" ? (
+                              <ImageIcon className="w-full h-24 object-cover rounded-md mb-2 text-slate-300" />
+                            ) : (
+                              <VideoIcon className="w-full h-24 object-cover rounded-md mb-2 text-slate-300" />
+                            )}
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-muted-foreground truncate w-3/4">{asset.name}</span>
+                              <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <Download className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                      {Array.from({ length: campaign.assets.videos }).map((_, index) => (
-                        <div key={index} className="border rounded-md p-2">
-                          <div className="aspect-video bg-slate-100 rounded-md mb-2"></div>
-                          <div className="flex justify-between">
-                            <span className="text-xs text-muted-foreground">video-{index + 1}.mp4</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                              <Download className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium mb-3">Caption</h3>
-                    <Textarea
-                      className="min-h-[120px]"
-                      defaultValue="Summer is here and so is the new collection from @brandname! 🌞 Check out these amazing new products that are perfect for the season. #SummerCollection #BrandNameSummer #NewArrivals"
-                      disabled
-                    />
-                  </div>
+                  {campaign.assets
+                    .filter((asset) => asset.type === "document" && asset.name.includes("caption"))
+                    .map((asset) => (
+                      <div key={asset.id}>
+                        <h3 className="text-sm font-medium mb-3">Caption Suggestions</h3>
+                        <Textarea
+                          className="min-h-[120px]"
+                          defaultValue={
+                            typeof asset.previewUrl === "string" ? asset.previewUrl : "No caption provided."
+                          }
+                          disabled
+                        />
+                      </div>
+                    ))}
                 </div>
-              ) : (
+              )}
+              {campaign.type === "Creative Challenge" && (
                 <div className="space-y-6">
-                  <div>
-                    <h3 className="text-sm font-medium mb-3">Campaign Brief</h3>
-                    <div className="border rounded-md p-4 mb-4">
-                      <div className="flex justify-between mb-4">
-                        <span className="font-medium">Campaign Brief Document</span>
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <Download className="h-4 w-4" />
-                          Download PDF
-                        </Button>
+                  {campaign.assets
+                    .filter((asset) => asset.type === "document" && asset.name.includes("Brief"))
+                    .map((asset) => (
+                      <div key={asset.id}>
+                        <h3 className="text-sm font-medium mb-3">Campaign Brief</h3>
+                        <div className="border rounded-md p-4 mb-4">
+                          <div className="flex justify-between items-center mb-4">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-5 w-5 text-muted-foreground" />
+                              <span className="font-medium">{asset.name}</span>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => asset.url && window.open(asset.url, "_blank")}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="aspect-[3/4] bg-slate-100 rounded-md flex items-center justify-center">
+                            <p className="text-muted-foreground">PDF Preview (Placeholder)</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="aspect-[3/4] bg-slate-100 rounded-md flex items-center justify-center">
-                        <p className="text-muted-foreground">PDF Preview</p>
-                      </div>
+                    ))}
+                  {campaign.briefText && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-3">Campaign Brief Text</h3>
+                      <Textarea className="min-h-[200px]" defaultValue={campaign.briefText} />
                     </div>
-                    <div className="flex justify-between">
-                      <Button variant="outline" size="sm">
-                        Replace PDF
-                      </Button>
-                      <Button size="sm">Upload New Version</Button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium mb-3">Campaign Brief Text</h3>
-                    <Textarea
-                      className="min-h-[200px]"
-                      defaultValue="This campaign aims to showcase our new summer collection through authentic employee advocacy. Creators should highlight their favorite products from the collection and share how they incorporate them into their summer activities.
-
-Key Messaging Points:
-- Emphasize the versatility of the products
-- Highlight sustainable materials and production
-- Share personal experiences with the products
-- Create authentic, relatable content"
-                    />
-                    <div className="flex justify-end mt-2">
-                      <Button size="sm">Save Brief</Button>
-                    </div>
-                  </div>
+                  )}
                 </div>
+              )}
+              {campaign.assets.length === 0 && (
+                <p className="text-muted-foreground">No assets provided for this campaign.</p>
               )}
             </CardContent>
           </Card>
@@ -374,68 +639,20 @@ Key Messaging Points:
             <CardContent>
               <div className="rounded-md border">
                 <div className="grid grid-cols-10 p-4 bg-slate-50 text-sm font-medium text-slate-500">
-                  <div className="col-span-4">Creator</div>
-                  <div className="col-span-2">Department</div>
+                  <div className="col-span-3">Creator</div>
+                  <div className="col-span-3">Email</div>
                   <div className="col-span-2">Status</div>
                   <div className="col-span-2">Province/City</div>
                 </div>
 
-                {[
-                  {
-                    name: "Sarah Johnson",
-                    department: "Marketing",
-                    status: "Approved",
-                    province: "Jakarta",
-                    city: "Jakarta Selatan",
-                    statusColor: "green",
-                  },
-                  {
-                    name: "Michael Chen",
-                    department: "Product",
-                    status: "Pending",
-                    province: "West Java",
-                    city: "Bandung",
-                    statusColor: "amber",
-                  },
-                  {
-                    name: "Emily Rodriguez",
-                    department: "Customer Success",
-                    status: "Approved",
-                    province: "East Java",
-                    city: "Surabaya",
-                    statusColor: "green",
-                  },
-                  {
-                    name: "David Wilson",
-                    department: "Sales",
-                    status: "Rejected",
-                    province: "Bali",
-                    city: "Denpasar",
-                    statusColor: "red",
-                  },
-                  {
-                    name: "Lisa Thompson",
-                    department: "HR",
-                    status: "Not Started",
-                    province: "Central Java",
-                    city: "Semarang",
-                    statusColor: "slate",
-                  },
-                ].map((creator, index) => (
-                  <div key={index} className="grid grid-cols-10 p-4 border-t items-center">
-                    <div className="col-span-4 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-200"></div>
-                      <div>
-                        <p className="font-medium">{creator.name}</p>
-                        <p className="text-xs text-muted-foreground">@{creator.name.toLowerCase().replace(" ", "")}</p>
-                      </div>
+                {paginatedCreators.map((creator) => (
+                  <div key={creator.id} className="grid grid-cols-10 p-4 border-t items-center">
+                    <div className="col-span-3">
+                      <p className="font-medium">{creator.name}</p>
                     </div>
-                    <div className="col-span-2">{creator.department}</div>
+                    <div className="col-span-3">{creator.email}</div>
                     <div className="col-span-2">
-                      <Badge
-                        variant="outline"
-                        className={`bg-${creator.statusColor}-50 text-${creator.statusColor}-600 border-${creator.statusColor}-200`}
-                      >
+                      <Badge variant="outline" className={getStatusBadgeClasses(creator.statusColor)}>
                         {creator.status}
                       </Badge>
                     </div>
@@ -447,7 +664,24 @@ Key Messaging Points:
                     </div>
                   </div>
                 ))}
+                {paginatedCreators.length === 0 && (
+                  <div className="p-8 text-center text-muted-foreground">No creators found for this campaign.</div>
+                )}
               </div>
+              {totalCreatorItems > 0 && totalCreatorPages > 1 && (
+                <CustomPagination
+                  currentPage={creatorsCurrentPage}
+                  totalPages={totalCreatorPages}
+                  totalItems={totalCreatorItems}
+                  itemsPerPage={creatorsItemsPerPage}
+                  onPageChange={setCreatorsCurrentPage}
+                  onItemsPerPageChange={(newItemsPerPage) => {
+                    setCreatorsItemsPerPage(newItemsPerPage)
+                    setCreatorsCurrentPage(1) // Reset to first page when items per page changes
+                  }}
+                  itemName="creators"
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

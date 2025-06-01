@@ -33,7 +33,7 @@ import {
 import { TikTokIcon } from "@/components/tik-tok-icon"
 import { Textarea } from "@/components/ui/textarea"
 
-// Define types
+// Define types (department -> email)
 type CampaignType = "QUICK_SHARE" | "CREATIVE_CHALLENGE"
 type ApprovalStatusType = "CONTENT_REVIEW" | "POST_URL_REVIEW"
 type SocialPlatform = "instagram" | "tiktok"
@@ -41,12 +41,11 @@ type SocialPlatform = "instagram" | "tiktok"
 interface PendingApprovalItem {
   id: string
   creatorName: string
-  creatorAvatar?: string
+  email?: string // Changed from department
   campaignName: string
   campaignType: CampaignType
   submissionTime: string
   approvalStatus: ApprovalStatusType
-  department?: string
   content?: {
     images?: Array<{ id: number; src: string; alt: string }>
     videoSrc?: string
@@ -58,17 +57,16 @@ interface PendingApprovalItem {
 interface PendingSocialMediaItem {
   id: string
   creatorName: string
-  creatorAvatar?: string
+  email?: string // Changed from department
   platform: SocialPlatform
   username: string
   submissionTime: string
-  department?: string
   profileUrl?: string
-  followers: number // Added
-  following: number // Added
+  followers: number
+  following: number
 }
 
-// Mock data for Campaign Performance
+// Mock data for Campaign Performance (remains the same)
 const mockCampaignsPerformance = [
   {
     id: "1",
@@ -90,36 +88,19 @@ const mockCampaignsPerformance = [
     likes: "980",
     comments: "320",
   },
-  {
-    id: "5",
-    name: "Q4 Product Showcase",
-    creators: 55,
-    content: 30,
-    views: "30.1K",
-    likes: "4.1K",
-    comments: "2.2K",
-  },
-  {
-    id: "6",
-    name: "Holiday Special",
-    creators: 60,
-    content: 45,
-    views: "50.5K",
-    likes: "6.0K",
-    comments: "3.1K",
-  },
+  { id: "5", name: "Q4 Product Showcase", creators: 55, content: 30, views: "30.1K", likes: "4.1K", comments: "2.2K" },
+  { id: "6", name: "Holiday Special", creators: 60, content: 45, views: "50.5K", likes: "6.0K", comments: "3.1K" },
 ]
 
-// Mock data for new Social Media Approvals
+// Mock data for new Social Media Approvals (department -> email)
 const initialMockPendingSocialMedia: PendingSocialMediaItem[] = [
   {
     id: "sm1",
     creatorName: "Alex Green",
-    creatorAvatar: "/placeholder.svg?width=32&height=32",
+    email: "alex.green@example.com",
     platform: "instagram",
     username: "@alexgreen_official",
     submissionTime: "1h ago",
-    department: "Marketing",
     profileUrl: "https://instagram.com/alexgreen_official",
     followers: 12500,
     following: 300,
@@ -127,11 +108,10 @@ const initialMockPendingSocialMedia: PendingSocialMediaItem[] = [
   {
     id: "sm2",
     creatorName: "Maria Garcia",
-    creatorAvatar: "/placeholder.svg?width=32&height=32",
+    email: "maria.garcia@example.com",
     platform: "tiktok",
     username: "@mariadances",
     submissionTime: "3h ago",
-    department: "Sales",
     profileUrl: "https://tiktok.com/@mariadances",
     followers: 250000,
     following: 150,
@@ -139,92 +119,87 @@ const initialMockPendingSocialMedia: PendingSocialMediaItem[] = [
   {
     id: "sm3",
     creatorName: "John Doe",
+    email: "john.doe@example.com",
     platform: "instagram",
     username: "@johndoesphotos",
     submissionTime: "5h ago",
-    department: "Product",
     profileUrl: "https://instagram.com/johndoesphotos",
     followers: 5200,
     following: 850,
   },
 ]
 
-// Restored mockPendingApprovals data
+// MockPendingApprovals data (department -> email)
 const initialMockPendingApprovals: PendingApprovalItem[] = [
   {
     id: "pa1",
     creatorName: "Sarah Johnson",
+    email: "sarah.j@example.com",
     campaignName: "Summer Product Launch Extravaganza - The Ultimate Guide to Sunshine Styles",
     campaignType: "CREATIVE_CHALLENGE",
     submissionTime: "2h ago",
     approvalStatus: "CONTENT_REVIEW",
-    department: "Marketing",
     content: {
       images: [
         { id: 1, src: "/placeholder.svg?height=400&width=400", alt: "Summer collection image 1" },
         { id: 2, src: "/placeholder.svg?height=400&width=400", alt: "Summer collection image 2" },
       ],
-      caption:
-        "Summer is here and so is the new collection from @brandname! 🌞 Check out these amazing new products that are perfect for the season. #SummerCollection #BrandNameSummer #NewArrivals. This caption is intentionally made longer to demonstrate the scroll hint functionality in the content preview modal. We want to ensure that if the content, including this caption and potentially multiple images or a video, exceeds the available viewport height within the modal, a visual cue will appear to indicate that the user can scroll down to see more. This is important for usability, especially on smaller screens or when dealing with extensive creative submissions. The scroll hint should be subtle yet noticeable, guiding the admin to view all submitted materials before making an approval decision.",
+      caption: "Summer is here! Check out the new collection. #SummerVibes",
     },
   },
   {
     id: "pa2",
     creatorName: "Michael Chen",
+    email: "michael.c@example.com",
     campaignName: "Brand Challenge Q3: Innovate & Inspire",
     campaignType: "CREATIVE_CHALLENGE",
     submissionTime: "4h ago",
     approvalStatus: "POST_URL_REVIEW",
-    department: "Product",
     submittedUrl: "https://www.tiktok.com/@exampleuser/video/1234567890123456789",
     content: {
       images: [{ id: 1, src: "/placeholder.svg?height=200&width=200", alt: "Tech gadget post preview" }],
-      caption:
-        "My TikTok for #BrandChallengeQ3 is live! This was the original caption for the content I submitted earlier. Hope you like the final post!",
+      caption: "My TikTok for #BrandChallengeQ3 is live!",
     },
   },
   {
     id: "pa3",
     creatorName: "Emily Rodriguez",
+    email: "emily.r@example.com",
     campaignName: "New Blog Article on Customer Success",
     campaignType: "QUICK_SHARE",
     submissionTime: "5h ago",
     approvalStatus: "POST_URL_REVIEW",
-    department: "Customer Success",
     submittedUrl: "https://example.com/blog/new-article-on-customer-success-strategies",
     content: {
       images: [{ id: 1, src: "/placeholder.svg?height=400&width=400", alt: "Blog Article Promotion" }],
-      caption:
-        "Exciting news! Our latest blog post on 'Advanced Customer Success Strategies' is now live. Read it here: [Link to actual blog post if different from submitted one, or just a generic promo caption]. #CustomerSuccess #NewBlog",
+      caption: "Exciting news! Our latest blog post is live. #CustomerSuccess",
     },
   },
   {
     id: "pa4",
     creatorName: "David Wilson",
+    email: "david.w@example.com",
     campaignName: "Product Tutorial Video: Mastering the Features",
     campaignType: "CREATIVE_CHALLENGE",
     submissionTime: "6h ago",
     approvalStatus: "CONTENT_REVIEW",
-    department: "Sales",
     content: {
       videoSrc: "/placeholder.mp4",
-      caption:
-        "Check out my new tutorial video for the @brandname product! #Tutorial #ProductDemo. This video explains all the key features and benefits. It's a bit longer to test the scroll hint with video content as well.",
+      caption: "Check out my new tutorial video! #Tutorial",
     },
   },
   {
     id: "pa5",
     creatorName: "Lisa Thompson",
+    email: "lisa.t@example.com",
     campaignName: "Latest Company News Video Update",
     campaignType: "QUICK_SHARE",
     submissionTime: "7h ago",
     approvalStatus: "POST_URL_REVIEW",
-    department: "Engineering",
     submittedUrl: "https://www.linkedin.com/feed/update/urn:li:activity:12345/",
     content: {
       videoSrc: "/placeholder.mp4",
-      caption:
-        "Big announcement! Check out our latest company news update. #CompanyNews #TechUpdate. This is the official video we'd like you to share.",
+      caption: "Big announcement! Check out our latest company news. #CompanyNews",
     },
   },
 ]
@@ -345,7 +320,6 @@ export default function AdminDashboard() {
     setIsSocialMediaReviewDialogOpen(false)
   }
 
-  // Content Approval Modal Logic
   const handleApproveContent = (itemId: string) => {
     console.log("Approving content:", itemId)
     setPendingContentApprovals((prev) => prev.filter((item) => item.id !== itemId))
@@ -374,7 +348,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* KPI Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -423,9 +396,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Social Media Approvals Section */}
           <Card className="md:col-span-1 flex flex-col h-[500px]">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -442,17 +413,6 @@ export default function AdminDashboard() {
                   <div key={item.id} className="border rounded-lg p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs flex-shrink-0">
-                          {item.creatorAvatar ? (
-                            <img
-                              src={item.creatorAvatar || "/placeholder.svg?width=32&height=32&query=avatar"}
-                              alt={item.creatorName}
-                              className="rounded-full w-full h-full object-cover"
-                            />
-                          ) : (
-                            item.creatorName.substring(0, 1)
-                          )}
-                        </div>
                         <div className="flex-grow min-w-0">
                           <p className="font-medium text-sm">{item.creatorName}</p>
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -496,7 +456,6 @@ export default function AdminDashboard() {
             </div>
           </Card>
 
-          {/* Pending Content Approvals Section */}
           <Card className="md:col-span-1 flex flex-col h-[500px]">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -513,17 +472,6 @@ export default function AdminDashboard() {
                   <div key={item.id} className="border rounded-lg p-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs flex-shrink-0 mt-1">
-                          {item.creatorAvatar ? (
-                            <img
-                              src={item.creatorAvatar || "/placeholder.svg?width=32&height=32&query=avatar"}
-                              alt={item.creatorName}
-                              className="rounded-full w-full h-full object-cover"
-                            />
-                          ) : (
-                            item.creatorName.substring(0, 1)
-                          )}
-                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm mb-1">{item.creatorName}</p>
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-2" title={item.campaignName}>
@@ -566,15 +514,12 @@ export default function AdminDashboard() {
             </div>
           </Card>
 
-          {/* Campaign Performance Section */}
           <Card className="md:col-span-2 flex flex-col">
             <CardHeader>
               <CardTitle>Campaign Performance</CardTitle>
               <CardDescription>All Campaigns' Performance Overview</CardDescription>
             </CardHeader>
             <CardContent className="h-[400px] overflow-auto">
-              {" "}
-              {/* Adjusted height and overflow */}
               <div className="space-y-6">
                 {mockCampaignsPerformance.map((campaign) => (
                   <div key={campaign.id} className="border rounded-lg p-4">
@@ -625,7 +570,6 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Review Dialog for Pending Content Approvals */}
         <Dialog
           open={isReviewDialogOpen}
           onOpenChange={(open) => {
@@ -656,8 +600,6 @@ export default function AdminDashboard() {
                                     src={
                                       displayImages[currentImageIndex]?.src ||
                                       "/placeholder.svg?height=400&width=400&query=content+image" ||
-                                      "/placeholder.svg" ||
-                                      "/placeholder.svg" ||
                                       "/placeholder.svg"
                                     }
                                     alt={displayImages[currentImageIndex]?.alt || "Content image"}
@@ -730,30 +672,13 @@ export default function AdminDashboard() {
                   <div className="mb-4">
                     <h3 className="text-sm font-medium mb-2">Submission Details</h3>
                     <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-sm">
-                          {selectedApprovalItem.creatorAvatar ? (
-                            <img
-                              src={
-                                selectedApprovalItem.creatorAvatar ||
-                                "/placeholder.svg?width=40&height=40&query=creator+avatar" ||
-                                "/placeholder.svg" ||
-                                "/placeholder.svg" ||
-                                "/placeholder.svg"
-                              }
-                              alt={selectedApprovalItem.creatorName}
-                              className="rounded-full w-full h-full object-cover"
-                            />
-                          ) : (
-                            selectedApprovalItem.creatorName.substring(0, 1)
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{selectedApprovalItem.creatorName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {selectedApprovalItem.department || "N/A Department"}
-                          </p>
-                        </div>
+                      <div>
+                        {" "}
+                        {/* Removed flex items-center gap-3 for direct name/email display */}
+                        <p className="font-medium">{selectedApprovalItem.creatorName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedApprovalItem.email || "N/A Email"} {/* Display email */}
+                        </p>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
@@ -832,7 +757,6 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
 
-        {/* Review Dialog for Social Media Approvals */}
         <Dialog open={isSocialMediaReviewDialogOpen} onOpenChange={setIsSocialMediaReviewDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -845,26 +769,13 @@ export default function AdminDashboard() {
             </DialogHeader>
             {selectedSocialMediaItem && (
               <div className="py-4 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-lg flex-shrink-0">
-                    {selectedSocialMediaItem.creatorAvatar ? (
-                      <img
-                        src={
-                          selectedSocialMediaItem.creatorAvatar || "/placeholder.svg?width=48&height=48&query=avatar"
-                        }
-                        alt={selectedSocialMediaItem.creatorName}
-                        className="rounded-full w-full h-full object-cover"
-                      />
-                    ) : (
-                      selectedSocialMediaItem.creatorName.substring(0, 1)
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">{selectedSocialMediaItem.creatorName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedSocialMediaItem.department || "N/A Department"}
-                    </p>
-                  </div>
+                <div>
+                  {" "}
+                  {/* Removed flex items-center gap-3 for direct name/email display */}
+                  <p className="font-medium">{selectedSocialMediaItem.creatorName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedSocialMediaItem.email || "N/A Email"} {/* Display email */}
+                  </p>
                 </div>
 
                 <div className="space-y-1">
