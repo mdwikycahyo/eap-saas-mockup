@@ -386,7 +386,7 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                         </div>
                         <div>
                           <p className="text-3xl font-bold mb-1">{campaign.invited}</p>
-                          <p className="text-xs text-muted-foreground">100% of target</p>
+                          <p className="text-xs text-muted-foreground">Total approached</p>
                         </div>
                       </div>
 
