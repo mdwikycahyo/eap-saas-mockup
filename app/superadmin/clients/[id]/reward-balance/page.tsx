@@ -579,7 +579,7 @@ export default function RewardBalancePage({ params }) {
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleExportTransactions}>
                   <Download className="mr-2 h-4 w-4" />
-                  Export Transactions
+                  Download Report
                 </Button>
                 <Dialog open={isTopUpModalOpen} onOpenChange={setIsTopUpModalOpen}>
                   <DialogTrigger asChild>
@@ -646,7 +646,7 @@ export default function RewardBalancePage({ params }) {
                         {formErrors.evidenceFile && (
                           <p className="text-sm text-red-500 mt-1">{formErrors.evidenceFile}</p>
                         )}
-                        <p className="text-xs text-muted-foreground mt-1">Supported formats: JPG, PNG, PDF (max 5MB)</p>
+                        <p className="text-xs text-muted-foreground mt-1">Supported formats: JPG, PNG (max 2MB)</p>
                       </div>
                     </div>
                     <DialogFooter>
@@ -944,7 +944,7 @@ export default function RewardBalancePage({ params }) {
                   <p className="text-sm text-muted-foreground mt-1">Current: {editingTransaction.evidence.fileName}</p>
                 )}
                 {formErrors.evidenceFile && <p className="text-sm text-red-500 mt-1">{formErrors.evidenceFile}</p>}
-                <p className="text-xs text-muted-foreground mt-1">Supported formats: JPG, PNG, PDF (max 5MB)</p>
+                <p className="text-xs text-muted-foreground mt-1">Supported formats: JPG, PNG (max 2MB)</p>
               </div>
             </div>
             <DialogFooter>

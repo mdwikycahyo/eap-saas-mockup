@@ -389,7 +389,7 @@ function AddClientForm({ onSubmit, onCancel, initialData = null, isEditing = fal
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Upload className="h-8 w-8 text-slate-400" />
                     <p className="text-sm font-medium">Upload square logo</p>
-                    <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG (max. 2MB)</p>
                   </div>
                   <Button variant="outline" size="sm" className="mt-4">
                     Select File
@@ -406,7 +406,7 @@ function AddClientForm({ onSubmit, onCancel, initialData = null, isEditing = fal
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Upload className="h-8 w-8 text-slate-400" />
                     <p className="text-sm font-medium">Upload horizontal logo</p>
-                    <p className="text-xs text-muted-foreground">SVG, PNG, JPG (max. 2MB)</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG (max. 2MB)</p>
                   </div>
                   <Button variant="outline" size="sm" className="mt-4">
                     Select File

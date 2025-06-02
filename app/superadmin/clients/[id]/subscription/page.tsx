@@ -576,6 +576,7 @@ export default function ManageSubscriptionPage() {
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
+
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -598,17 +599,26 @@ export default function ManageSubscriptionPage() {
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => {
-                                setSelectedSubscription(subscription)
-                                setIsHistoryModalOpen(true)
-                              }}
-                            >
-                              <Clock className="h-4 w-4" />
-                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => {
+                                      setSelectedSubscription(subscription)
+                                      setIsHistoryModalOpen(true)
+                                    }}
+                                  >
+                                    <Clock className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Change history
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                         </TableCell>
                       </TableRow>
