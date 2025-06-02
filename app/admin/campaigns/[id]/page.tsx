@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { Calendar, Download, ArrowLeft, FileText, ImageIcon, VideoIcon } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea" // Keep Textarea if used elsewhere, or remove if only for assets
+import { Calendar, Download, ArrowLeft, FileText, ImageIcon, VideoIcon, ChevronRight, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { CustomPagination } from "@/components/ui/custom-pagination"
 
@@ -365,71 +365,85 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                   </div>
                 </CardContent>
               </Card>
-
               <div className="space-y-6 mt-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Participation</CardTitle>
+                    <CardTitle>Creator Participation</CardTitle>
+                    <CardDescription>Campaign funnel from invitation to content creation</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-6">
-                      <h3 className="text-sm font-medium">Creators Status</h3>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="p-3 bg-blue-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Invited</p>
-                          <p className="text-lg font-bold text-blue-600">{campaign.invited}</p>
-                          <p className="text-xs text-muted-foreground">100% - Base</p>
+                    <div className="flex flex-col md:flex-row items-stretch justify-between gap-4">
+                      {/* Step 1: Invited */}
+                      <div className="flex-1 p-4 border rounded-lg text-center flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-center mb-3">
+                            <span className="bg-blue-600 text-white rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold">
+                              1
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-base mb-1">Creators Invited</h4>
+                          <p className="text-xs text-muted-foreground mb-2">Total creators approached for campaign</p>
                         </div>
-                        <div className="p-3 bg-amber-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Joined</p>
-                          <p className="text-lg font-bold text-amber-600">{campaign.participants}</p>
+                        <div>
+                          <p className="text-3xl font-bold mb-1">{campaign.invited}</p>
+                          <p className="text-xs text-muted-foreground">100% of target</p>
+                        </div>
+                      </div>
+
+                      <div className="hidden md:flex items-center justify-center text-muted-foreground">
+                        <ChevronRight className="h-6 w-6" />
+                      </div>
+                      <div className="flex md:hidden items-center justify-center text-muted-foreground my-2">
+                        <ChevronDown className="h-6 w-6" />
+                      </div>
+
+                      {/* Step 2: Joined */}
+                      <div className="flex-1 p-4 border rounded-lg text-center flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-center mb-3">
+                            <span className="bg-amber-600 text-white rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold">
+                              2
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-base mb-1">Creators Joined</h4>
+                          <p className="text-xs text-muted-foreground mb-2">Accepted invitation and joined campaign</p>
+                        </div>
+                        <div>
+                          <p className="text-3xl font-bold mb-1">{campaign.participants}</p>
                           <p className="text-xs text-muted-foreground">
                             {campaign.invited > 0 ? Math.round((campaign.participants / campaign.invited) * 100) : 0}%
-                            of Invited
-                          </p>
-                        </div>
-                        <div className="p-3 bg-green-50 rounded-md text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Posted / Submit Content</p>
-                          <p className="text-lg font-bold text-green-600">{campaign.posted}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {campaign.participants > 0
-                              ? Math.round((campaign.posted / campaign.participants) * 100)
-                              : 0}
-                            % of Joined
+                            of invited
                           </p>
                         </div>
                       </div>
 
-                      <h3 className="text-sm font-medium">Content/Submissions Status</h3>
-                      <div className="grid grid-cols-3 gap-3 text-center">
-                        <div className="p-3 bg-green-50 rounded-md">
-                          <p className="text-xs text-muted-foreground mb-1">Approved / Live</p>
-                          <p className="text-lg font-bold text-green-600">{campaign.submissions.approved}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {campaign.submissions.total > 0
-                              ? Math.round((campaign.submissions.approved / campaign.submissions.total) * 100)
-                              : 0}
-                            % of submissions
+                      <div className="hidden md:flex items-center justify-center text-muted-foreground">
+                        <ChevronRight className="h-6 w-6" />
+                      </div>
+                      <div className="flex md:hidden items-center justify-center text-muted-foreground my-2">
+                        <ChevronDown className="h-6 w-6" />
+                      </div>
+
+                      {/* Step 3: Approved Content */}
+                      <div className="flex-1 p-4 border rounded-lg text-center flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-center mb-3">
+                            <span className="bg-green-600 text-white rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold">
+                              3
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-base mb-1">Creators with Approved Content</h4>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Creators who have published approved content
                           </p>
                         </div>
-                        <div className="p-3 bg-amber-50 rounded-md">
-                          <p className="text-xs text-muted-foreground mb-1">Pending</p>
-                          <p className="text-lg font-bold text-amber-600">{campaign.submissions.pending}</p>
+                        <div>
+                          <p className="text-3xl font-bold mb-1">{campaign.posted}</p>
                           <p className="text-xs text-muted-foreground">
-                            {campaign.submissions.total > 0
-                              ? Math.round((campaign.submissions.pending / campaign.submissions.total) * 100)
+                            {campaign.participants > 0
+                              ? Math.round((campaign.posted / campaign.participants) * 100)
                               : 0}
-                            % of submissions
-                          </p>
-                        </div>
-                        <div className="p-3 bg-red-50 rounded-md">
-                          <p className="text-xs text-muted-foreground mb-1">Rejected</p>
-                          <p className="text-lg font-bold text-red-600">{campaign.submissions.rejected}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {campaign.submissions.total > 0
-                              ? Math.round((campaign.submissions.rejected / campaign.submissions.total) * 100)
-                              : 0}
-                            % of submissions
+                            % of joined
                           </p>
                         </div>
                       </div>
@@ -515,14 +529,12 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
 
                     <div className="p-4 border rounded-md">
                       <h3 className="font-medium mb-3">Performance Summary</h3>
-                      <div className="p-2 bg-slate-50 rounded-md text-center">
-                        <p className="text-xs text-muted-foreground">Approval Rate</p>
+                      <div className="p-3 bg-slate-50 rounded-md text-center">
+                        <p className="text-xs text-muted-foreground">Overall Participation Rate</p>
                         <p className="text-lg font-bold">
-                          {campaign.submissions.total > 0
-                            ? Math.round((campaign.submissions.approved / campaign.submissions.total) * 100)
-                            : 0}
-                          %
+                          {campaign.invited > 0 ? Math.round((campaign.posted / campaign.invited) * 100) : 0}%
                         </p>
+                        <p className="text-xs text-muted-foreground mt-1">Invited to Published & Approved</p>
                       </div>
                     </div>
                   </div>
