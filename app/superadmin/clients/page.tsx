@@ -227,19 +227,19 @@ export default function ClientsPage() {
     <TooltipProvider>
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Manage Company List</h1>
-          <Button onClick={handleAddClient}>
+          <h1 className="text-3xl font-bold">Manage Clients</h1>
+          <Button onClick={handleAddClient} className="bg-gray-800 hover:bg-gray-600 text-white">
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Company
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Companies Overview</CardTitle>
-            <CardDescription>Manage and monitor all company accounts in one place</CardDescription>
+            <CardTitle>Clients Overview</CardTitle>
+            <CardDescription>Manage and monitor all client accounts in one place</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -249,7 +249,6 @@ export default function ClientsPage() {
                   onChange={handleSearchChange}
                 />
               </div>
-              <div className="flex gap-2"></div>
             </div>
 
             <div className="rounded-md border">
@@ -283,8 +282,7 @@ export default function ClientsPage() {
                               />
                             </div>
                             <div>
-                              <p className="font-medium">{client.name}</p>
-                              <p className="text-xs text-muted-foreground">{client.subdomain}.hypearn.com</p>
+                              <p className="font-semibold">{client.name}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -348,7 +346,7 @@ export default function ClientsPage() {
                                   <span className="sr-only">Manage Reward Balance</span>
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Manage Reward Balance</TooltipContent>
+                              <TooltipContent>Coming Soon</TooltipContent>
                             </Tooltip>
                           </div>
                         </TableCell>

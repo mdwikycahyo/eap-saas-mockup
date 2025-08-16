@@ -89,7 +89,7 @@ export function CustomPagination({
               size="sm"
               onClick={() => onPageChange(page)}
               className={`h-8 w-8 p-0 ${
-                currentPage === page ? "bg-primary hover:bg-primary/90 text-primary-foreground border-primary" : ""
+                currentPage === page ? "bg-gray-800 hover:bg-gray-600 text-white border-gray-800" : ""
               }`}
             >
               {page}

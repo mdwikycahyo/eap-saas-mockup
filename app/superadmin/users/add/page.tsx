@@ -438,7 +438,7 @@ function AddUserForm({ onSubmit, onCancel, companies, initialData = null }) {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">Add User & Send Invitation</Button>
+        <Button className="bg-gray-800 hover:bg-gray-600 text-white" type="submit">Add User & Send Invitation</Button>
       </div>
     </form>
   )
