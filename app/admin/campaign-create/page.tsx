@@ -4,18 +4,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-// DatePicker import removed as we are switching to Input type="date"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { ChevronLeft, Search } from "lucide-react"
 import Link from "next/link"
 import { useState, useMemo, useEffect } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CustomPagination } from "@/components/ui/custom-pagination"
-import { cn } from "@/lib/utils" // For conditional class names
+import { cn } from "@/lib/utils"
+import { Separator } from "@/components/ui/separator"
 
 // Helper to format Date to YYYY-MM-DD string
 const formatDateToYYYYMMDD = (date: Date | undefined | null): string => {
@@ -64,7 +62,13 @@ const creators = [
 ]
 
 export default function CreateCampaignPage() {
-  const [campaignType, setCampaignType] = useState<string>("quick-share")
+  // Form state
+  const [campaignName, setCampaignName] = useState<string>("")
+  const [campaignDescription, setCampaignDescription] = useState<string>("")
+  const [campaignStatus, setCampaignStatus] = useState<string>("draft")
+  const [selectedCreators, setSelectedCreators] = useState<Set<number>>(new Set())
+
+  // Filter and search state
   const [selectedProvince, setSelectedProvince] = useState<string>("all")
   const [selectedCity, setSelectedCity] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
@@ -112,8 +116,47 @@ export default function CreateCampaignPage() {
     creatorsCurrentPage * creatorsItemsPerPage,
   )
 
+  // Validation function
+  const isFormValid = useMemo(() => {
+    const hasRequiredFields = 
+      campaignName.trim() !== "" &&
+      campaignDescription.trim() !== "" &&
+      startDate !== "" &&
+      endDate !== "" &&
+      selectedCreators.size > 0
+
+    return hasRequiredFields
+  }, [campaignName, campaignDescription, startDate, endDate, selectedCreators])
+
+  // Handle creator selection
+  const handleCreatorSelection = (creatorId: number, checked: boolean) => {
+    const newSelectedCreators = new Set(selectedCreators)
+    if (checked) {
+      newSelectedCreators.add(creatorId)
+    } else {
+      newSelectedCreators.delete(creatorId)
+    }
+    setSelectedCreators(newSelectedCreators)
+  }
+
+  // Handle select all creators
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allCreatorIds = paginatedCreators.map(creator => creator.id)
+      setSelectedCreators(new Set([...selectedCreators, ...allCreatorIds]))
+    } else {
+      const currentPageIds = paginatedCreators.map(creator => creator.id)
+      const newSelected = new Set(selectedCreators)
+      currentPageIds.forEach(id => newSelected.delete(id))
+      setSelectedCreators(newSelected)
+    }
+  }
+
+  // Check if all current page creators are selected
+  const areAllCurrentPageSelected = paginatedCreators.every(creator => selectedCreators.has(creator.id))
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/admin/campaigns">
@@ -128,279 +171,293 @@ export default function CreateCampaignPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="details" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="details">Campaign Details</TabsTrigger>
-          <TabsTrigger value="creators">Invite Creators</TabsTrigger>
-          <TabsTrigger value="content">Content Assets</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="details" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Enter the essential details of your campaign.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Campaign Name</Label>
-                <Input id="name" placeholder="Enter campaign name" />
+      <form className="space-y-8">
+        {/* Campaign Details Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 bg-gray-800 text-primary-foreground rounded-full text-sm font-bold">
+                1
               </div>
+              Campaign Details
+            </CardTitle>
+            <CardDescription>Enter the essential details of your campaign.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Campaign Name *</Label>
+              <Input 
+                id="name" 
+                placeholder="Enter campaign name" 
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                className={cn(campaignName.trim() === "" && "border-red-500")}
+              />
+              {campaignName.trim() === "" && (
+                <p className="text-xs text-red-500">Campaign name is required</p>
+              )}
+            </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="description">Description & Brief *</Label>
+              <Textarea 
+                id="description" 
+                placeholder="Enter campaign description and brief for creators to follow" 
+                className={cn("min-h-[150px]", campaignDescription.trim() === "" && "border-red-500")}
+                value={campaignDescription}
+                onChange={(e) => setCampaignDescription(e.target.value)}
+              />
+              {campaignDescription.trim() === "" && (
+                <p className="text-xs text-red-500">Description is required</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Campaign Type</Label>
-                <RadioGroup defaultValue="quick-share" onValueChange={(value) => setCampaignType(value)}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="quick-share" id="quick-share" />
-                    <Label htmlFor="quick-share">Quick Share</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="creative-challenge" id="creative-challenge" />
-                    <Label htmlFor="creative-challenge">Creative Challenge</Label>
-                  </div>
-                </RadioGroup>
+                <Label htmlFor="start-date">Start Date *</Label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  min={getTodayString()}
+                  className={cn("w-full", startDate === "" && "border-red-500")}
+                />
+                {startDate === "" && (
+                  <p className="text-xs text-red-500">Start date is required</p>
+                )}
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" placeholder="Enter campaign description" className="min-h-[100px]" />
+                <Label htmlFor="end-date">End Date *</Label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={minEndDate || getTodayString()}
+                  disabled={!startDate}
+                  className={cn("w-full", !startDate && "bg-muted cursor-not-allowed", endDate === "" && "border-red-500")}
+                />
+                {!startDate && <p className="text-xs text-muted-foreground">Please select a start date first</p>}
+                {startDate && endDate === "" && (
+                  <p className="text-xs text-red-500">End date is required</p>
+                )}
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="start-date">Start Date</Label>
-                  <Input
-                    id="start-date"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    min={getTodayString()}
-                    className="w-full"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="end-date">End Date</Label>
-                  <Input
-                    id="end-date"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={minEndDate || getTodayString()}
-                    disabled={!startDate}
-                    className={cn("w-full", !startDate && "bg-muted cursor-not-allowed")}
-                  />
-                  {!startDate && <p className="text-xs text-muted-foreground">Please select a start date first</p>}
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={campaignStatus} onValueChange={setCampaignStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Invite Creators Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 bg-gray-800 text-primary-foreground rounded-full text-sm font-bold">
+                2
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select defaultValue="draft">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+              Invite Creators
+            </CardTitle>
+            <CardDescription>Select which creators to invite to this campaign. *</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search creators by name, email, city..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCreatorsCurrentPage(1);
+                  }}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select
+                  value={selectedProvince}
+                  onValueChange={(value) => {
+                    setSelectedProvince(value);
+                    setCreatorsCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select province" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="all">All Provinces</SelectItem>
+                    <SelectItem value="Jakarta">Jakarta</SelectItem>
+                    <SelectItem value="Jawa Barat">Jawa Barat</SelectItem>
+                    <SelectItem value="Jawa Tengah">Jawa Tengah</SelectItem>
+                    <SelectItem value="Jawa Timur">Jawa Timur</SelectItem>
+                    <SelectItem value="Bali">Bali</SelectItem>
+                    <SelectItem value="Sumatera Utara">Sumatera Utara</SelectItem>
+                    <SelectItem value="Yogyakarta">Yogyakarta</SelectItem>
+                    <SelectItem value="Sulawesi Selatan">Sulawesi Selatan</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={selectedCity}
+                  onValueChange={(value) => {
+                    setSelectedCity(value);
+                    setCreatorsCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select city" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Cities</SelectItem>
+                    <SelectItem value="Jakarta Selatan">Jakarta Selatan</SelectItem>
+                    <SelectItem value="Jakarta Pusat">Jakarta Pusat</SelectItem>
+                    <SelectItem value="Jakarta Barat">Jakarta Barat</SelectItem>
+                    <SelectItem value="Jakarta Timur">Jakarta Timur</SelectItem>
+                    <SelectItem value="Jakarta Utara">Jakarta Utara</SelectItem>
+                    <SelectItem value="Bandung">Bandung</SelectItem>
+                    <SelectItem value="Surabaya">Surabaya</SelectItem>
+                    <SelectItem value="Semarang">Semarang</SelectItem>
+                    <SelectItem value="Yogyakarta">Yogyakarta</SelectItem>
+                    <SelectItem value="Denpasar">Denpasar</SelectItem>
+                    <SelectItem value="Medan">Medan</SelectItem>
+                    <SelectItem value="Makassar">Makassar</SelectItem>
+                    <SelectItem value="Bogor">Bogor</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
 
-        <TabsContent value="creators" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Invite Creators</CardTitle>
-              <CardDescription>Select which creators to invite to this campaign.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search creators by name, email, city..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value)
-                      setCreatorsCurrentPage(1)
-                    }}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Select
-                    value={selectedProvince}
-                    onValueChange={(value) => {
-                      setSelectedProvince(value)
-                      setCreatorsCurrentPage(1)
-                    }}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select province" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Provinces</SelectItem>
-                      <SelectItem value="Jakarta">Jakarta</SelectItem>
-                      <SelectItem value="Jawa Barat">Jawa Barat</SelectItem>
-                      <SelectItem value="Jawa Tengah">Jawa Tengah</SelectItem>
-                      <SelectItem value="Jawa Timur">Jawa Timur</SelectItem>
-                      <SelectItem value="Bali">Bali</SelectItem>
-                      <SelectItem value="Sumatera Utara">Sumatera Utara</SelectItem>
-                      <SelectItem value="Yogyakarta">Yogyakarta</SelectItem>
-                      <SelectItem value="Sulawesi Selatan">Sulawesi Selatan</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={selectedCity}
-                    onValueChange={(value) => {
-                      setSelectedCity(value)
-                      setCreatorsCurrentPage(1)
-                    }}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select city" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Cities</SelectItem>
-                      <SelectItem value="Jakarta Selatan">Jakarta Selatan</SelectItem>
-                      <SelectItem value="Jakarta Pusat">Jakarta Pusat</SelectItem>
-                      <SelectItem value="Jakarta Barat">Jakarta Barat</SelectItem>
-                      <SelectItem value="Jakarta Timur">Jakarta Timur</SelectItem>
-                      <SelectItem value="Jakarta Utara">Jakarta Utara</SelectItem>
-                      <SelectItem value="Bandung">Bandung</SelectItem>
-                      <SelectItem value="Surabaya">Surabaya</SelectItem>
-                      <SelectItem value="Semarang">Semarang</SelectItem>
-                      <SelectItem value="Yogyakarta">Yogyakarta</SelectItem>
-                      <SelectItem value="Denpasar">Denpasar</SelectItem>
-                      <SelectItem value="Medan">Medan</SelectItem>
-                      <SelectItem value="Makassar">Makassar</SelectItem>
-                      <SelectItem value="Bogor">Bogor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="border rounded-md overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">
-                        <Checkbox />
-                      </TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Province</TableHead>
-                      <TableHead>City</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedCreators.length > 0 ? (
-                      paginatedCreators.map((creator) => (
-                        <TableRow key={creator.id}>
-                          <TableCell>
-                            <Checkbox id={`creator-${creator.id}`} />
-                          </TableCell>
-                          <TableCell>
-                            <span>{creator.name}</span>
-                          </TableCell>
-                          <TableCell>{creator.email}</TableCell>
-                          <TableCell>{creator.province}</TableCell>
-                          <TableCell>{creator.city}</TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-4">
-                          No creators found matching your filters
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {totalCreatorPages > 1 && (
-                <CustomPagination
-                  currentPage={creatorsCurrentPage}
-                  totalPages={totalCreatorPages}
-                  totalItems={filteredCreators.length}
-                  itemsPerPage={creatorsItemsPerPage}
-                  onPageChange={setCreatorsCurrentPage}
-                  onItemsPerPageChange={(value) => {
-                    setCreatorsItemsPerPage(value)
-                    setCreatorsCurrentPage(1)
-                  }}
-                  itemName="creators"
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="content" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Content Assets</CardTitle>
-              <CardDescription>Upload assets and provide content for creators to use.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="text-sm font-medium mb-3">
-                  {campaignType === "quick-share" ? "Campaign Assets" : "Upload Brief"}
-                </h3>
-                <div className="border-2 border-dashed rounded-lg p-12 text-center">
-                  <div className="mx-auto flex flex-col items-center justify-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-muted-foreground mb-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+            <div className="border rounded-md overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox 
+                        checked={areAllCurrentPageSelected}
+                        onCheckedChange={handleSelectAll}
                       />
-                    </svg>
-                    <p className="mb-2 text-sm text-muted-foreground">
-                      <span className="font-semibold">Click to upload</span> or drag and drop
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {campaignType === "quick-share" ? "PNG, JPG, GIF, MP4 up to 10MB" : "PDF up to 10MB"}
-                    </p>
-                  </div>
+                    </TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Province</TableHead>
+                    <TableHead>City</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedCreators.length > 0 ? (
+                    paginatedCreators.map((creator) => (
+                      <TableRow key={creator.id}>
+                        <TableCell>
+                          <Checkbox 
+                            id={`creator-${creator.id}`}
+                            checked={selectedCreators.has(creator.id)}
+                            onCheckedChange={(checked) => handleCreatorSelection(creator.id, checked as boolean)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <span>{creator.name}</span>
+                        </TableCell>
+                        <TableCell>{creator.email}</TableCell>
+                        <TableCell>{creator.province}</TableCell>
+                        <TableCell>{creator.city}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-4">
+                        No creators found matching your filters
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {selectedCreators.size === 0 && (
+              <p className="text-xs text-red-500">Please select at least one creator</p>
+            )}
+
+            {totalCreatorPages > 1 && (
+              <CustomPagination
+                currentPage={creatorsCurrentPage}
+                totalPages={totalCreatorPages}
+                totalItems={filteredCreators.length}
+                itemsPerPage={creatorsItemsPerPage}
+                onPageChange={setCreatorsCurrentPage}
+                onItemsPerPageChange={(value) => {
+                  setCreatorsItemsPerPage(value);
+                  setCreatorsCurrentPage(1);
+                }}
+                itemName="creators"
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Content Assets Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 bg-gray-800 text-primary-foreground rounded-full text-sm font-bold">
+                3
+              </div>
+              Content Assets
+            </CardTitle>
+            <CardDescription>Upload assets for creators to use in their content.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <h3 className="text-sm font-medium mb-3">Campaign Assets</h3>
+              <div className="border-2 border-dashed rounded-lg p-12 text-center">
+                <div className="mx-auto flex flex-col items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-muted-foreground mb-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  <p className="mb-2 text-sm text-muted-foreground">
+                    <span className="font-semibold">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG, GIF, MP4 up to 10MB</p>
                 </div>
               </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="pt-4">
-                <h3 className="text-sm font-medium mb-3">
-                  {campaignType === "quick-share" ? "Caption Template" : "Campaign Brief"}
-                </h3>
-                <div className="space-y-2">
-                  <Textarea
-                    id="caption"
-                    placeholder={
-                      campaignType === "quick-share"
-                        ? "Enter a template caption that creators can use or modify"
-                        : "Write a detailed brief for creators to follow"
-                    }
-                    className="min-h-[200px]"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end gap-2">
-        <Button variant="outline">Save as Draft</Button>
-        <Button>Publish Campaign</Button>
-      </div>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2 pt-4">
+          <Button 
+            className={cn(
+              "bg-gray-800 hover:bg-gray-600 text-white",
+              !isFormValid && "bg-gray-400 cursor-not-allowed hover:bg-gray-400"
+            )}
+            disabled={!isFormValid}
+          >
+            Create Campaign
+          </Button>
+        </div>
+      </form>
     </div>
-  )
+  );
 }

@@ -17,8 +17,7 @@ const allCampaigns = [
     slug: "summer-launch",
     title: "Summer Product Launch",
     description: "Share our new summer collection",
-    type: "Quick Share",
-    status: "Submitted URL Required",
+    status: "URL Required",
     color: "rose",
     timeRemaining: 5,
     joined: true,
@@ -27,8 +26,7 @@ const allCampaigns = [
     slug: "brand-challenge",
     title: "Brand Challenge",
     description: "Create a video using our hashtag",
-    type: "Creative Challenge",
-    status: "Content Required",
+    status: "URL Required",
     color: "cyan",
     timeRemaining: 12,
     joined: true,
@@ -37,8 +35,7 @@ const allCampaigns = [
     slug: "customer-stories",
     title: "Customer Stories",
     description: "Share testimonials from happy customers",
-    type: "Quick Share",
-    status: "Live",
+    status: "Approved",
     color: "amber",
     timeRemaining: 8,
     joined: true,
@@ -48,7 +45,6 @@ const allCampaigns = [
     slug: "sustainability",
     title: "Sustainability Initiative",
     description: "Share our commitment to sustainability",
-    type: "Quick Share",
     color: "emerald",
     timeRemaining: 15,
     joined: false,
@@ -57,7 +53,6 @@ const allCampaigns = [
     slug: "product-tutorial",
     title: "Product Tutorial",
     description: "Create a tutorial showing how to use our products",
-    type: "Creative Challenge",
     color: "violet",
     timeRemaining: 10,
     joined: false,
@@ -66,7 +61,6 @@ const allCampaigns = [
     slug: "behind-scenes",
     title: "Behind the Scenes",
     description: "Share behind-the-scenes content from your workplace",
-    type: "Creative Challenge",
     color: "pink",
     timeRemaining: 7,
     joined: false,
@@ -75,7 +69,6 @@ const allCampaigns = [
     slug: "holiday-special",
     title: "Holiday Special",
     description: "Create content for the upcoming holiday season",
-    type: "Quick Share",
     color: "blue",
     timeRemaining: 20,
     joined: false,
@@ -84,7 +77,6 @@ const allCampaigns = [
     slug: "employee-spotlight",
     title: "Employee Spotlight",
     description: "Share your experience working with our products",
-    type: "Creative Challenge",
     color: "orange",
     timeRemaining: 14,
     joined: false,
@@ -97,7 +89,6 @@ const completedCampaigns = [
     slug: "spring-collection",
     title: "Spring Collection",
     description: "Our spring collection campaign",
-    type: "Quick Share",
     status: "Completed",
     color: "green",
     timeRemaining: 0,
@@ -107,7 +98,6 @@ const completedCampaigns = [
     slug: "new-year-special",
     title: "New Year Special",
     description: "Special campaign for the new year",
-    type: "Creative Challenge",
     status: "Completed",
     color: "purple",
     timeRemaining: 0,
@@ -133,7 +123,7 @@ export default function CampaignsPage() {
             return {
               ...campaign,
               joined: true,
-              status: campaign.type === "Quick Share" ? "Submitted URL Required" : "Content Required",
+              status: "URL Required",
             }
           }
           return campaign
@@ -156,10 +146,6 @@ export default function CampaignsPage() {
       filteredCampaigns = filteredCampaigns.filter((campaign) => campaign.joined)
     } else if (activeTab === "available") {
       filteredCampaigns = filteredCampaigns.filter((campaign) => !campaign.joined)
-    } else if (activeTab === "quick-share") {
-      filteredCampaigns = filteredCampaigns.filter((campaign) => campaign.type === "Quick Share")
-    } else if (activeTab === "creative") {
-      filteredCampaigns = filteredCampaigns.filter((campaign) => campaign.type === "Creative Challenge")
     } else if (activeTab === "completed") {
       return completedCampaigns
     }
@@ -189,17 +175,10 @@ export default function CampaignsPage() {
       {showCampaignInfo && (
         <Alert className="mb-6">
           <InfoIcon className="h-4 w-4" />
-          <AlertTitle>Campaign Types</AlertTitle>
+          <AlertTitle>How Campaigns Work</AlertTitle>
           <AlertDescription>
-            <div className="grid gap-2 mt-2">
-              <div>
-                <span className="font-medium">Quick Share:</span> Brand-generated content that you can download and
-                publish directly. No approval needed.
-              </div>
-              <div>
-                <span className="font-medium">Creative Challenge:</span> Create your own content based on brand
-                guidelines. Requires approval before publishing.
-              </div>
+            <div className="mt-2">
+              Join campaigns to share content about our brand on your social media. You can use provided assets or create your own content. Simply submit the URL of your published post for approval.
             </div>
             <button
               className="text-xs text-muted-foreground hover:underline mt-2"
@@ -229,8 +208,6 @@ export default function CampaignsPage() {
           <TabsTrigger value="all">All Campaigns</TabsTrigger>
           <TabsTrigger value="active">My Campaigns</TabsTrigger>
           <TabsTrigger value="available">Available</TabsTrigger>
-          <TabsTrigger value="quick-share">Quick Share</TabsTrigger>
-          <TabsTrigger value="creative">Creative Challenge</TabsTrigger>
           <TabsTrigger value="completed">Completed</TabsTrigger>
         </TabsList>
 
@@ -251,22 +228,6 @@ export default function CampaignsPage() {
         </TabsContent>
 
         <TabsContent value="available" className="mt-6">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filterCampaigns().map((campaign) => (
-              <CampaignCard key={campaign.slug} campaign={campaign} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="quick-share" className="mt-6">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filterCampaigns().map((campaign) => (
-              <CampaignCard key={campaign.slug} campaign={campaign} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="creative" className="mt-6">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filterCampaigns().map((campaign) => (
               <CampaignCard key={campaign.slug} campaign={campaign} />

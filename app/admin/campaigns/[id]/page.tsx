@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea" // Keep Textarea if used elsewhere, or remove if only for assets
+import { Textarea } from "@/components/ui/textarea"
 import { Calendar, Download, ArrowLeft, FileText, ImageIcon, VideoIcon, ChevronRight, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { CustomPagination } from "@/components/ui/custom-pagination"
@@ -20,10 +20,10 @@ interface CampaignCreator {
   id: string
   name: string
   email: string
-  status: string // "URL Required", "URL Under Review", "Live", "Content Required", "Content Under Review", "Rejected URL Post", "Rejected Content Material"
+  status: string // "URL Required", "URL Under Review", "Approved", "Rejected"
   province: string
   city: string
-  statusColor: string // Tailwind color name e.g. "green", "amber", "blue", "purple", "indigo", "red"
+  statusColor: string // Tailwind color name e.g. "green", "amber", "blue", "red"
 }
 
 interface CampaignAsset {
@@ -38,7 +38,6 @@ interface Campaign {
   id: string
   title: string
   description: string
-  type: "Quick Share" | "Creative Challenge"
   platforms: string[]
   startDate: string
   endDate: string
@@ -46,9 +45,9 @@ interface Campaign {
   statusColor: string // e.g. "green"
   invited: number
   participants: number
-  posted: number // For Quick Share: number of live posts. For Creative Challenge: number of approved content that went live.
+  posted: number // Number of approved content
   submissions: {
-    total: number // Total content pieces submitted for Creative Challenge, or total URLs for Quick Share
+    total: number // Total URLs submitted
     approved: number
     pending: number
     rejected: number
@@ -60,8 +59,6 @@ interface Campaign {
     shares: number
   }
   assets: CampaignAsset[]
-  requirements?: string[] // For Quick Share
-  briefText?: string // For Creative Challenge
   creators: CampaignCreator[]
 }
 
@@ -70,9 +67,8 @@ const allCampaignsData: Campaign[] = [
     id: "1",
     title: "Summer Product Launch",
     description:
-      "Share our new summer collection with your followers and highlight your favorite products. This campaign aims to increase awareness of our latest seasonal offerings.",
-    type: "Quick Share",
-    platforms: ["instagram", "tiktok"], // Added tiktok here
+      "Share our new summer collection with your followers and highlight your favorite products. This campaign aims to increase awareness of our latest seasonal offerings. Use the provided assets or create your own content that showcases our products in authentic ways.",
+    platforms: ["instagram", "tiktok"],
     startDate: "July 1, 2023",
     endDate: "July 31, 2023",
     statusLabel: "Active",
@@ -91,25 +87,13 @@ const allCampaignsData: Campaign[] = [
       { id: "asset1", type: "image", name: "product_image_1.jpg", previewUrl: "/placeholder.svg?height=100&width=100" },
       { id: "asset2", type: "image", name: "product_image_2.jpg", previewUrl: "/placeholder.svg?height=100&width=100" },
       { id: "asset3", type: "video", name: "promo_video.mp4", previewUrl: "/placeholder.svg?height=100&width=180" },
-      {
-        id: "asset4",
-        type: "document",
-        name: "caption_suggestions.txt",
-        previewUrl:
-          "Summer is here and so is the new collection from @brandname! 🌞 Check out these amazing new products that are perfect for the season. #SummerCollection #BrandNameSummer #NewArrivals",
-      },
-    ],
-    requirements: [
-      "Post must include product images provided",
-      "Caption must include #SummerCollection hashtag",
-      "Tag @brandname in your post",
     ],
     creators: [
       {
         id: "c1",
         name: "Sarah Johnson",
         email: "sarah.j@example.com",
-        status: "Live",
+        status: "Approved",
         province: "DKI Jakarta",
         city: "Jakarta Selatan",
         statusColor: "green",
@@ -136,16 +120,16 @@ const allCampaignsData: Campaign[] = [
         id: "c4",
         name: "David Wilson",
         email: "david.w@example.com",
-        status: "Live",
+        status: "Approved",
         province: "Bali",
         city: "Denpasar",
         statusColor: "green",
       },
       {
-        id: "c5_rejected_qs",
+        id: "c5_rejected",
         name: "Kevin Rejected",
         email: "kevin.rejected@example.com",
-        status: "Rejected URL Post",
+        status: "Rejected",
         province: "Banten",
         city: "Tangerang",
         statusColor: "red",
@@ -156,8 +140,7 @@ const allCampaignsData: Campaign[] = [
     id: "2",
     title: "Brand Challenge",
     description:
-      "Unleash your creativity and showcase how our brand inspires you! This campaign is all about authentic storytelling and unique content.",
-    type: "Creative Challenge",
+      "Unleash your creativity and showcase how our brand inspires you! This campaign is all about authentic storytelling and unique content. Share your personal connection with our brand and how it fits into your lifestyle.",
     platforms: ["tiktok", "instagram"],
     startDate: "August 5, 2023",
     endDate: "September 5, 2023",
@@ -173,32 +156,27 @@ const allCampaignsData: Campaign[] = [
       rejected: 7,
     },
     engagement: { views: 32000, likes: 2500, comments: 450, shares: 200 },
-    assets: [{ id: "asset_brief", type: "document", name: "Campaign_Brief_BrandChallenge.pdf", url: "#" }],
-    briefText: `This campaign aims to showcase our brand through authentic employee advocacy. Creators should highlight how the brand inspires them or how they use our products/services in their daily lives.
-
-Key Messaging Points:
-- Authenticity and personal connection.
-- Creative and unique interpretations.
-- Adherence to brand guidelines (provided in brief).
-- Submission deadline: August 25, 2023.`,
+    assets: [
+      { id: "asset_brief", type: "document", name: "Campaign_Guidelines.pdf", url: "#" },
+    ],
     creators: [
       {
         id: "cc1",
         name: "Alex Green",
         email: "alex.g@example.com",
-        status: "Content Required",
+        status: "URL Required",
         province: "DKI Jakarta",
         city: "Jakarta Pusat",
-        statusColor: "purple",
+        statusColor: "amber",
       },
       {
         id: "cc2",
         name: "Brenda Blue",
         email: "brenda.b@example.com",
-        status: "Content Under Review",
+        status: "URL Under Review",
         province: "West Java",
         city: "Bekasi",
-        statusColor: "indigo",
+        statusColor: "blue",
       },
       {
         id: "cc3",
@@ -222,58 +200,49 @@ Key Messaging Points:
         id: "cc5",
         name: "Edward Fuchsia",
         email: "edward.f@example.com",
-        status: "Live",
+        status: "Approved",
         province: "East Java",
         city: "Malang",
         statusColor: "green",
       },
       {
-        id: "cc6_rejected_content",
-        name: "Gina RejectedContent",
+        id: "cc6_rejected",
+        name: "Gina Rejected",
         email: "gina.rc@example.com",
-        status: "Rejected Content Material",
+        status: "Rejected",
         province: "North Sumatra",
         city: "Medan",
         statusColor: "red",
       },
-      {
-        id: "cc7_rejected_url",
-        name: "Harry RejectedURL",
-        email: "harry.ru@example.com",
-        status: "Rejected URL Post",
-        province: "South Sulawesi",
-        city: "Makassar",
-        statusColor: "red",
-      },
     ],
   },
-]
+];
 
 export default function CampaignDetail({ params }: CampaignDetailProps) {
-  const router = useRouter()
-  const [campaign, setCampaign] = useState<Campaign | null>(null)
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [creatorsCurrentPage, setCreatorsCurrentPage] = useState(1)
-  const [creatorsItemsPerPage, setCreatorsItemsPerPage] = useState(5) // Default items per page, can be changed by pagination component
+  const [creatorsCurrentPage, setCreatorsCurrentPage] = useState(1);
+  const [creatorsItemsPerPage, setCreatorsItemsPerPage] = useState(5);
 
   useEffect(() => {
-    const foundCampaign = allCampaignsData.find((c) => c.id === params.id)
+    const foundCampaign = allCampaignsData.find((c) => c.id === params.id);
     if (foundCampaign) {
-      setCampaign(foundCampaign)
+      setCampaign(foundCampaign);
     } else {
-      setCampaign(null)
+      setCampaign(null);
     }
-    setLoading(false)
-    setCreatorsCurrentPage(1) // Reset page on campaign change
-  }, [params.id])
+    setLoading(false);
+    setCreatorsCurrentPage(1); // Reset page on campaign change
+  }, [params.id]);
 
   const handleBack = () => {
-    router.back()
-  }
+    router.back();
+  };
 
   if (loading) {
-    return <div className="p-6 text-center">Loading campaign details...</div>
+    return <div className="p-6 text-center">Loading campaign details...</div>;
   }
 
   if (!campaign) {
@@ -287,15 +256,15 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
           <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
         </Button>
       </div>
-    )
+    );
   }
 
-  const totalCreatorItems = campaign.creators.length
-  const totalCreatorPages = Math.ceil(totalCreatorItems / creatorsItemsPerPage)
+  const totalCreatorItems = campaign.creators.length;
+  const totalCreatorPages = Math.ceil(totalCreatorItems / creatorsItemsPerPage);
   const paginatedCreators = campaign.creators.slice(
     (creatorsCurrentPage - 1) * creatorsItemsPerPage,
     creatorsCurrentPage * creatorsItemsPerPage,
-  )
+  );
 
   const getStatusBadgeClasses = (color: string) => {
     // Mapping for Tailwind JIT compiler
@@ -306,8 +275,8 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
     // bg-indigo-50 text-indigo-600 border-indigo-200
     // bg-red-50 text-red-600 border-red-200
     // bg-slate-50 text-slate-600 border-slate-200
-    return `bg-${color}-50 text-${color}-600 border-${color}-200`
-  }
+    return `bg-${color}-50 text-${color}-600 border-${color}-200`;
+  };
 
   return (
     <div className="p-6">
@@ -342,12 +311,6 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                   <div className="grid gap-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-1">Campaign Type</h3>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{campaign.type}</Badge>
-                        </div>
-                      </div>
-                      <div>
                         <h3 className="text-sm font-medium text-muted-foreground mb-1">Campaign Period</h3>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -356,10 +319,20 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                           </span>
                         </div>
                       </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1">Platforms</h3>
+                        <div className="flex gap-2">
+                          {campaign.platforms.map((platform) => (
+                            <Badge key={platform} variant="outline" className="capitalize">
+                              {platform}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Description</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Description & Brief</h3>
                       <p>{campaign.description}</p>
                     </div>
                   </div>
@@ -411,8 +384,7 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                         <div>
                           <p className="text-3xl font-bold mb-1">{campaign.participants}</p>
                           <p className="text-xs text-muted-foreground">
-                            {campaign.invited > 0 ? Math.round((campaign.participants / campaign.invited) * 100) : 0}%
-                            of invited
+                            {campaign.invited > 0 ? Math.round((campaign.participants / campaign.invited) * 100) : 0}% of invited
                           </p>
                         </div>
                       </div>
@@ -433,17 +405,12 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                             </span>
                           </div>
                           <h4 className="font-semibold text-base mb-1">Creators with Approved Content</h4>
-                          <p className="text-xs text-muted-foreground mb-2">
-                            Creators who have published approved content
-                          </p>
+                          <p className="text-xs text-muted-foreground mb-2">Creators who have published approved content</p>
                         </div>
                         <div>
                           <p className="text-3xl font-bold mb-1">{campaign.posted}</p>
                           <p className="text-xs text-muted-foreground">
-                            {campaign.participants > 0
-                              ? Math.round((campaign.posted / campaign.participants) * 100)
-                              : 0}
-                            % of joined
+                            {campaign.participants > 0 ? Math.round((campaign.posted / campaign.participants) * 100) : 0}% of joined
                           </p>
                         </div>
                       </div>
@@ -462,7 +429,7 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                           <div className="flex items-center gap-2 mb-3">
                             <span className="text-sm font-medium">Instagram</span>
                             <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200">
-                              {campaign.type === "Quick Share" ? campaign.submissions.approved : campaign.posted} Posts
+                              {campaign.submissions.approved} Posts
                             </Badge>
                           </div>
                           <div className="grid grid-cols-3 gap-3">
@@ -486,21 +453,21 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                           <div className="flex items-center gap-2 mb-3">
                             <span className="text-sm font-medium">TikTok</span>
                             <Badge variant="outline" className="bg-cyan-50 text-cyan-600 border-cyan-200">
-                              0 Posts {/* Placeholder, adjust if TikTok data is available */}
+                              {campaign.submissions.approved} Posts
                             </Badge>
                           </div>
                           <div className="grid grid-cols-3 gap-3">
                             <div className="p-3 bg-slate-50 rounded-md text-center">
                               <p className="text-xs text-muted-foreground mb-1">Views</p>
-                              <p className="text-lg font-bold">0</p>
+                              <p className="text-lg font-bold">{campaign.engagement.views.toLocaleString()}</p>
                             </div>
                             <div className="p-3 bg-slate-50 rounded-md text-center">
                               <p className="text-xs text-muted-foreground mb-1">Likes</p>
-                              <p className="text-lg font-bold">0</p>
+                              <p className="text-lg font-bold">{campaign.engagement.likes.toLocaleString()}</p>
                             </div>
                             <div className="p-3 bg-slate-50 rounded-md text-center">
                               <p className="text-xs text-muted-foreground mb-1">Comments</p>
-                              <p className="text-lg font-bold">0</p>
+                              <p className="text-lg font-bold">{campaign.engagement.comments.toLocaleString()}</p>
                             </div>
                           </div>
                         </div>
@@ -551,7 +518,7 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
               <CardDescription>Manage the content assets for this campaign</CardDescription>
             </CardHeader>
             <CardContent>
-              {campaign.type === "Quick Share" && (
+              {campaign.assets.length > 0 ? (
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-sm font-medium mb-3">Images & Videos</h3>
@@ -582,28 +549,10 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                     </div>
                   </div>
                   {campaign.assets
-                    .filter((asset) => asset.type === "document" && asset.name.includes("caption"))
+                    .filter((asset) => asset.type === "document")
                     .map((asset) => (
                       <div key={asset.id}>
-                        <h3 className="text-sm font-medium mb-3">Caption Suggestions</h3>
-                        <Textarea
-                          className="min-h-[120px]"
-                          defaultValue={
-                            typeof asset.previewUrl === "string" ? asset.previewUrl : "No caption provided."
-                          }
-                          disabled
-                        />
-                      </div>
-                    ))}
-                </div>
-              )}
-              {campaign.type === "Creative Challenge" && (
-                <div className="space-y-6">
-                  {campaign.assets
-                    .filter((asset) => asset.type === "document" && asset.name.includes("Brief"))
-                    .map((asset) => (
-                      <div key={asset.id}>
-                        <h3 className="text-sm font-medium mb-3">Campaign Brief</h3>
+                        <h3 className="text-sm font-medium mb-3">Campaign Guidelines</h3>
                         <div className="border rounded-md p-4 mb-4">
                           <div className="flex justify-between items-center mb-4">
                             <div className="flex items-center gap-2">
@@ -625,15 +574,8 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                         </div>
                       </div>
                     ))}
-                  {campaign.briefText && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-3">Campaign Brief Text</h3>
-                      <Textarea className="min-h-[200px]" defaultValue={campaign.briefText} />
-                    </div>
-                  )}
                 </div>
-              )}
-              {campaign.assets.length === 0 && (
+              ) : (
                 <p className="text-muted-foreground">No assets provided for this campaign.</p>
               )}
             </CardContent>
@@ -688,8 +630,8 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
                   itemsPerPage={creatorsItemsPerPage}
                   onPageChange={setCreatorsCurrentPage}
                   onItemsPerPageChange={(newItemsPerPage) => {
-                    setCreatorsItemsPerPage(newItemsPerPage)
-                    setCreatorsCurrentPage(1) // Reset to first page when items per page changes
+                    setCreatorsItemsPerPage(newItemsPerPage);
+                    setCreatorsCurrentPage(1); // Reset to first page when items per page changes
                   }}
                   itemName="creators"
                 />
@@ -699,5 +641,5 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
