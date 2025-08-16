@@ -32,8 +32,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
-      label: "Manage User",
-      href: "/admin/creators",
+      label: "Manage Users",
+      href: "/admin/users",
       icon: <Users className="h-5 w-5" />,
     },
     {
