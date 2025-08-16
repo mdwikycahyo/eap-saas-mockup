@@ -164,13 +164,13 @@ export default function UsersPage() {
   const { toast } = useToast()
   const [isInvitationSent, setIsInvitationSent] = useState(false)
   const [showResendInvitationDialog, setShowResendInvitationDialog] = useState(false)
-  const [userToResendInvitation, setUserToResendInvitation] = useState(null)
+  const [userToResendInvitation, setUserToResendInvitation] = useState<null | { name: string; email: string }>(null)
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
 
-  const getDisplayInvitationStatus = (invitationStatus) => {
+  const getDisplayInvitationStatus = (invitationStatus: string) => {
     if (invitationStatus === "Confirmed") return "Accepted"
     return "Pending Invitation"
   }
@@ -195,11 +195,11 @@ export default function UsersPage() {
     router.push("/superadmin/users/add")
   }
 
-  const handleEditUser = (user) => {
+  const handleEditUser = (user: any) => {
     router.push(`/superadmin/users/${user.id}/edit`)
   }
 
-  const handleConfirmResendInvitation = (user) => {
+  const handleConfirmResendInvitation = (user: any) => {
     setUserToResendInvitation(user)
     setShowResendInvitationDialog(true)
   }
@@ -221,10 +221,10 @@ export default function UsersPage() {
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-  const handlePageChange = (page) => {
+  const handlePageChange = (page: number) => {
     setCurrentPage(page)
   }
-  const handleItemsPerPageChange = (value) => {
+  const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value)
     setCurrentPage(1)
   }
@@ -394,7 +394,7 @@ export default function UsersPage() {
                           <TableCell className="text-right">
                             <div className="flex justify-start space-x-2">
                               <TooltipProvider>
-                                <Tooltip content="Edit User">
+                                <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
                                       variant="ghost"
@@ -410,7 +410,7 @@ export default function UsersPage() {
                                 </Tooltip>
                               </TooltipProvider>
                               <TooltipProvider>
-                                <Tooltip content="Resend Invitation">
+                                <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
                                       variant="ghost"

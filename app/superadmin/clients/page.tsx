@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, PlusCircle, Edit, Tag, Wallet } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -26,7 +25,6 @@ const mockClients = [
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "15",
     creatorCount: "350",
-    rewardBalance: "5000000",
   },
   {
     id: 2,
@@ -40,7 +38,6 @@ const mockClients = [
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "2",
     creatorCount: "50",
-    rewardBalance: "10000000",
   },
   {
     id: 3,
@@ -54,7 +51,6 @@ const mockClients = [
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "8",
     creatorCount: "200",
-    rewardBalance: "7500000",
   },
   {
     id: 7,
@@ -68,7 +64,6 @@ const mockClients = [
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "0",
     creatorCount: "0",
-    rewardBalance: "0",
   },
   {
     id: 4,
@@ -82,7 +77,6 @@ const mockClients = [
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "15",
     creatorCount: "350",
-    rewardBalance: "15000000",
   },
   {
     id: 5,
@@ -96,7 +90,6 @@ const mockClients = [
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "1",
     creatorCount: "10",
-    rewardBalance: "2500000",
   },
   {
     id: 6,
@@ -110,43 +103,10 @@ const mockClients = [
     logo: "/placeholder.svg?height=32&width=32",
     adminCount: "2",
     creatorCount: "50",
-    rewardBalance: "3000000",
   },
 ]
 
-// Initial industries list
-const initialIndustries = [
-  "Technology",
-  "Manufacturing",
-  "Energy",
-  "Defense",
-  "Pharmaceuticals",
-  "Finance",
-  "Retail",
-  "Healthcare",
-  "Education",
-  "Transportation",
-  "Hospitality",
-  "Media",
-  "Agriculture",
-  "Construction",
-  "Telecommunications",
-  "Software",
-]
-
-const formatCurrency = (amount) => {
-  if (amount === "0") return "IDR 0"
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })
-    .format(amount)
-    .replace("Rp", "IDR")
-}
-
-const getStatusBadgeVariant = (status) => {
+const getStatusBadgeVariant = (status: string) => {
   switch (status) {
     case "Active":
       return "default" // Will be styled green
@@ -164,9 +124,6 @@ export default function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
-  const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false)
-  const [selectedClient, setSelectedClient] = useState(null)
-  const { toast } = useToast()
   const router = useRouter()
 
   // Filter clients based on search query and filters
@@ -181,18 +138,18 @@ export default function ClientsPage() {
   const currentClients = filteredClients.slice(startIndex, endIndex)
 
   // Reset to first page when search changes
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
     setCurrentPage(1)
   }
 
   // Handle items per page change
-  const handleItemsPerPageChange = (newItemsPerPage) => {
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage)
     setCurrentPage(1)
   }
 
-  const handleEditClient = (clientId) => {
+  const handleEditClient = (clientId: number) => {
     router.push(`/superadmin/clients/${clientId}/edit`)
   }
 
@@ -200,27 +157,8 @@ export default function ClientsPage() {
     router.push("/superadmin/clients/add")
   }
 
-  const handleManageSubscription = (clientId) => {
+  const handleManageSubscription = (clientId: number) => {
     router.push(`/superadmin/clients/${clientId}/subscription`)
-  }
-
-  const handleManageRewardBalance = (clientId) => {
-    router.push(`/superadmin/clients/${clientId}/reward-balance`)
-  }
-
-  // Format subscription duration
-  const formatSubscriptionDuration = (start, end) => {
-    const startDate = new Date(start)
-    const endDate = new Date(end)
-
-    const formatDate = (date) => {
-      const day = date.getDate().toString().padStart(2, "0")
-      const month = date.toLocaleString("default", { month: "short" })
-      const year = date.getFullYear()
-      return `${day} ${month} ${year}`
-    }
-
-    return `${formatDate(startDate)} - ${formatDate(endDate)}`
   }
 
   return (
@@ -258,7 +196,6 @@ export default function ClientsPage() {
                     <TableHead>Company Name</TableHead>
                     <TableHead>Industry</TableHead>
                     <TableHead>Subscription Status</TableHead>
-                    <TableHead>Reward Balance</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -301,7 +238,6 @@ export default function ClientsPage() {
                             {client.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>{formatCurrency(client.rewardBalance)}</TableCell>
                         <TableCell className="text-center">
                           <div className="flex justify-start space-x-2">
                             <Tooltip>
@@ -332,21 +268,6 @@ export default function ClientsPage() {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>Manage Subscription</TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => handleManageRewardBalance(client.id)}
-                                >
-                                  <Wallet className="h-4 w-4" />
-                                  <span className="sr-only">Manage Reward Balance</span>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Coming Soon</TooltipContent>
                             </Tooltip>
                           </div>
                         </TableCell>
