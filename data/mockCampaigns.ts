@@ -1,0 +1,58 @@
+import { CampaignPerformance } from "@/types/admin";
+
+export const mockCampaignsPerformance: CampaignPerformance[] = [
+  {
+    id: "1",
+    name: "Summer Product Launch",
+    creators: 42,
+    content: 28,
+    views: "24.5K",
+    likes: "3.2K",
+    comments: "1.8K",
+  },
+  {
+    id: "2",
+    name: "Brand Challenge",
+    creators: 36,
+    content: 15,
+    views: "18.3K",
+    likes: "2.7K",
+    comments: "1.2K",
+  },
+  {
+    id: "3",
+    name: "Customer Stories",
+    creators: 28,
+    content: 22,
+    views: "9.8K",
+    likes: "1.5K",
+    comments: "820",
+  },
+  {
+    id: "4",
+    name: "Sustainability Initiative",
+    creators: 18,
+    content: 7,
+    views: "5.6K",
+    likes: "980",
+    comments: "320",
+  },
+  {
+    id: "5",
+    name: "Q4 Product Showcase",
+    creators: 55,
+    content: 30,
+    views: "30.1K",
+    likes: "4.1K",
+    comments: "2.2K",
+  },
+  {
+    id: "6",
+    name: "Holiday Special",
+    creators: 60,
+    content: 45,
+    views: "50.5K",
+    likes: "6.0K",
+    comments: "3.1K",
+  },
+];
