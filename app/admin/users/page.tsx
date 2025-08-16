@@ -32,8 +32,8 @@ import { toast } from "@/hooks/use-toast"
 
 // Import extracted components and hooks
 import { User } from "./types/user"
-import { AddUserDialog } from "./components/dialogs/AddUserDialog"
-import { EditUserDialog } from "./components/dialogs/EditUserDialog"
+import { AddUserPanel } from "./components/dialogs/AddUserPanel"
+import { EditUserPanel } from "./components/dialogs/EditUserPanel"
 import { ViewProfileDialog } from "./components/dialogs/ViewProfileDialog"
 import { AdjustPointsDialog } from "./components/dialogs/AdjustPointsDialog"
 import { useUserManagement } from "./hooks/useUserManagement"
@@ -109,8 +109,8 @@ export default function ManageUsersPage() {
   })
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-12">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Manage User</h1>
         <Button className="bg-gray-800 hover:bg-gray-600 text-white" onClick={() => setIsAddUserOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Add New User
@@ -273,16 +273,16 @@ export default function ManageUsersPage() {
       </Card>
 
       {/* Dialog Components */}
-      <AddUserDialog
+      <AddUserPanel
         isOpen={isAddUserOpen}
-        onOpenChange={setIsAddUserOpen}
+        onClose={() => setIsAddUserOpen(false)}
         onUserAdded={handleAddUser}
       />
 
       {editingUser && (
-        <EditUserDialog
+        <EditUserPanel
           isOpen={isEditUserOpen}
-          onOpenChange={setIsEditUserOpen}
+          onClose={() => setIsEditUserOpen(false)}
           user={editingUser}
           onUserUpdated={handleUpdateUser}
         />
@@ -316,7 +316,7 @@ export default function ManageUsersPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel onClick={() => setUserToResend(null)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={executeResendInvitation}>Resend</AlertDialogAction>
+              <AlertDialogAction className="bg-gray-800 hover:bg-gray-600 text-white" onClick={executeResendInvitation}>Resend</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

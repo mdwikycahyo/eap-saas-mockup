@@ -99,7 +99,7 @@ export function AdjustPointsDialog({ isOpen, onOpenChange, user, onPointsAdjuste
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Save Changes</Button>
+          <Button className="bg-gray-800 hover:bg-gray-600 text-white" onClick={handleSubmit}>Save Changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
