@@ -555,9 +555,6 @@ export default function RewardBalancePage({ params }) {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Manage Reward Balance</h1>
-            <p className="text-sm text-muted-foreground">
-              {mockCompany.name} ({mockCompany.subdomain}.hypearn.com)
-            </p>
           </div>
         </div>
 

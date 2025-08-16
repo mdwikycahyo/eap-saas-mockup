@@ -1,6 +1,16 @@
 "use client"
 
 import { DialogDescription } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
@@ -220,6 +230,11 @@ export default function ManageSubscriptionPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
+    isOpen: false,
+    subscriptionId: null,
+    subscriptionName: "",
+  })
 
   useEffect(() => {
     const clientId = params.id
@@ -350,6 +365,15 @@ export default function ManageSubscriptionPage() {
       title: "Subscription Deleted",
       description: "Subscription has been deleted successfully.",
     })
+    setDeleteConfirmation({ isOpen: false, subscriptionId: null, subscriptionName: "" })
+  }
+
+  const showDeleteConfirmation = (subscriptionId, subscriptionName) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      subscriptionId,
+      subscriptionName,
+    })
   }
 
   const formatSubscriptionDuration = (start, end) => {
@@ -453,9 +477,7 @@ export default function ManageSubscriptionPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Manage Subscriptions</h1>
-          <p className="text-muted-foreground">
-            {client?.name} ({client?.subdomain}.hypearn.com)
-          </p>
+          <p className="text-muted-foreground">{client?.name}</p>
         </div>
       </div>
 
@@ -469,7 +491,11 @@ export default function ManageSubscriptionPage() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild disabled={hasActiveSubscription}>
-                  <Button disabled={hasActiveSubscription} onClick={() => setIsAddModalOpen(true)}>
+                  <Button
+                    className="bg-gray-800 hover:bg-gray-600 text-white"
+                    disabled={hasActiveSubscription}
+                    onClick={() => setIsAddModalOpen(true)}
+                  >
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add New Subscription
                   </Button>
@@ -584,7 +610,7 @@ export default function ManageSubscriptionPage() {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-destructive hover:text-destructive"
-                                    onClick={() => handleDeleteSubscription(subscription.id)}
+                                    onClick={() => showDeleteConfirmation(subscription.id, subscription.contractNumber)}
                                     disabled={status === "Inactive" || status === "Active"}
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -614,9 +640,7 @@ export default function ManageSubscriptionPage() {
                                     <Clock className="h-4 w-4" />
                                   </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>
-                                  Change history
-                                </TooltipContent>
+                                <TooltipContent>Change history</TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
                           </div>
@@ -674,6 +698,33 @@ export default function ManageSubscriptionPage() {
         }}
         subscription={selectedSubscription}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(open) =>
+          !open && setDeleteConfirmation({ isOpen: false, subscriptionId: null, subscriptionName: "" })
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Subscription</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the "{deleteConfirmation.subscriptionName}" subscription? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleDeleteSubscription(deleteConfirmation.subscriptionId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
@@ -847,6 +898,17 @@ function SubscriptionModal({
     e.preventDefault()
 
     if (validateForm()) {
+      const today = new Date()
+      const startDate = new Date(formData.startDate)
+
+      if (startDate > today && !isEditing) {
+        toast({
+          title: "Future Subscription Created",
+          description: "This subscription will have 'Future' status until the start date arrives.",
+          variant: "default",
+        })
+      }
+
       onSubmit(formData)
     } else {
       toast({
@@ -1016,7 +1078,9 @@ function SubscriptionModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">{isEditing ? "Update Subscription" : "Add Subscription"}</Button>
+            <Button className="bg-gray-800 hover:bg-gray-600 text-white" type="submit">
+              {isEditing ? "Update Subscription" : "Add Subscription"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

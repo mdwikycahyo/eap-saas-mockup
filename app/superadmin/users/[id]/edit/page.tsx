@@ -505,7 +505,7 @@ function EditUserForm({ onSubmit, onCancel, companies, initialData }) {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">Update User</Button>
+        <Button className="bg-gray-800 hover:bg-gray-600 text-white" type="submit">Update User</Button>
       </div>
     </form>
   )

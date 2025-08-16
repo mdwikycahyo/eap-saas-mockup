@@ -1,6 +1,5 @@
-import { Building, Users } from "lucide-react"
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Building2, Users, Shield, Edit3 } from "lucide-react"
 
 const metricsData = {
   totalClients: {
@@ -16,55 +15,60 @@ const metricsData = {
 }
 
 export default function DashboardPage() {
-  const greeting = "Good Morning"
-
   return (
     <div className="p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{greeting}, Super Admin</h1>
-          <p className="text-muted-foreground">Here is an overview of your platform</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Welcome, Super Admin!</h1>
+        <p className="text-muted-foreground">Here is your platform summary</p>
       </div>
 
-      {/* Platform Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Company Clients</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metricsData.totalClients.count}</div>
-            <div className="mt-2 space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Active:</span>
-                <span className="font-medium">{metricsData.totalClients.active}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Inactive:</span>
-                <span className="font-medium">{metricsData.totalClients.inactive}</span>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Total Clients Card */}
+        <Card className="p-6">
+          <CardContent className="flex items-center space-x-4 p-0">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <Building2 className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Clients</p>
+              <p className="text-2xl font-bold">{metricsData.totalClients.count}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metricsData.totalUsers.count.toLocaleString()}</div>
-            <div className="mt-2 space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Admins:</span>
-                <span className="font-medium">{metricsData.totalUsers.admins.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Creators:</span>
-                <span className="font-medium">{metricsData.totalUsers.creators.toLocaleString()}</span>
-              </div>
+        <Card className="p-6">
+          <CardContent className="flex items-center space-x-4 p-0">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <Users className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Users</p>
+              <p className="text-2xl font-bold">{metricsData.totalUsers.count.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Admin Card */}
+        <Card className="p-6">
+          <CardContent className="flex items-center space-x-4 p-0">
+            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+              <Shield className="w-6 h-6 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Admin</p>
+              <p className="text-2xl font-bold">{metricsData.totalUsers.admins}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="p-6">
+          <CardContent className="flex items-center space-x-4 p-0">
+            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+              <Edit3 className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Creators</p>
+              <p className="text-2xl font-bold">{metricsData.totalUsers.creators.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
