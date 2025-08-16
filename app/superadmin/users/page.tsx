@@ -469,7 +469,7 @@ export default function UsersPage() {
               <Button variant="outline" onClick={() => setShowResendInvitationDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleResendInvitationConfirmed}>
+              <Button className="bg-gray-800 hover:bg-gray-600 text-white" onClick={handleResendInvitationConfirmed}>
                 <Mail className="mr-2 h-4 w-4" /> Resend Invitation
               </Button>
             </DialogFooter>
