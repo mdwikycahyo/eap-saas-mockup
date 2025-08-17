@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -11,9 +11,9 @@ import { useRouter } from "next/navigation"
 import { CustomPagination } from "@/components/ui/custom-pagination"
 
 interface CampaignDetailProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 interface CampaignCreator {
@@ -226,8 +226,11 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
   const [creatorsCurrentPage, setCreatorsCurrentPage] = useState(1);
   const [creatorsItemsPerPage, setCreatorsItemsPerPage] = useState(5);
 
+  // Unwrap the params Promise using React.use()
+  const resolvedParams = use(params);
+
   useEffect(() => {
-    const foundCampaign = allCampaignsData.find((c) => c.id === params.id);
+    const foundCampaign = allCampaignsData.find((c) => c.id === resolvedParams.id);
     if (foundCampaign) {
       setCampaign(foundCampaign);
     } else {
@@ -235,7 +238,7 @@ export default function CampaignDetail({ params }: CampaignDetailProps) {
     }
     setLoading(false);
     setCreatorsCurrentPage(1); // Reset page on campaign change
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   const handleBack = () => {
     router.back();

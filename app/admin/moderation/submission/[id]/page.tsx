@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -24,13 +24,16 @@ import {
 import { TikTokIcon } from "@/components/tik-tok-icon"
 
 // Update the main component to handle different approval types
-export default function SubmissionDetail({ params }: { params: { id: string } }) {
+export default function SubmissionDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [submission, setSubmission] = useState<any>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [approvedContentImageIndex, setApprovedContentImageIndex] = useState(0)
   const [feedback, setFeedback] = useState("")
   const [loading, setLoading] = useState(true)
+  
+  // Unwrap the params Promise using React.use()
+  const resolvedParams = use(params);
 
   useEffect(() => {
     // In a real app, this would be an API call
@@ -244,13 +247,13 @@ export default function SubmissionDetail({ params }: { params: { id: string } })
         },
       ]
 
-      const foundSubmission = mockSubmissions.find((sub) => sub.id === params.id)
+      const foundSubmission = mockSubmissions.find((sub) => sub.id === resolvedParams.id)
       setSubmission(foundSubmission || mockSubmissions[0])
       setLoading(false)
     }
 
     fetchSubmission()
-  }, [params.id])
+  }, [resolvedParams.id])
 
   const nextImage = () => {
     if (!submission) return

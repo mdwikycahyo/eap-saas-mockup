@@ -74,7 +74,7 @@ const mockClients = [
 
 export default function EditClientPage() {
   const router = useRouter()
-  const params = useParams()
+  const params = useParams<{ id: string }>()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(true)
   const [clientData, setClientData] = useState(null)

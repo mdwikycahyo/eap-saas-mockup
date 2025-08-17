@@ -6,15 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, Clock, Download, FileText } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { use } from "react";
 
 interface CampaignDetailProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default function CampaignDetail({ params }: CampaignDetailProps) {
-  const campaignData = getCampaignData(params.slug);
+  const resolvedParams = use(params);
+  const campaignData = getCampaignData(resolvedParams.slug);
 
   return (
     <div className="p-6">

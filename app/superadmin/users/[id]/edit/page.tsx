@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -129,7 +129,7 @@ const mockUsers = [
 
 export default function EditUserPage() {
   const router = useRouter()
-  const params = useParams()
+  const params = useParams<{ id: string }>()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(true)
   const [userData, setUserData] = useState(null)
