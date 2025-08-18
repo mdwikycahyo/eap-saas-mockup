@@ -1,6 +1,5 @@
 // Admin Dashboard Types
-export type CampaignType = "QUICK_SHARE" | "CREATIVE_CHALLENGE";
-export type ApprovalStatusType = "CONTENT_REVIEW" | "CONTENT_URL_REVIEW";
+export type ApprovalStatusType = "URL_PENDING" | "URL_APPROVED" | "URL_REJECTED";
 export type SocialPlatform = "instagram" | "tiktok";
 
 export interface PendingApprovalItem {
@@ -8,16 +7,10 @@ export interface PendingApprovalItem {
   creatorName: string;
   email?: string;
   campaignName: string;
-  campaignType: CampaignType;
   submissionTime: string;
   approvalStatus: ApprovalStatusType;
   platform: SocialPlatform;
-  content?: {
-    images?: Array<{ id: number; src: string; alt: string }>;
-    videoSrc?: string;
-    caption: string;
-  };
-  submittedUrl?: string;
+  submittedUrl: string;
   socialHandle?: string;
 }
 

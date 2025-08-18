@@ -23,7 +23,7 @@ export function ContentApprovalSection({
       <Card className="flex flex-col md:hidden">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <div>
-            <CardTitle className="text-base">Content Approvals</CardTitle>
+            <CardTitle className="text-base">URL Approvals</CardTitle>
           </div>
           <Badge variant="outline" className="text-xs">
             {pendingContentApprovals.length} Pending
@@ -66,7 +66,7 @@ export function ContentApprovalSection({
             ))}
             {pendingContentApprovals.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No pending content approvals.
+                No pending URL approvals.
               </p>
             )}
           </div>
@@ -75,9 +75,9 @@ export function ContentApprovalSection({
           <Button
             variant="outline"
             className="w-full text-sm bg-transparent"
-            onClick={() => router.push("/admin/moderation")}
+            onClick={() => router.push("/admin/approval")}
           >
-            Review All Submissions
+            Review All URL Submissions
           </Button>
         </div>
       </Card>
@@ -86,7 +86,7 @@ export function ContentApprovalSection({
       <Card className="md:col-span-1 flex flex-col h-[400px] hidden md:flex">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Content Approvals</CardTitle>
+            <CardTitle>URL Approvals</CardTitle>
           </div>
           <Badge variant="outline" className="ml-2">
             {pendingContentApprovals.length} Pending
@@ -128,7 +128,7 @@ export function ContentApprovalSection({
             ))}
             {pendingContentApprovals.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No pending content approvals.
+                No pending URL approvals.
               </p>
             )}
           </div>
@@ -137,9 +137,9 @@ export function ContentApprovalSection({
           <Button
             variant="outline"
             className="w-full gap-1 bg-transparent"
-            onClick={() => router.push("/admin/moderation")}
+            onClick={() => router.push("/admin/approval")}
           >
-            Review All Submissions
+            Review All URL Submissions
           </Button>
         </div>
       </Card>

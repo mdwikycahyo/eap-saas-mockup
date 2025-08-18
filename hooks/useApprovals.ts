@@ -6,7 +6,7 @@ import {
 } from "@/data/mockApprovals";
 
 export function useApprovals() {
-  const [pendingContentApprovals, setPendingContentApprovals] = useState<
+  const [pendingUrlApprovals, setPendingUrlApprovals] = useState<
     PendingApprovalItem[]
   >(initialMockPendingApprovals);
 
@@ -14,17 +14,25 @@ export function useApprovals() {
     PendingSocialMediaItem[]
   >(initialMockPendingSocialMedia);
 
-  const handleApproveContent = (itemId: string) => {
-    console.log("Approving content:", itemId);
-    setPendingContentApprovals((prev) =>
-      prev.filter((item) => item.id !== itemId)
+  const handleApproveUrl = (itemId: string) => {
+    console.log("Approving URL:", itemId);
+    setPendingUrlApprovals((prev) =>
+      prev.map((item) =>
+        item.id === itemId
+          ? { ...item, approvalStatus: "URL_APPROVED" }
+          : item
+      )
     );
   };
 
-  const handleRejectContent = (itemId: string) => {
-    console.log("Rejecting content:", itemId);
-    setPendingContentApprovals((prev) =>
-      prev.filter((item) => item.id !== itemId)
+  const handleRejectUrl = (itemId: string) => {
+    console.log("Rejecting URL:", itemId);
+    setPendingUrlApprovals((prev) =>
+      prev.map((item) =>
+        item.id === itemId
+          ? { ...item, approvalStatus: "URL_REJECTED" }
+          : item
+      )
     );
   };
 
@@ -39,10 +47,10 @@ export function useApprovals() {
   };
 
   return {
-    pendingContentApprovals,
+    pendingUrlApprovals,
     pendingSocialMedia,
-    handleApproveContent,
-    handleRejectContent,
+    handleApproveUrl,
+    handleRejectUrl,
     handleVerifySocialMedia,
     handleRejectSocialMedia,
   };

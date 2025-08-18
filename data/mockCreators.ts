@@ -1,0 +1,56 @@
+import { Creator } from "@/types/campaign";
+
+export const creators: Creator[] = [
+  { id: 1, name: "Sarah Johnson", email: "sarah.johnson@example.com", province: "Jakarta", city: "Jakarta Selatan" },
+  { id: 2, name: "Michael Chen", email: "michael.chen@example.com", province: "Jakarta", city: "Jakarta Pusat" },
+  { id: 3, name: "Emily Rodriguez", email: "emily.rodriguez@example.com", province: "Jawa Barat", city: "Bandung" },
+  { id: 4, name: "David Wilson", email: "david.wilson@example.com", province: "Jawa Timur", city: "Surabaya" },
+  { id: 5, name: "Lisa Thompson", email: "lisa.thompson@example.com", province: "Bali", city: "Denpasar" },
+  { id: 6, name: "Ahmad Rizki", email: "ahmad.rizki@example.com", province: "Jawa Barat", city: "Bogor" },
+  { id: 7, name: "Siti Nurhayati", email: "siti.nurhayati@example.com", province: "Jawa Tengah", city: "Semarang" },
+  { id: 8, name: "Budi Santoso", email: "budi.santoso@example.com", province: "Yogyakarta", city: "Yogyakarta" },
+  { id: 9, name: "Dewi Lestari", email: "dewi.lestari@example.com", province: "Sumatera Utara", city: "Medan" },
+  { id: 10, name: "Rini Puspita", email: "rini.puspita@example.com", province: "Sulawesi Selatan", city: "Makassar" },
+  { id: 11, name: "Andi Pratama", email: "andi.pratama@example.com", province: "Jakarta", city: "Jakarta Barat" },
+  { id: 12, name: "Maya Sari", email: "maya.sari@example.com", province: "Jakarta", city: "Jakarta Timur" },
+  { id: 13, name: "Rizky Hakim", email: "rizky.hakim@example.com", province: "Jakarta", city: "Jakarta Utara" },
+  { id: 14, name: "Indira Putri", email: "indira.putri@example.com", province: "Jawa Barat", city: "Bandung" },
+  { id: 15, name: "Fajar Ramadhan", email: "fajar.ramadhan@example.com", province: "Jawa Barat", city: "Bogor" },
+  { id: 16, name: "Lestari Wulan", email: "lestari.wulan@example.com", province: "Jawa Tengah", city: "Semarang" },
+  { id: 17, name: "Bayu Setiawan", email: "bayu.setiawan@example.com", province: "Jawa Timur", city: "Surabaya" },
+  { id: 18, name: "Citra Dewi", email: "citra.dewi@example.com", province: "Bali", city: "Denpasar" },
+  { id: 19, name: "Doni Kurniawan", email: "doni.kurniawan@example.com", province: "Yogyakarta", city: "Yogyakarta" },
+  { id: 20, name: "Eka Fitriani", email: "eka.fitriani@example.com", province: "Sumatera Utara", city: "Medan" },
+  { id: 21, name: "Gilang Pratama", email: "gilang.pratama@example.com", province: "Sulawesi Selatan", city: "Makassar" },
+  { id: 22, name: "Hana Safitri", email: "hana.safitri@example.com", province: "Jakarta", city: "Jakarta Selatan" },
+  { id: 23, name: "Ivan Nugroho", email: "ivan.nugroho@example.com", province: "Jakarta", city: "Jakarta Pusat" },
+  { id: 24, name: "Jihan Amelia", email: "jihan.amelia@example.com", province: "Jawa Barat", city: "Bandung" },
+  { id: 25, name: "Kevin Wijaya", email: "kevin.wijaya@example.com", province: "Jawa Barat", city: "Bogor" },
+];
+
+export const provinces = [
+  "Jakarta",
+  "Jawa Barat", 
+  "Jawa Tengah",
+  "Jawa Timur",
+  "Bali",
+  "Sumatera Utara",
+  "Yogyakarta",
+  "Sulawesi Selatan",
+];
+
+export const cities = [
+  "Jakarta Selatan",
+  "Jakarta Pusat", 
+  "Jakarta Barat",
+  "Jakarta Timur",
+  "Jakarta Utara",
+  "Bandung",
+  "Surabaya",
+  "Semarang", 
+  "Yogyakarta",
+  "Denpasar",
+  "Medan",
+  "Makassar",
+  "Bogor",
+];

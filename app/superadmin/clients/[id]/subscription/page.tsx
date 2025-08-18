@@ -218,7 +218,7 @@ const mockClients = {
 
 export default function ManageSubscriptionPage() {
   const router = useRouter()
-  const params = useParams()
+  const params = useParams<{ id: string }>()
   const { toast } = useToast()
   const [subscriptions, setSubscriptions] = useState([])
   const [client, setClient] = useState(null)

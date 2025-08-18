@@ -2,7 +2,6 @@
 
 import type React from "react"
 
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Clock, ArrowRight } from "lucide-react"
@@ -13,7 +12,6 @@ interface CampaignCardProps {
     slug: string
     title: string
     description: string
-    type: string
     status: string
     image: string
     timeRemaining: number
@@ -22,7 +20,6 @@ interface CampaignCardProps {
 }
 
 export function CampaignCard({ campaign }: CampaignCardProps) {
-  const isQuickShare = campaign.type === "Quick Share"
   const isAvailable = campaign.status === "Available"
 
   const handleCardClick = () => {
@@ -50,14 +47,6 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
     >
       <div className="relative">
         <img src={campaign.image || "/placeholder.svg"} alt={campaign.title} className="w-full h-48 object-cover" />
-        <div className="absolute top-2 left-2">
-          <Badge
-            variant={isQuickShare ? "secondary" : "outline"}
-            className={isQuickShare ? "" : "bg-violet-50 text-violet-600 border-violet-200"}
-          >
-            {campaign.type}
-          </Badge>
-        </div>
         <div className="absolute top-2 right-2">
           <CampaignStatusBadge status={campaign.status} />
         </div>
