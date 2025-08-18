@@ -12,12 +12,7 @@ export function CampaignStatusBadge({ status }: CampaignStatusBadgeProps) {
           URL Required
         </Badge>
       )
-    case "Content Required":
-      return (
-        <Badge variant="outline" className="bg-violet-50 text-violet-600 border-violet-200">
-          Content Required
-        </Badge>
-      )
+
     case "Under Review":
       return (
         <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">

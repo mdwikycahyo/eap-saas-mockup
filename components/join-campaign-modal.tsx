@@ -16,7 +16,7 @@ interface JoinCampaignModalProps {
     status: string;
     timeRemaining: number;
     points: number;
-  };
+  } | null;
   isOpen: boolean;
   onClose: () => void;
   onJoin: () => void;
@@ -33,6 +33,33 @@ export function JoinCampaignModal({ campaign, isOpen, onClose, onJoin }: JoinCam
     onJoin();
     onClose();
   };
+
+  // Don't render the modal content if campaign is null
+  if (!campaign) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl">Join Campaign</DialogTitle>
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="space-y-6">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>No Campaign Selected</AlertTitle>
+              <AlertDescription>
+                Please select a campaign to join.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -1,6 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export function ContentAssetsForm() {
   return (
@@ -39,6 +41,24 @@ export function ContentAssetsForm() {
               <p className="text-xs text-muted-foreground">PNG, JPG, GIF, MP4 up to 10MB</p>
             </div>
           </div>
+        </div>
+
+        <div>
+          <Label htmlFor="suggested-caption" className="text-sm font-medium">
+            Suggested Caption
+          </Label>
+          <p className="text-xs text-muted-foreground mb-3">
+            Provide a suggested caption for creators to use with their posts. Include relevant hashtags and mentions.
+          </p>
+          <Textarea
+            id="suggested-caption"
+            placeholder="e.g., Check out this amazing campaign! Excited to share this with you all. #BrandCampaign @brandname [Creator: @yourhandle]"
+            className="min-h-[100px] resize-none"
+            rows={4}
+          />
+          <p className="text-xs text-muted-foreground mt-2">
+            Tip: Include hashtags, brand mentions, and leave space for creators to add their personal touch.
+          </p>
         </div>
       </CardContent>
     </Card>
