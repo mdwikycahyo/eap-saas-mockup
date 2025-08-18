@@ -75,7 +75,7 @@ export function SocialMediaApprovalSection({
           <Button
             variant="outline"
             className="w-full text-sm bg-transparent"
-            onClick={() => router.push("/admin/moderation?tab=social")}
+            onClick={() => router.push("/admin/approval?tab=social")}
           >
             Review All Accounts
           </Button>
@@ -139,7 +139,7 @@ export function SocialMediaApprovalSection({
           <Button
             variant="outline"
             className="w-full gap-1 bg-transparent"
-            onClick={() => router.push("/admin/moderation?tab=social")}
+            onClick={() => router.push("/admin/approval?tab=social")}
           >
             Review All Accounts
           </Button>

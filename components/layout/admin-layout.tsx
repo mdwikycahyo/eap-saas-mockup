@@ -43,13 +43,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     },
     {
       label: "Approval",
-      href: "/admin/moderation",
+      href: "/admin/approval",
       icon: <CheckSquare className="h-5 w-5" />,
-    },
-    {
-      label: "Reward Management",
-      href: "/admin/rewards",
-      icon: <Gift className="h-5 w-5" />,
     },
   ]
 

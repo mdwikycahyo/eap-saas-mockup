@@ -13,10 +13,10 @@ import { mockDashboardStats } from "@/data/dashboardStats";
 
 export default function AdminDashboard() {
   const {
-    pendingContentApprovals,
+    pendingUrlApprovals,
     pendingSocialMedia,
-    handleApproveContent,
-    handleRejectContent,
+    handleApproveUrl,
+    handleRejectUrl,
     handleVerifySocialMedia,
     handleRejectSocialMedia,
   } = useApprovals();
@@ -33,12 +33,12 @@ export default function AdminDashboard() {
   } = useModalState();
 
   const handleApproveAndClose = (itemId: string) => {
-    handleApproveContent(itemId);
+    handleApproveUrl(itemId);
     setIsReviewDialogOpen(false);
   };
 
   const handleRejectAndClose = (itemId: string) => {
-    handleRejectContent(itemId);
+    handleRejectUrl(itemId);
     setIsReviewDialogOpen(false);
   };
 
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
             />
 
             <ContentApprovalSection
-              pendingContentApprovals={pendingContentApprovals}
+              pendingContentApprovals={pendingUrlApprovals}
               onOpenReviewDialog={openContentReviewDialog}
             />
 
@@ -92,7 +92,7 @@ export default function AdminDashboard() {
             />
 
             <ContentApprovalSection
-              pendingContentApprovals={pendingContentApprovals}
+              pendingContentApprovals={pendingUrlApprovals}
               onOpenReviewDialog={openContentReviewDialog}
             />
 

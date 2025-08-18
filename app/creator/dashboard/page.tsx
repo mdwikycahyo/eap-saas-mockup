@@ -21,7 +21,7 @@ import {
   TrendingUp,
 } from "lucide-react"
 import { TikTokIcon } from "@/components/tik-tok-icon"
-import CampaignModal from "@/components/campaign-modal"
+import { CampaignModal } from "@/components/campaign-modal"
 import { JoinCampaignModal } from "@/components/join-campaign-modal"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
